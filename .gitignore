@@ -1,0 +1,18 @@
+# Bỏ qua các file rác của hệ điều hành
+.DS_Store
+Thumbs.db
+
+# Bỏ qua file của IDE
+.idea/
+*.iml
+.vscode/
+
+# Bỏ qua file build của Android & Gradle
+mobile/build/
+mobile/.gradle/
+local.properties
+
+# Bỏ qua file build của Spring Boot (Maven/Gradle)
+backend/target/
+backend/build/
+backend/.gradle/
