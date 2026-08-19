@@ -9,10 +9,13 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/vocabularies")
-@RequiredArgsConstructor
 public class VocabularyController {
 
     private final VocabularyRepository vocabularyRepository;
+
+    public VocabularyController(VocabularyRepository vocabularyRepository) {
+        this.vocabularyRepository = vocabularyRepository;
+    }
 
     // API 1: Lấy toàn bộ danh sách từ vựng
     // Endpoint: GET http://localhost:8080/api/vocabularies
