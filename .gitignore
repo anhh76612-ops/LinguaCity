@@ -16,3 +16,8 @@ local.properties
 backend/target/
 backend/build/
 backend/.gradle/
+
+# Cau hinh ca nhan va file tam cua trinh soan thao
+/backend/config/local.properties
+*.drawio.bkp
+~$*.docx
