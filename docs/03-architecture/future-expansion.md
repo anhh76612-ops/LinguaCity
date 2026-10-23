@@ -83,3 +83,31 @@ Mỗi tính năng mở rộng tiếp tục được đóng gói thành một Lá
 3.  **Tuyệt đối không trộn lẫn:** Không kéo các Actor tương lai như `Teacher`, `Student` vào sơ đồ Use Case lõi của MVP. Không tạo các bảng vật lý như `classes` hay `assignments` trong cơ sở dữ liệu PostgreSQL thực tế của Giai đoạn 1.
 
 **Ý nghĩa phương pháp:** Việc tổ chức này là minh chứng trực quan mạnh mẽ nhất trong Portfolio của bạn về sự cân bằng hoàn hảo giữa tính thực tế (**YAGNI** - chỉ làm những gì cần thiết ở hiện tại) và tầm nhìn kiến trúc dài hạn (**Architectural Foresight** - luôn suy nghĩ và chừa đường cho sự phát triển của hệ thống).
+
+---
+
+## 5. MỞ RỘNG NỀN TẢNG WEB (BỔ SUNG 20/10/2026)
+
+Định hướng mới: sau khi MVP mobile ổn định, phát triển thêm **Web** để (1) theo dõi tiến độ học tập và (2) xây dựng cộng đồng người học.
+
+### 5.1. Nguyên tắc
+*   **Web là một client mới của cùng Backend REST**, không phải hệ thống riêng. Backend vẫn là Server Authority.
+*   **Điều kiện tiên quyết:** VS6 (Authentication). Web không thể dùng Guest UUID của thiết bị → cần tài khoản đăng ký và **Account Linking** (gắn Guest UUID hiện có vào tài khoản mới để không mất tiến trình).
+*   **Không làm Web trong Giai đoạn 1.** Không tạo bảng, API hay project web nào trước khi MVP đạt Definition of Done.
+
+### 5.2. Lựa chọn công nghệ dự kiến (chưa chốt — ghi ADR khi bắt đầu)
+| Thành phần | Đề xuất | Ghi chú |
+| :--- | :--- | :--- |
+| Web Dashboard | React / Next.js (TypeScript) | Gọi REST API sẵn có; biểu đồ tiến độ |
+| Xác thực | Spring Security + JWT (VS6) | Dùng chung cho Mobile và Web |
+| Cộng đồng | ⬜ Bảng tin, bình luận, xếp hạng theo lớp/nhóm | Domain mới `community` — tách package riêng ở Backend |
+| Thành phố trên Web | ⬜ Tùy chọn: Unity WebGL dùng lại scene City | Chỉ cân nhắc nếu ADR-009 được Accepted |
+
+### 5.3. Lát cắt dọc bổ sung (sau VS13)
+*   **VS14:** Account Linking — gắn Guest UUID vào tài khoản đăng ký.
+*   **VS15:** Web Dashboard theo dõi tiến độ cá nhân (đọc dữ liệu, không ghi).
+*   **VS16:** Cộng đồng — hồ sơ công khai, bảng xếp hạng, chia sẻ thành phố.
+
+### 5.4. Ảnh hưởng tới thiết kế MVP hiện tại
+*   Giữ API trả **DTO độc lập nền tảng** (không có trường riêng cho Android) để Web dùng lại được.
+*   Giữ quy tắc "Unity không gọi API" (ADR-009) — nhờ vậy logic không bị phân tán khi có thêm Web.

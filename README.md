@@ -9,8 +9,10 @@ LinguaCity/
 ├── backend/      Spring Boot, Java 17, PostgreSQL
 ├── mobile/       Android, Kotlin, Jetpack Compose
 ├── database/     SQL migration lưu trong repository
-└── docs/         Yêu cầu, thiết kế, ADR và kế hoạch Vertical Slice
+└── docs/         Yêu cầu, thiết kế game, kiến trúc, ADR, kiểm thử — mục lục tại docs/README.md
 ```
+
+Dự kiến thêm `unity/` (project Unity hiển thị thành phố, xem `docs/adr/ADR-009-unity-as-library.md`).
 
 Backend và Mobile là hai dự án Gradle độc lập. Mở `backend/` và `mobile/` riêng trong IDE, hoặc liên kết hai dự án Gradle nếu mở thư mục gốc.
 

@@ -1266,7 +1266,8 @@ VS1 — Guest Onboarding
 ├── Android Presentation          ✅
 ├── End-to-end network flow       ✅
 ├── Duplicate prevention          ✅
-└── Formal EA/BR finalization     🟡
+├── Formal EA/BR finalization     🟡
+└── Tutorial completion (UC_02)   🟡  ← đang làm (API xong, thiếu test/migration/UI)
 
 VS2 — Static Content
 ├── Business Rules                ⬜
@@ -1281,8 +1282,11 @@ VS2 — Static Content
 
 VS3 — Vocabulary Learning
 VS4 — Exam
-VS5 — Building Upgrade
+TS-UNITY — Tech Spike Unity as a Library (ADR-009, tối đa 1–2 tuần)
+VS5 — Building Upgrade (City View: Unity nếu TS-UNITY đạt, ngược lại Compose)
 ```
+
+> **Cập nhật 20/10/2026:** chèn **TS-UNITY** trước VS5. TS-UNITY có thể làm sớm hơn (ngay sau VS2) nếu muốn biết sớm Unity có khả thi không — nó không phụ thuộc VS3/VS4.
 
 SRS Definition of Done hiện tại đi theo đúng thứ tự logic: Guest User → Static Content → Offline Learning → Online Learning → Exam → Building Upgrade → On-Demand Sync.
 
@@ -1298,9 +1302,10 @@ Mỗi Vertical Slice phải có đúng 8 phần:
 3. EA / Traceability
 4. Database
 5. Backend
-6. Android
+6. Android (+ Unity nếu Slice chạm City View)
 7. Integration Test
 8. Acceptance / ADR
+9. Docs checklist (§27)
 ```
 
 Không được bắt đầu code Slice mới nếu chưa rõ:
@@ -1459,3 +1464,24 @@ ADR
 ```
 
 Mỗi Slice phải tạo ra **một sản phẩm chạy được**, không chỉ một tập class.
+
+---
+
+# 27. Docs checklist cho mỗi Vertical Slice (bổ sung 20/10/2026)
+
+Tài liệu được viết **theo Slice**: làm tới đâu, bổ sung tới đó. Một Slice chỉ được đổi sang `VERIFIED` khi checklist này xong.
+
+```text
+[ ] 01-requirements/requirements-catalog.md   → đổi trạng thái FR/NFR của Slice          (Báo cáo Ch.1.3)
+[ ] 01-requirements/use-cases.md              → bảng đặc tả UC của Slice                 (Ch.2.4)
+[ ] 02-game-design/gdd.md                     → chốt các thông số balance Slice dùng     (Ch.3.4 công thức)
+[ ] 03-architecture/system-design.md          → bảng DB, API contract, sequence thực tế  (Ch.3, Ch.5)
+[ ] 04-ui/screen-catalog.md                   → wireframe/ảnh + bảng thành phần + biến cố (Ch.4)
+[ ] 06-testing/test-plan.md                   → test case + kết quả + ảnh minh chứng      (Ch.6.2)
+[ ] adr/                                      → ADR mới nếu có quyết định; troubleshooting-log nếu có lỗi
+[ ] EA                                        → đổi Status element, cập nhật Traceability
+[ ] docs/README.md                            → cập nhật bảng trạng thái
+```
+
+**Mẹo:** viết đặc tả UC và wireframe **trước khi code** Slice (đó là "bản vẽ"), còn sequence, test case và ADR viết **sau khi code** (đó là "biên bản").
+

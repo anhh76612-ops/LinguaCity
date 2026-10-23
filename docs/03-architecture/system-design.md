@@ -7,16 +7,18 @@
 **Phiên bản:** 3.0 (Bản nâng cấp nhất quán hệ thống & API)
 **Người thực hiện:** Nông Hoàng Anh
 **Ngày tạo:** 19/08/2026
-**Ngày cập nhật cuối cùng:** 25/08/2026 (Cập nhật API v3)
+**Ngày cập nhật cuối cùng:** 20/10/2026 — v3.1: thêm luồng Onboarding/Tutorial (§4.0), Kiến trúc Client Kotlin + Unity (Chương 9), chuẩn hóa mã UC trong Traceability (§8.2)
+
+> **Ghi chú v3.1:** Các chương 3–7 vẫn là baseline đã đóng băng. Thay đổi mới chỉ **bổ sung**, không sửa mô hình dữ liệu.
 
 ---
 
 ## CHƯƠNG 1: MỤC ĐÍCH TÀI LIỆU & PHẠM VI THIẾT KẾ
 
-Tài liệu này là tài liệu trung tâm của **Giai đoạn 2 — System Design** cho dự án **LinguaCity**. Mục tiêu tối thượng của tài liệu là chuyển hóa các yêu cầu chức năng và phi chức năng đã được thống nhất trong tài liệu `srs-mvp-v2.md` thành các đặc tả thiết kế kỹ thuật chi tiết, có khả năng triển khai thực tế trên cả hai nền tảng: **Backend (Spring Boot + PostgreSQL)** và **Mobile App (Kotlin Jetpack Compose + Room DB)**.
+Tài liệu này là tài liệu trung tâm của **Giai đoạn 2 — System Design** cho dự án **LinguaCity**. Mục tiêu tối thượng của tài liệu là chuyển hóa các yêu cầu chức năng và phi chức năng đã được thống nhất trong tài liệu `srs-mvp.md` thành các đặc tả thiết kế kỹ thuật chi tiết, có khả năng triển khai thực tế trên cả hai nền tảng: **Backend (Spring Boot + PostgreSQL)** và **Mobile App (Kotlin Jetpack Compose + Room DB)**.
 
 Tài liệu này đóng vai trò là chiếc cầu nối kỹ thuật quan trọng trong chuỗi tài liệu dự án:
-*   **File 01 (srs-mvp-v2.md) trả lời:** *Hệ thống phải làm gì?* (Requirements Specification)
+*   **File 01 (srs-mvp.md) trả lời:** *Hệ thống phải làm gì?* (Requirements Specification)
 *   **File 02 (tài liệu này) trả lời:** *Hệ thống sẽ được thiết kế kỹ thuật như thế nào?* (System Architecture & Design Blueprint)
 *   **File 03 (Nhật ký ADR & Codebase) ghi lại:** *Thiết kế đã được chuyển đổi thành mã nguồn và quyết định thực tế như thế nào?* (Implementation & ADR)
 
@@ -102,10 +104,54 @@ Mô hình miền của LinguaCity được thiết kế xoay quanh một nguyên
 
 ## CHƯƠNG 4: BEHAVIORAL & PROCESS VIEW (GÓC NHÌN ĐỘNG / TUẦN TỰ)
 
-Trong Enterprise Architect, **Process View** mô tả hoạt động runtime của hệ thống qua các Biểu đồ tuần tự (Sequence Diagram). Dưới đây là đặc tả chi tiết của 4 luồng xử lý nghiệp vụ cốt lõi trong LinguaCity.
+Trong Enterprise Architect, **Process View** mô tả hoạt động runtime của hệ thống qua các Biểu đồ tuần tự (Sequence Diagram). Dưới đây là đặc tả chi tiết của các luồng xử lý nghiệp vụ cốt lõi trong LinguaCity.
+
+### 4.0. Luồng Khởi tạo người chơi khách & Hoàn thành Tutorial (VS1 — đã triển khai)
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor P as Guest Player
+    participant UI as OnboardingScreen / ViewModel
+    participant UC as OnboardUserUseCase
+    participant DS as GuestIdStore (DataStore)
+    participant API as Retrofit OnboardingApi
+    participant C as UserProfileController
+    participant S as UserOnboardingService
+    participant DB as PostgreSQL user_profiles
+    participant R as Room UserProfileDao
+
+    P->>UI: Mở app
+    UI->>UC: invoke()
+    UC->>DS: Đọc Guest UUID
+    alt Chưa có UUID
+        UC->>DS: Sinh UUID mới và lưu
+    end
+    UC->>API: POST /api/v1/users/onboard (X-Guest-UUID)
+    API->>C: HTTP request
+    C->>S: onboardUser(uuid)
+    S->>DB: findById(uuid)
+    alt Chưa tồn tại
+        S->>DB: save(UserProfile, tài nguyên = 0)
+    end
+    S-->>C: UserProfile
+    C-->>API: 200 OnboardUserResponse
+    API-->>UC: DTO
+    UC->>R: lưu UserProfileEntity
+    UC-->>UI: Success, State cập nhật
+
+    Note over P,DB: Tutorial (UC_02, đang làm)
+    P->>UI: Hoàn thành hướng dẫn
+    UI->>API: POST /api/v1/users/me/tutorial/complete (X-Guest-UUID)
+    API->>C: completeTutorial(uuid)
+    C->>DB: tutorialCompleted = true
+    C-->>API: 200 tutorialCompleted=true, hoặc 404 nếu UUID chưa onboard
+```
+
+> ⬜ Vẽ lại sơ đồ này trong EA (`04_Behavioral_Model`) nếu chưa khớp, export PNG vào `diagrams/images/seq-onboarding.png` cho Chương 5 của báo cáo.
 
 ### 4.1. Luồng Bắt đầu thi sát hạch (Start Exam Flow)
-Đảm bảo tính nguyên tử (Atomic) trong việc trừ tài nguyên đầu vào và cấp phátSnapshot đề thi bảo mật.
+Đảm bảo tính nguyên tử (Atomic) trong việc trừ tài nguyên đầu vào và cấp phát Snapshot đề thi bảo mật.
 
 ```mermaid
 sequenceDiagram
@@ -732,7 +778,7 @@ Khi mở EA, tại mục **Project Browser**, bạn hãy tạo cấu trúc cây 
 ```text
 LinguaCity Project Model (Root)
 ├── 01_Requirements_Model (Package)
-│   └── Mở Diagram: Requirements Diagram (Nạp danh sách yêu cầu từ srs-mvp-v2)
+│   └── Mở Diagram: Requirements Diagram (Nạp danh sách yêu cầu từ requirements-catalog.md)
 ├── 02_Use_Case_Model (Package)
 │   └── Mở Diagram: Use Case Diagram (Khai báo 2 Actor và 10 Use Case lõi)
 ├── 03_Logical_Model (Package)
@@ -753,12 +799,16 @@ LinguaCity Project Model (Root)
 
 | Mã yêu cầu | Mô tả Nghiệp vụ | Use Case liên kết | REST API Endpoint | Thực thể miền (Class) | Bảng DB PostgreSQL | Bảng Room di động |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **REQ_01** | Người chơi có mã định danh không cần đăng nhập | `UC_00` (Onboard User) | `POST /api/v1/users/onboard` | `UserProfile` | `user_profiles` | `UserProfileEntity` |
-| **REQ_02** | Học từ vựng theo Theme ngẫu nhiên có trọng số | `UC_02` (Học từ vựng) | `GET /api/v1/buildings/{buildingId}/learning/next` | `Vocabulary`, `Question` | `vocabularies`, `questions` | `VocabularyEntity`, `QuestionEntity` |
-| **REQ_03** | Chấm điểm học từ vựng bảo mật tại Server | `UC_03` (Làm Quiz) | `POST /api/v1/learning/answer` | `UserVocabProgress` | `user_vocab_progress` | `UserVocabProgressEntity` |
-| **REQ_04** | Cho phép thi sát hạch nâng cấp công trình | `UC_06` (Bắt đầu thi) | `POST /api/v1/exams/{id}/start` | `ExamAttempt`, `Exam` | `exam_attempts`, `exams` | `ExamAttemptEntity`, `ExamEntity` |
-| **REQ_05** | Nộp bài thi sát hạch nhận Bản vẽ cụ thể | `UC_07` (Nộp bài thi) | `POST /api/v1/attempts/{attemptId}/submit` | `ExamAttemptQuestion` | `exam_attempt_questions` | `ExamAttemptQuestionEntity` |
-| **REQ_06** | Dùng Bản vẽ và Điểm Tri thức để nâng cấp nhà | `UC_08` (Nâng cấp nhà) | `POST /api/v1/buildings/{id}/upgrade`| `UserBuilding`, `UserBlueprint`| `user_buildings`, `user_blueprints`| `UserBuildingEntity`, `UserBlueprintEntity`|
+| **FR-USER-01, 02** | Người chơi có mã định danh không cần đăng nhập | `UC_01` (Onboard User) | `POST /api/v1/users/onboard` | `UserProfile` | `user_profiles` | `UserProfileEntity` |
+| **FR-USER-04** | Hoàn thành Tutorial lần đầu | `UC_02` (Complete Tutorial) | `POST /api/v1/users/me/tutorial/complete` | `UserProfile` | `user_profiles.tutorial_completed` | `UserProfileEntity` |
+| **FR-SYS-02, FR-LEARN-01/02** | Tải nội dung tĩnh, xem từ vựng/Flashcard offline | `UC_03`, `UC_04` | ⬜ (thiết kế ở VS2) | `Theme`, `Building`, `Vocabulary` | `themes`, `buildings`, `vocabularies` | `VocabularyEntity`… |
+| **FR-LEARN-03** | Học từ vựng theo Theme ngẫu nhiên có trọng số | `UC_05` (Take Learning Session) | `GET /api/v1/buildings/{buildingId}/learning/next` | `Vocabulary`, `Question` | `vocabularies`, `questions` | `VocabularyEntity`, `QuestionEntity` |
+| **FR-LEARN-04** | Chấm điểm học từ vựng bảo mật tại Server | `UC_05` (Take Learning Session) | `POST /api/v1/learning/answer` | `UserVocabProgress` | `user_vocab_progress` | `UserVocabProgressEntity` |
+| **FR-EXAM-02** | Cho phép thi sát hạch nâng cấp công trình | `UC_07` (Start Exam) | `POST /api/v1/exams/{id}/start` | `ExamAttempt`, `Exam` | `exam_attempts`, `exams` | `ExamAttemptEntity`, `ExamEntity` |
+| **FR-EXAM-03** | Nộp bài thi sát hạch nhận Bản vẽ cụ thể | `UC_08` (Submit Exam) | `POST /api/v1/attempts/{attemptId}/submit` | `ExamAttemptQuestion` | `exam_attempt_questions` | `ExamAttemptQuestionEntity` |
+| **FR-CITY-03** | Dùng Bản vẽ và Điểm Tri thức để nâng cấp nhà | `UC_10` (Upgrade Building) | `POST /api/v1/buildings/{id}/upgrade`| `UserBuilding`, `UserBlueprint`| `user_buildings`, `user_blueprints`| `UserBuildingEntity`, `UserBlueprintEntity`|
+
+> **v3.1:** Mã `REQ_0x` cũ được thay bằng mã trong [requirements-catalog.md](../01-requirements/requirements-catalog.md); mã UC theo [use-cases.md](../01-requirements/use-cases.md). Đã sửa `UC_00 → UC_01` theo quyết định trong handover §2.2. Ánh xạ cũ → mới: REQ_01→FR-USER-01/02 · REQ_02→FR-LEARN-03 · REQ_03→FR-LEARN-04 · REQ_04→FR-EXAM-02 · REQ_05→FR-EXAM-03 · REQ_06→FR-CITY-03. **Cần cập nhật lại tên/mã các element tương ứng trong EA.**
 
 ---
 
@@ -777,6 +827,80 @@ LinguaCity Project Model (Root)
 3.  **Học hỏi qua sự thay đổi thiết kế:**  
     Mỗi khi bạn phát hiện thiết kế ban đầu bị lỗi hoặc không tối ưu trong quá trình code thực tế:
     *   **Bước 1:** Cập nhật lại sơ đồ tương ứng trong Enterprise Architect để phản ánh đúng thực tế mã nguồn.
-    *   **Bước 2:** Viết thêm một mục nhật ký quyết định (ADR) mới vào tệp `architectural-decisions-lessons.md` để ghi nhận: *Bối cảnh lỗi là gì, quyết định thay đổi ra sao và bài học kinh nghiệm rút ra là gì*.  
+    *   **Bước 2:** Viết thêm một mục nhật ký quyết định (ADR) mới vào thư mục `docs/adr/` (một file `ADR-0xx-*.md` mới, xem mẫu trong `adr/README.md`) để ghi nhận: *Bối cảnh lỗi là gì, quyết định thay đổi ra sao và bài học kinh nghiệm rút ra là gì*.  
     *Phương pháp học lặp này sẽ nhanh chóng rèn luyện cho bạn tư duy thiết kế hệ thống nhạy bén của một Kiến trúc sư phần mềm chuyên nghiệp.*
 
+---
+
+## CHƯƠNG 9: KIẾN TRÚC CLIENT — KOTLIN CHỦ + UNITY NHÚNG (v3.1, 🟡 Proposed)
+
+> Quyết định và rủi ro: [ADR-009](../adr/ADR-009-unity-as-library.md). Chương này mô tả **cách các thành phần nối với nhau**; chỉ chuyển sang Frozen sau khi Tech Spike TS-UNITY đạt.
+
+### 9.1. Sơ đồ thành phần
+
+```text
+┌──────────────────────── Android App (Kotlin — ứng dụng chủ) ─────────────────────────┐
+│                                                                                      │
+│  presentation/                   domain/                 data/                       │
+│  ├── onboarding, learning, exam ─► UseCases ─► Repository ─► Room · Retrofit · DataStore
+│  └── city/                                                    │                      │
+│       ├── CityViewModel (MVI) ◄── CityState (từ Room)         │ REST                 │
+│       └── CityRenderer (interface)                            ▼                      │
+│            ├── ComposeCityRenderer  (đường lui)          Spring Boot Backend         │
+│            └── UnityCityRenderer ──┐                     (Server Authority)          │
+│                                    │ UnityBridge                                     │
+└────────────────────────────────────┼─────────────────────────────────────────────────┘
+                                     │ Kotlin → Unity: UnitySendMessage("CityBridge", "ApplyState", json)
+                                     │ Unity → Kotlin: AndroidJavaProxy → CityIntentListener.onIntent(json)
+┌────────────────────────────────────▼──────── unityLibrary (Unity, C#) ───────────────┐
+│  CityBridge.cs           → nhận CityState, phát CityIntent                            │
+│  CitySceneController.cs  → vẽ 4 công trình theo level, hiệu ứng xây, dấu (!)          │
+│  ✘ Không HTTP · ✘ Không lưu tài nguyên · ✘ Không tính toán kinh tế                     │
+└──────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+### 9.2. Hợp đồng cầu nối (Bridge Contract — bản nháp)
+
+**Kotlin → Unity: `CityState`**
+```json
+{
+  "buildings": [
+    { "code": "HOUSING", "level": 1, "status": "IDLE", "upgradeFinishAt": null },
+    { "code": "SCHOOL", "level": 1, "status": "UPGRADING", "upgradeFinishAt": "2026-10-20T10:00:00Z" }
+  ],
+  "cityEvents": [ { "id": 12, "x": 3, "y": 5 } ],
+  "serverTime": "2026-10-20T09:30:00Z"
+}
+```
+
+**Unity → Kotlin: `CityIntent`**
+```json
+{ "type": "BUILDING_TAPPED", "buildingCode": "HOUSING" }
+{ "type": "UPGRADE_REQUESTED", "buildingCode": "HOUSING" }
+{ "type": "CITY_EVENT_TAPPED", "eventId": 12 }
+{ "type": "BACK_PRESSED" }
+```
+
+**Nguyên tắc:**
+1. `CityState` chỉ được tạo từ dữ liệu Room đã đồng bộ với Server — Unity luôn hiển thị **sự thật của Server**.
+2. Unity chỉ phát **ý định**; Kotlin quyết định gọi API nào (ví dụ `UPGRADE_REQUESTED` → `UpgradeBuildingUseCase`).
+3. Đếm ngược thời gian xây trong Unity chỉ để **hiển thị**, tính từ `serverTime`; hoàn tất thật do Backend xác nhận (FR-SYS-04).
+4. Mỗi thông điệp có trường `type`; thêm trường mới không phá phiên bản cũ.
+
+### 9.3. Ảnh hưởng tới cấu trúc repository
+
+```text
+LinguaCity/
+├── backend/        (không đổi)
+├── mobile/         + module :unityLibrary (sinh ra từ Unity Export) + presentation/city/
+├── unity/          MỚI — project Unity (Assets/, ProjectSettings/, Packages/)
+├── database/
+└── docs/
+```
+`.gitignore` cần thêm `unity/Library/`, `unity/Temp/`, `unity/Logs/`, `unity/Build/`, `unity/UserSettings/`.
+
+### 9.4. Việc cần chốt trong Tech Spike
+- ⬜ Phiên bản Unity LTS và Android `minSdk`/NDK tương thích.
+- ⬜ Unity mở toàn màn hình (Activity riêng) hay chiếm một phần màn hình Compose.
+- ⬜ Cách quay lại Compose và giữ Unity "ấm" để mở lại nhanh.
+- ⬜ Dung lượng APK trước/sau (NFR-07).

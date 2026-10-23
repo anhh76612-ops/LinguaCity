@@ -1,0 +1,125 @@
+# LINGUACITY — GAME DESIGN DOCUMENT (GDD)
+
+**Tên dự án:** LinguaCity (Thành phố Ngôn ngữ)
+**Loại tài liệu:** Game Design Document — mô tả **trải nghiệm chơi** (cái người chơi thấy và cảm nhận)
+**Người thực hiện:** Nông Hoàng Anh
+**Trạng thái:** 🟡 Living document — phần Core Loop đã chốt, phần Balance và Art còn mở
+
+> **Phân vai tài liệu**
+> - SRS (`01-requirements/srs-mvp.md`) trả lời **hệ thống phải làm gì**.
+> - GDD (tài liệu này) trả lời **người chơi trải nghiệm gì, game vận hành ra sao**.
+> - System Design (`03-architecture/system-design.md`) trả lời **xây dựng kỹ thuật như thế nào**.
+>
+> Phần Cơ chế cốt lõi (mục 3–4) được chuyển từ SRS sang đây để SRS chỉ còn yêu cầu, không lẫn thiết kế game.
+
+---
+
+## 1. TRIẾT LÝ THIẾT KẾ (PRODUCT PRINCIPLE)
+
+> **"Tiến bộ học tập trực tiếp quyết định tiến bộ của thành phố."**
+
+Vòng lặp Học tập (Learning Loop) và Vòng lặp Thành phố (City Loop) không tồn tại độc lập mà phải giao nhau tại một "nút thắt" bắt buộc. Người chơi không thể chỉ phát triển thành phố mà không học tập, và ngược lại.
+
+---
+
+## 2. THẾ GIỚI GAME: CÔNG TRÌNH = CHỦ ĐỀ (THEME), KHÔNG PHẢI KỸ NĂNG
+
+Mỗi công trình liên kết với một Theme (Chủ đề), không khóa cứng với kỹ năng để tránh coupling (xem ADR-003, Case 1).
+
+| Công trình | Theme từ vựng | Vai trò trong game |
+| :--- | :--- | :--- |
+| 🏠 **Housing (Nhà ở)** | Daily Life, House | Sinh Knowledge Points thụ động |
+| 🛣️ **Road (Đường xá)** | Transportation, Vehicles | ⬜ Chưa chốt vai trò phụ |
+| 🌳 **Park (Công viên)** | Environment, Social | ⬜ Chưa chốt vai trò phụ |
+| 🏫 **School (Trường học)** | Education | **Exam Center** — nơi chứa các bài thi nâng cấp cho mọi công trình |
+
+Trong MVP, mọi công trình chỉ dùng **Reading** và **Writing** (trắc nghiệm, điền từ) — xem ADR-006.
+
+**Trường học (School) — Trung tâm khảo thí:** Bài thi sát hạch (Exam) khi Pass trả về một Bản vẽ cụ thể (`reward_blueprint_id`) tương ứng với công trình và Level cần mở khóa.
+
+---
+
+## 3. CORE LOOP (VÒNG LẶP KÉP)
+
+```text
+   ┌──────────────────────────────────────────────────────────────┐
+   │                                                              │
+   ▼                                                              │
+[1. HỌC]  ──thu thập thẻ──►  [2. MỞ KHÓA THI]  ──đủ tài nguyên──► [3. THI SÁT HẠCH]
+ Kotlin                        Kotlin                              Kotlin
+   ▲                                                              │ Pass → Blueprint
+   │                                                              ▼
+   └──── mở khóa Level từ vựng mới ◄──── [4. XÂY DỰNG / NÂNG CẤP] ◄┘
+                                          Unity (hiển thị) + Kotlin (gọi API)
+```
+
+1. **Học tập (Learn):** Học từ vựng của công trình hiện tại để tích lũy Collection Progress. Mỗi lần tham gia bài học có **20 câu hỏi tạo từ 10 từ vựng** khác nhau lấy trong bể; hoàn thành nhận Knowledge Points theo mức điểm.
+2. **Mở khóa bài thi (Unlock Exam):** Khi số thẻ từ vựng đã thu thập (Collection Progress) đạt ngưỡng trong cấu hình `ExamRequirement` (ví dụ 40/40 từ của Level 1) — xem ADR-005.
+3. **Thi sát hạch (Start & Pass Exam):** Tiêu thụ Knowledge Points + Blueprint Shards để tham gia. Pass → nhận Blueprint cụ thể. Fail → **không hoàn lại** chi phí, tiến độ từ vựng giữ nguyên, được ôn và thi lại.
+4. **Xây dựng (Build/Upgrade):** Tiêu thụ Blueprint + Knowledge Points để nâng cấp công trình. Quá trình xây chạy theo thời gian thực (kiểm tra bằng **Server Time**). Hoàn tất → mở khóa Level từ vựng tiếp theo.
+
+### 3.1. Sự kiện thành phố (City Events)
+Bài tập Ngữ pháp (Grammar) xuất hiện dưới dạng dấu chấm than (!) trên bản đồ (ví dụ: giúp người dân điền đúng thì ngữ pháp). Trả lời đúng nhận Knowledge Points và Blueprint Shard.
+- Unity: hiển thị dấu (!) và gửi `CityEventTapped(eventId)` về Kotlin.
+- Kotlin: mở màn hình câu hỏi, gọi Backend chấm điểm.
+
+### 3.2. Tutorial lần đầu (đang triển khai ở VS1)
+- Backend đã có `POST /api/v1/users/me/tutorial/complete` và cột `tutorial_completed` trên `UserProfile`.
+- ⬜ Chưa chốt: nội dung từng bước tutorial, tutorial chạy trong Kotlin hay Unity, có cho bỏ qua không.
+
+---
+
+## 4. HỆ THỐNG TÀI NGUYÊN & KINH TẾ
+
+| Tài nguyên | Cách kiếm | Cách tiêu | Lưu ở |
+| :--- | :--- | :--- | :--- |
+| **Knowledge Points** (Điểm Tri Thức) — tiền tệ chính | Thu hoạch thụ động từ Housing; làm bài học; City Events | Phí thi; phí nâng cấp | `user_profiles.knowledge_points` |
+| **Hourglass** (Đồng hồ cát) | ⬜ Chưa chốt | Tua nhanh thời gian xây | `user_profiles.hourglass_count` |
+| **Blueprint Shards** (Mảnh bản vẽ) — item nút thắt | Nhiệm vụ hằng ngày, City Events (Grammar) | Phí đầu vào bài thi | `user_profiles.blueprint_shards` |
+| **Blueprint** (Bản vẽ) | Pass Exam | Nâng cấp công trình đúng loại + đúng level | `user_blueprints` |
+
+**Quy tắc đã đóng băng (Freeze):**
+- Exam Entry Cost bị trừ ngay khi Start Exam; Fail không hoàn lại.
+- Pass nhận Blueprint cụ thể, gắn với Building + Target Level.
+- Upgrade dùng Blueprint của Target Level.
+- Mastery: đúng `+1`, sai `-1`, giới hạn trong `0..max_mastery` (xem System Design §3.3).
+
+---
+
+## 5. PHÂN VAI HIỂN THỊ: UNITY vs KOTLIN
+
+Theo ADR-009 (🟡 Proposed): Kotlin là ứng dụng chủ, Unity chỉ hiển thị City View.
+
+| Trải nghiệm | Làm bằng | Ghi chú |
+| :--- | :--- | :--- |
+| Splash / Đồng bộ dữ liệu | Kotlin (Compose) | Onboarding Guest, tải Static Content |
+| City View (bản đồ, 4 công trình, hiệu ứng xây dựng, dấu (!)) | **Unity** (đường lui: Compose) | Chỉ nhận `CityState`, gửi intent về Kotlin |
+| Chi tiết công trình (level, chi phí nâng cấp) | Kotlin (Compose, dạng bottom sheet / màn hình) | ⬜ Có thể làm overlay trong Unity — chốt khi làm VS5 |
+| Học từ vựng, Flashcard, Mini-game | Kotlin (Compose) | Hỗ trợ offline đọc (ADR-004) |
+| Exam Center | Kotlin (Compose) | Bắt buộc online |
+| Tutorial | ⬜ Chưa chốt | |
+
+---
+
+## 6. NỘI DUNG CẦN BỔ SUNG (⬜)
+
+### 6.1. Cân bằng game (Game Balance) — để mở, chỉnh sau khi có prototype
+- ⬜ Giá xây dựng / nâng cấp từng Level, thời gian xây.
+- ⬜ Tốc độ sinh Knowledge Points của Housing.
+- ⬜ Level tối đa của mỗi công trình.
+- ⬜ `max_mastery` theo Difficulty Rank; công thức weight chọn thẻ; cooldown khi thẻ vừa dùng.
+- ⬜ Difficulty distribution cho các Level cao.
+- ⬜ Cách chấm điểm Exam và ngưỡng Pass.
+- ⬜ Nguồn kiếm Hourglass.
+
+> Nguyên tắc (SRS Appendix A.5): **không hardcode Game Balance vào SRS**; các giá trị nằm trong bảng cấu hình (`building_levels`, `exam_requirements`) hoặc Constants ở Backend.
+
+### 6.2. Phong cách hình ảnh & âm thanh (Art & Audio Direction)
+- ⬜ Góc nhìn: 2D top-down / isometric 2.5D / 3D low-poly.
+- ⬜ Bảng màu, phong cách nhân vật (người dân).
+- ⬜ Nguồn asset (tự vẽ / Unity Asset Store / Kenney.nl…) và giấy phép sử dụng.
+- ⬜ Âm thanh: nhạc nền, hiệu ứng đúng/sai, hoàn thành xây dựng.
+
+### 6.3. Tiến trình người chơi (Progression)
+- ⬜ Bảng mở khóa theo Level: Level 1 có bao nhiêu từ, mở công trình nào trước.
+- ⬜ Nhiệm vụ hằng ngày (Daily Quest) — nội dung và phần thưởng.
