@@ -22,7 +22,8 @@ class OnboardingViewModel @Inject constructor(
     fun onIntent(intent: OnboardingIntent) {
         when (intent) {
 
-            OnboardingIntent.Onboard -> onboardUser()
+            OnboardingIntent.Onboard,
+            OnboardingIntent.Retry -> onboardUser()
         }
     }
 

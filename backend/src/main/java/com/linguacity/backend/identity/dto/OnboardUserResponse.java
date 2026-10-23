@@ -6,6 +6,7 @@ public record OnboardUserResponse(
         UUID userId,
         Integer knowledgePoints,
         Integer hourglassCount,
-        Integer blueprintShards
+        Integer blueprintShards,
+        Boolean tutorialCompleted
 ) {
 }

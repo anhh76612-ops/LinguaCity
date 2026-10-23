@@ -3,6 +3,7 @@ package com.project.linguacity.di
 import android.content.Context
 import androidx.room.Room
 import com.project.linguacity.data.local.AppDatabase
+import com.project.linguacity.data.local.MIGRATION_1_2
 import com.project.linguacity.data.local.user.UserProfileDao
 import dagger.Module
 import dagger.Provides
@@ -24,7 +25,9 @@ object DatabaseModule {
             context,
             AppDatabase::class.java,
             "linguacity.db"
-        ).build()
+        )
+            .addMigrations(MIGRATION_1_2)
+            .build()
     }
 
     @Provides

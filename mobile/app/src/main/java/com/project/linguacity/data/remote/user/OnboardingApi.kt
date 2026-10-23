@@ -9,4 +9,9 @@ interface OnboardingApi {
     suspend fun onboardUser(
         @Header("X-Guest-UUID") guestUuid: String
     ): OnboardUserResponseDto
+
+    @POST("api/v1/users/me/tutorial/complete")
+    suspend fun completeTutorial(
+        @Header("X-Guest-UUID") guestUuid: String
+    ): CompleteTutorialResponseDto
 }

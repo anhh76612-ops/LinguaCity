@@ -1,5 +1,6 @@
 package com.project.linguacity.data.local.user
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
@@ -13,5 +14,8 @@ data class UserProfileEntity(
 
     val hourglassCount: Int = 0,
 
-    val blueprintShards: Int = 0
+    val blueprintShards: Int = 0,
+
+    @ColumnInfo(defaultValue = "0")
+    val tutorialCompleted: Boolean = false
 )

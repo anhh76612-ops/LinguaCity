@@ -3,6 +3,7 @@ package com.linguacity.backend.identity;
 import com.linguacity.backend.identity.controller.UserProfileController;
 import com.linguacity.backend.identity.entity.UserProfile;
 import com.linguacity.backend.identity.repository.UserProfileRepository;
+import com.linguacity.backend.identity.service.TutorialService;
 import com.linguacity.backend.identity.service.UserOnboardingService;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.MockMvc;
@@ -22,7 +23,7 @@ class UserOnboardingTests {
     private final UserProfileRepository repository = mock(UserProfileRepository.class);
     private final UserOnboardingService service = new UserOnboardingService(repository);
     private final MockMvc api = MockMvcBuilders
-            .standaloneSetup(new UserProfileController(service)).build();
+            .standaloneSetup(new UserProfileController(service, new TutorialService(repository))).build();
 
     @Test
     void createsNewGuestWithZeroResources() {
@@ -36,6 +37,7 @@ class UserOnboardingTests {
         assertEquals(0, result.getKnowledgePoints());
         assertEquals(0, result.getHourglassCount());
         assertEquals(0, result.getBlueprintShards());
+        assertFalse(result.isTutorialCompleted());
         verify(repository).save(result);
     }
 
@@ -69,7 +71,8 @@ class UserOnboardingTests {
                 .andExpect(jsonPath("$.userId").value(existing.getId().toString()))
                 .andExpect(jsonPath("$.knowledgePoints").value(0))
                 .andExpect(jsonPath("$.hourglassCount").value(0))
-                .andExpect(jsonPath("$.blueprintShards").value(0));
+                .andExpect(jsonPath("$.blueprintShards").value(0))
+                .andExpect(jsonPath("$.tutorialCompleted").value(false));
     }
 
     @Test

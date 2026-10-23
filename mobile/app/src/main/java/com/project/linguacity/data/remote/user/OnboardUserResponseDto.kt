@@ -7,5 +7,6 @@ data class OnboardUserResponseDto(
     val userId: String,
     val knowledgePoints: Int,
     val hourglassCount: Int,
-    val blueprintShards: Int
+    val blueprintShards: Int,
+    val tutorialCompleted: Boolean
 )

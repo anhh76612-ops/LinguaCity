@@ -25,4 +25,7 @@ public class UserProfile {
 
     @Column(name = "blueprint_shards", nullable = false)
     private Integer blueprintShards = 0;
+
+    @Column(name = "tutorial_completed", nullable = false)
+    private boolean tutorialCompleted = false;
 }

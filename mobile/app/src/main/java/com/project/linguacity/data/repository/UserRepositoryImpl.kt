@@ -23,7 +23,8 @@ class UserRepositoryImpl @Inject constructor(
             id = response.userId,
             knowledgePoints = response.knowledgePoints,
             hourglassCount = response.hourglassCount,
-            blueprintShards = response.blueprintShards
+            blueprintShards = response.blueprintShards,
+            tutorialCompleted = response.tutorialCompleted
         )
 
         userProfileDao.upsert(entity)
@@ -32,7 +33,21 @@ class UserRepositoryImpl @Inject constructor(
             id = entity.id,
             knowledgePoints = entity.knowledgePoints,
             hourglassCount = entity.hourglassCount,
-            blueprintShards = entity.blueprintShards
+            blueprintShards = entity.blueprintShards,
+            tutorialCompleted = entity.tutorialCompleted
         )
+    }
+
+    override suspend fun completeTutorial(): Boolean {
+        val guestUuid = guestIdStore.getOrCreateGuestUuid()
+
+        val response = onboardingApi.completeTutorial(guestUuid)
+
+        // Server là nguồn sự thật: chỉ ghi Room sau khi Backend xác nhận.
+        userProfileDao.getById(guestUuid)?.let { cached ->
+            userProfileDao.upsert(cached.copy(tutorialCompleted = response.tutorialCompleted))
+        }
+
+        return response.tutorialCompleted
     }
 }

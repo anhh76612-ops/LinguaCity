@@ -4,7 +4,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import com.project.linguacity.presentation.onboarding.OnboardingScreen
+import com.project.linguacity.presentation.navigation.AppNavHost
+import com.project.linguacity.ui.theme.LinguaCityTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -16,12 +17,9 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         setContent {
-            OnboardingScreen(
-                onOnboardingSuccess = {
-                    // Tạm thời chưa làm gì.
-                    // Sau này sẽ chuyển sang CityScreen.
-                }
-            )
+            LinguaCityTheme {
+                AppNavHost()
+            }
         }
     }
 }

@@ -5,6 +5,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -19,7 +22,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 @Composable
 fun OnboardingScreen(
     viewModel: OnboardingViewModel = hiltViewModel(),
-    onOnboardingSuccess: () -> Unit
+    onOnboardingSuccess: (tutorialCompleted: Boolean) -> Unit
 ) {
     val state by viewModel.state.collectAsState()
 
@@ -42,8 +45,10 @@ fun OnboardingScreen(
             }
 
             state.userProfile != null -> {
+                val tutorialCompleted = state.userProfile!!.tutorialCompleted
+
                 LaunchedEffect(state.userProfile) {
-                    onOnboardingSuccess()
+                    onOnboardingSuccess(tutorialCompleted)
                 }
             }
 
@@ -60,6 +65,14 @@ fun OnboardingScreen(
                     Text(
                         text = state.error ?: "Unknown error"
                     )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Button(
+                        onClick = { viewModel.onIntent(OnboardingIntent.Retry) }
+                    ) {
+                        Text(text = "Thử lại")
+                    }
                 }
             }
         }

@@ -4,5 +4,6 @@ data class UserProfile(
     val id: String,
     val knowledgePoints: Int,
     val hourglassCount: Int,
-    val blueprintShards: Int
+    val blueprintShards: Int,
+    val tutorialCompleted: Boolean
 )

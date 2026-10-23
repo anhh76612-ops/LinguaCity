@@ -45,6 +45,11 @@ android {
     }
 }
 
+// Room ghi schema JSON của từng version vào app/schemas để review migration trong Git.
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
+}
+
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
