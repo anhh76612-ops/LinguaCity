@@ -16,6 +16,7 @@
 | [ADR-007](ADR-007-jdk17-toolchain.md) | Thống nhất JDK 17 | ✅ Accepted |
 | [ADR-008](ADR-008-guest-first-no-login.md) | Guest-first, chưa làm Login | ✅ Accepted |
 | [ADR-009](ADR-009-unity-as-library.md) | Kotlin chủ + Unity nhúng cho City View | 🟡 Proposed |
+| [ADR-010](ADR-010-city-view-threejs-webview.md) | City View bằng Three.js (web), nhúng qua WebView — đề xuất thay ADR-009 | 🟡 Proposed |
 
 Nhật ký sự cố: [troubleshooting-log.md](troubleshooting-log.md)
 

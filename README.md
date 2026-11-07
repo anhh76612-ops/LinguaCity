@@ -9,10 +9,11 @@ LinguaCity/
 ├── backend/      Spring Boot, Java 17, PostgreSQL
 ├── mobile/       Android, Kotlin, Jetpack Compose
 ├── database/     SQL migration lưu trong repository
+├── city-web/     City View: bản đồ thành phố 3D isometric (Three.js, TypeScript, Vite)
 └── docs/         Yêu cầu, thiết kế game, kiến trúc, ADR, kiểm thử — mục lục tại docs/README.md
 ```
 
-Dự kiến thêm `unity/` (project Unity hiển thị thành phố, xem `docs/adr/ADR-009-unity-as-library.md`).
+City View đang được làm thành dự án web `city-web/` (xem `city-web/README.md` và `docs/adr/ADR-010-city-view-threejs-webview.md`, đề xuất thay cho hướng Unity ở ADR-009). Chạy thử: `cd city-web; npm install; npm run dev`.
 
 Backend và Mobile là hai dự án Gradle độc lập. Mở `backend/` và `mobile/` riêng trong IDE, hoặc liên kết hai dự án Gradle nếu mở thư mục gốc.
 
