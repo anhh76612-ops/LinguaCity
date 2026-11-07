@@ -45,6 +45,23 @@ android {
     }
 }
 
+// City View (ADR-010): bản đồ city-web được build riêng bằng Node (`cd city-web && npm run build`).
+// Task dưới chép city-web/dist vào build/generated/cityAssets/city/ và khai báo thư mục đó là assets,
+// nên APK có assets/city/index.html mà không phải commit file build vào Git.
+val cityWebDist = rootProject.file("../city-web/dist")
+val cityAssetsDir = layout.buildDirectory.dir("generated/cityAssets")
+val syncCityWeb by tasks.registering(Sync::class) {
+    from(cityWebDist)
+    into(cityAssetsDir.map { it.dir("city") })
+    doFirst {
+        if (!cityWebDist.resolve("index.html").exists()) {
+            logger.warn("City View: chưa có city-web/dist. Chạy: cd city-web && npm install && npm run build")
+        }
+    }
+}
+android.sourceSets.getByName("main").assets.srcDir(cityAssetsDir.get().asFile)
+tasks.named("preBuild") { dependsOn(syncCityWeb) }
+
 // Room ghi schema JSON của từng version vào app/schemas để review migration trong Git.
 ksp {
     arg("room.schemaLocation", "$projectDir/schemas")
@@ -89,4 +106,7 @@ dependencies {
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
 
     implementation("androidx.datastore:datastore-preferences:1.1.1")
+
+    // 6. WebView hiện đại: WebViewAssetLoader, WebMessageListener (City View, ADR-010)
+    implementation("androidx.webkit:webkit:1.12.1")
 }

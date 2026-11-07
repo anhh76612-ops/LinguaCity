@@ -46,7 +46,7 @@ Phần học tập vẫn là phần nặng nhất của sản phẩm. Bản đ�
 - [x] Bản đồ có 4 công trình × 3 level, trạng thái đang xây, người dân đi lại, dấu (!).
 - [x] Chạm công trình và dấu (!) phát đúng intent (đã kiểm tra trên trình duyệt).
 - [x] Hiển thị đúng ở khung điện thoại 375×812.
-- [ ] Nhúng `dist/` vào app Android qua WebView, Kotlin gửi `CityState` và nhận `BuildingTapped`.
+- [x] Nhúng `dist/` vào app Android qua WebView, Kotlin gửi `CityState` và nhận `BuildingTapped` (đã thử trên emulator, xem [bài học tích hợp](../05-implementation/city-webview-integration.md)).
 - [ ] Đo FPS và bộ nhớ trên một máy Android thật.
 
 ## Lesson

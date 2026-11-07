@@ -246,8 +246,13 @@ export class Citizens {
   }
 
   private freeSpot(filter: (s: Spot) => boolean): Spot | null {
-    const parkLevel = this.city.lots.get('PARK')?.state?.level ?? 1;
-    const ok = SPOTS.filter((s) => !s.by && filter(s) && (!s.needs || parkLevel >= s.needs.level));
+    // Chỉ dùng điểm của công trình đã xây đủ level (công trình level 0 chỉ là đất trống).
+    const levelOf = (code: BuildingCode) => this.city.lots.get(code)?.state?.level ?? 1;
+    const usable = (s: Spot) => {
+      const need = s.needs ?? { code: s.node.split('.')[0] as BuildingCode, level: 1 };
+      return levelOf(need.code) >= need.level;
+    };
+    const ok = SPOTS.filter((s) => !s.by && filter(s) && usable(s));
     return ok.length ? ok[Math.floor(Math.random() * ok.length)] : null;
   }
 
@@ -268,7 +273,8 @@ export class Citizens {
   /** Đi tới cửa công trình, "vào trong" (ẩn) vài giây, rồi bước ra. */
   private goInside(c: Citizen, code: BuildingCode, then?: () => void): void {
     const door = this.city.doorOf(code);
-    if (!door) { this.stroll(c); return; }
+    // Không có cửa (ví dụ lô đất trống): người sắp "dọn đi" thì biến mất luôn, người khác đi dạo.
+    if (!door) { if (then) then(); else this.stroll(c); return; }
     c.walk(this.pathTo(c, `${code}.gate`, door), () => {
       c.rig.root.visible = false;
       c.phase = 'inside';

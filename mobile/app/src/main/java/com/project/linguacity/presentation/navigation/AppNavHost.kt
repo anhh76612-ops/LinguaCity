@@ -5,7 +5,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.project.linguacity.presentation.home.HomeScreen
+import com.project.linguacity.presentation.city.CityScreen
 import com.project.linguacity.presentation.onboarding.OnboardingScreen
 import com.project.linguacity.presentation.tutorial.TutorialScreen
 import kotlinx.serialization.Serializable
@@ -55,8 +55,9 @@ fun AppNavHost(
             )
         }
 
+        // Màn chính sau onboarding/tutorial là City View (SCR-04).
         composable<HomeRoute> {
-            HomeScreen()
+            CityScreen()
         }
     }
 }

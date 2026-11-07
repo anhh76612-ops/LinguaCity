@@ -15,6 +15,7 @@ import { buildSchool } from './buildings/school';
 import { buildPark } from './buildings/park';
 import { buildStreets, buildTransport, type PedestrianProvider } from './buildings/road';
 import { buildConstruction } from './construction';
+import { buildEmptyLot } from './buildings/emptyLot';
 
 const BUILDERS: Record<BuildingCode, (level: number) => Built> = {
   HOUSING: buildHousing,
@@ -40,7 +41,7 @@ export class City {
   /** Các vật thể có thể chạm để chọn công trình. */
   readonly pickables: THREE.Object3D[] = [];
   private streets?: Built;
-  private streetLevel = 0;
+  private streetLevel = -1; // -1 = chưa dựng (level 0 là giá trị hợp lệ: đường đất)
 
   constructor(private pedestrians: PedestrianProvider) {
     scene.add(buildGround(), buildTrees(), buildLamps());
@@ -92,7 +93,7 @@ export class City {
 
   private rebuild(lot: Lot, level: number): void {
     if (lot.built) disposeGroup(lot.built.group);
-    lot.built = BUILDERS[lot.code](level);
+    lot.built = level === 0 ? buildEmptyLot() : BUILDERS[lot.code](level);
     lot.holder.add(lot.built.group);
     // đặt nhãn cao hơn đỉnh mô hình một chút
     const top = new THREE.Box3().setFromObject(lot.built.group).max.y - lot.holder.position.y;
@@ -120,7 +121,7 @@ export class City {
     const pct = Math.round((s.progress ?? 0) * 100);
     lot.labelEl.classList.toggle('hidden-bar', !s.upgrading);
     lot.labelEl.innerHTML =
-      `<div>${info.icon} ${info.name}<span class="lv">Lv ${s.level}</span></div>` +
+      `<div>${info.icon} ${info.name}<span class="lv">${s.level === 0 ? 'Chưa xây' : `Lv ${s.level}`}</span></div>` +
       `<div class="bar" title="Đang nâng cấp ${pct}%"><i style="width:${pct}%"></i></div>`;
   }
 

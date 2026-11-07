@@ -13,8 +13,8 @@
 | SCR-01 | Splash / Onboarding | Compose | UC_01 | VS1 | ✅ (loading + lỗi; chưa có nút Thử lại) |
 | SCR-02 | Tutorial | ⬜ Compose hay Unity | UC_02 | VS1 | 🟡 (API xong, UI chưa có) |
 | SCR-03 | Đồng bộ nội dung (Content Sync) | Compose | UC_03 | VS2 | ⬜ |
-| SCR-04 | City View (màn hình chính) | **Unity** (đường lui Compose) | UC_09 | TS-UNITY / VS5 | ⬜ |
-| SCR-05 | Chi tiết công trình | Compose (bottom sheet) | UC_09, UC_10 | VS5 | ⬜ |
+| SCR-04 | City View (màn hình chính) | **WebView + city-web (Three.js)**, đường lui Compose (ADR-010) | UC_09 | VS5 | 🟡 (bản đồ + nhúng xong, dữ liệu giả lập) |
+| SCR-05 | Chi tiết công trình | Compose (thẻ đè lên bản đồ) | UC_09, UC_10 | VS5 | 🟡 (thẻ tạm trong `CityScreen`) |
 | SCR-06 | Danh sách từ vựng | Compose | UC_04 | VS2 | ⬜ |
 | SCR-07 | Flashcard | Compose | UC_04 | VS2 | ⬜ |
 | SCR-08 | Bài học (Learning Session / Mini-game) | Compose | UC_05 | VS3 | ⬜ |
@@ -22,7 +22,7 @@
 | SCR-10 | Exam Center (School) | Compose | UC_06 | VS4 | ⬜ |
 | SCR-11 | Làm bài thi | Compose | UC_07, UC_08 | VS4 | ⬜ |
 | SCR-12 | Kết quả thi | Compose | UC_08 | VS4 | ⬜ |
-| SCR-13 | Thanh tài nguyên (HUD) | Compose overlay / Unity | UC_09 | VS5 | ⬜ |
+| SCR-13 | Thanh tài nguyên (HUD) | Compose overlay (đè lên WebView bản đồ) | UC_09 | VS5 | ⬜ |
 
 ---
 
@@ -33,7 +33,7 @@ flowchart TD
     S01[SCR-01 Onboarding] -->|lần đầu| S02[SCR-02 Tutorial]
     S01 -->|đã xem tutorial| S03[SCR-03 Content Sync]
     S02 --> S03
-    S03 --> S04[SCR-04 City View - Unity]
+    S03 --> S04[SCR-04 City View - WebView]
     S04 -->|chạm công trình| S05[SCR-05 Chi tiết công trình]
     S05 -->|Học| S06[SCR-06 Danh sách từ vựng]
     S06 --> S07[SCR-07 Flashcard]
@@ -44,7 +44,7 @@ flowchart TD
     S05 -->|Nâng cấp| S04
 ```
 
-> Mũi tên đi **vào/ra SCR-04** là chỗ chuyển giữa Unity và Compose — cần kiểm tra kỹ trong Tech Spike (ADR-009).
+> SCR-04 là một composable bình thường chứa WebView (ADR-010), nên chuyển màn hình vào/ra dùng Navigation Compose như mọi màn khác. Dữ liệu qua lại bản đồ theo hợp đồng (B) ở system-design §9.2 (ADR-011).
 
 ---
 

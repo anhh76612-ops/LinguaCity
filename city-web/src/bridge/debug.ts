@@ -29,7 +29,7 @@ export function setupDebug(getState: () => CityState, setState: (s: CityState) =
     model[`${code}.upgrading`] = !!b.upgrading;
     model[`${code}.progress`] = b.progress ?? 0;
     const f = gui.addFolder(`${LOTS[code].icon} ${LOTS[code].name}`);
-    f.add(model, `${code}.level`, 1, MAX_LEVEL, 1).name('Level').onFinishChange(push);
+    f.add(model, `${code}.level`, 0, MAX_LEVEL, 1).name('Level (0 = chưa xây)').onFinishChange(push);
     f.add(model, `${code}.upgrading`).name('Đang nâng cấp').onChange(push);
     f.add(model, `${code}.progress`, 0, 1, 0.05).name('Tiến độ').onChange(push);
     if (code !== 'HOUSING') f.close();

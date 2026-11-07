@@ -1,6 +1,8 @@
 package com.project.linguacity.di
 
+import com.project.linguacity.data.repository.FakeCityRepository
 import com.project.linguacity.data.repository.UserRepositoryImpl
+import com.project.linguacity.domain.repository.CityRepository
 import com.project.linguacity.domain.repository.UserRepository
 import dagger.Binds
 import dagger.Module
@@ -17,4 +19,11 @@ abstract class RepositoryModule {
     abstract fun bindUserRepository(
         implementation: UserRepositoryImpl
     ): UserRepository
+
+    // Tạm dùng dữ liệu giả lập; đến VS5 đổi sang CityRepositoryImpl gọi Backend ở đúng chỗ này.
+    @Binds
+    @Singleton
+    abstract fun bindCityRepository(
+        implementation: FakeCityRepository
+    ): CityRepository
 }

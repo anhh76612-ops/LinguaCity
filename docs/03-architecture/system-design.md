@@ -7,9 +7,10 @@
 **Phiên bản:** 3.0 (Bản nâng cấp nhất quán hệ thống & API)
 **Người thực hiện:** Nông Hoàng Anh
 **Ngày tạo:** 19/08/2026
-**Ngày cập nhật cuối cùng:** 20/10/2026 — v3.1: thêm luồng Onboarding/Tutorial (§4.0), Kiến trúc Client Kotlin + Unity (Chương 9), chuẩn hóa mã UC trong Traceability (§8.2)
+**Ngày cập nhật cuối cùng:** 07/11/2026 — v3.2: Chương 9 viết lại cho City View WebView (ADR-010) với hai hợp đồng (A)/(B) (ADR-011); thêm `GET /api/v1/city` (§7.2.8) và trường `serverTime` cho §7.2.7. (v3.1, 20/10/2026: luồng Onboarding/Tutorial §4.0, chuẩn hóa mã UC §8.2.)
 
 > **Ghi chú v3.1:** Các chương 3–7 vẫn là baseline đã đóng băng. Thay đổi mới chỉ **bổ sung**, không sửa mô hình dữ liệu.
+> **Ghi chú v3.2:** §7.2.7 chỉ **thêm** trường `serverTime`, §7.2.8 là endpoint mới. Bảng `user_buildings` không đổi.
 
 ---
 
@@ -761,9 +762,32 @@ Toàn bộ các API đều bắt buộc đính kèm Header: `X-Guest-UUID: <UUID
       "targetLevel": 2,
       "status": "UPGRADING",
       "startedAt": "2026-08-25T20:00:00Z",
-      "finishAt": "2026-08-25T20:03:00Z"
+      "finishAt": "2026-08-25T20:03:00Z",
+      "serverTime": "2026-08-25T20:00:00Z"
     }
     ```
+*   **v3.2:** thêm `serverTime` để app đo độ lệch đồng hồ và hiển thị tiến độ đúng (§9.2.1).
+
+#### 7.2.8. Lấy trạng thái thành phố (Get City) — v3.2, VS5
+*   **HTTP Method & Endpoint:** `GET /api/v1/city` (header `X-Guest-UUID`)
+*   **Mục đích:** Trả trạng thái 4 công trình của người chơi cho City View. Trước khi trả, server **hoàn tất** những công trình `UPGRADING` có `finish_at ≤ now` (`current_level = target_level`, `status = IDLE`). Đây là lazy completion theo giờ server (FR-SYS-04).
+*   **Response (200 OK):**
+    ```json
+    {
+      "serverTime": "2026-08-25T20:01:30Z",
+      "buildings": [
+        { "buildingId": 1, "code": "HOUSING", "currentLevel": 1, "targetLevel": null, "maxLevel": 3, "status": "IDLE",
+          "startedAt": null, "finishAt": null },
+        { "buildingId": 4, "code": "SCHOOL", "currentLevel": 1, "targetLevel": 2, "maxLevel": 3, "status": "UPGRADING",
+          "startedAt": "2026-08-25T20:00:00Z", "finishAt": "2026-08-25T20:03:00Z" },
+        { "buildingId": 3, "code": "PARK", "currentLevel": 0, "targetLevel": null, "maxLevel": 3, "status": "IDLE",
+          "startedAt": null, "finishAt": null }
+      ],
+      "events": []
+    }
+    ```
+*   Công trình chưa có dòng `user_buildings` vẫn được trả với `currentLevel = 0`. `events` để trống cho tới khi có FR-CITY-06.
+*   App lưu vào Room rồi dịch sang hợp đồng bản đồ (B) theo §9.2.
 
 ---
 
@@ -832,75 +856,103 @@ LinguaCity Project Model (Root)
 
 ---
 
-## CHƯƠNG 9: KIẾN TRÚC CLIENT — KOTLIN CHỦ + UNITY NHÚNG (v3.1, 🟡 Proposed)
+## CHƯƠNG 9: KIẾN TRÚC CLIENT — KOTLIN CHỦ + CITY VIEW WEBVIEW (v3.2, 🟡 Proposed)
 
-> Quyết định và rủi ro: [ADR-009](../adr/ADR-009-unity-as-library.md). Chương này mô tả **cách các thành phần nối với nhau**; chỉ chuyển sang Frozen sau khi Tech Spike TS-UNITY đạt.
+> Quyết định: [ADR-010](../adr/ADR-010-city-view-threejs-webview.md) (công nghệ) và [ADR-011](../adr/ADR-011-city-state-contract.md) (hợp đồng dữ liệu). Bản v3.1 của chương này mô tả phương án Unity ([ADR-009](../adr/ADR-009-unity-as-library.md)); xem lịch sử Git nếu cần đối chiếu.
+> Bài học từng bước: [`05-implementation/city-webview-integration.md`](../05-implementation/city-webview-integration.md).
 
 ### 9.1. Sơ đồ thành phần
 
 ```text
-┌──────────────────────── Android App (Kotlin — ứng dụng chủ) ─────────────────────────┐
-│                                                                                      │
-│  presentation/                   domain/                 data/                       │
-│  ├── onboarding, learning, exam ─► UseCases ─► Repository ─► Room · Retrofit · DataStore
-│  └── city/                                                    │                      │
-│       ├── CityViewModel (MVI) ◄── CityState (từ Room)         │ REST                 │
-│       └── CityRenderer (interface)                            ▼                      │
-│            ├── ComposeCityRenderer  (đường lui)          Spring Boot Backend         │
-│            └── UnityCityRenderer ──┐                     (Server Authority)          │
-│                                    │ UnityBridge                                     │
-└────────────────────────────────────┼─────────────────────────────────────────────────┘
-                                     │ Kotlin → Unity: UnitySendMessage("CityBridge", "ApplyState", json)
-                                     │ Unity → Kotlin: AndroidJavaProxy → CityIntentListener.onIntent(json)
-┌────────────────────────────────────▼──────── unityLibrary (Unity, C#) ───────────────┐
-│  CityBridge.cs           → nhận CityState, phát CityIntent                            │
-│  CitySceneController.cs  → vẽ 4 công trình theo level, hiệu ứng xây, dấu (!)          │
-│  ✘ Không HTTP · ✘ Không lưu tài nguyên · ✘ Không tính toán kinh tế                     │
-└──────────────────────────────────────────────────────────────────────────────────────┘
+┌──────────────────────── Android App (Kotlin — ứng dụng chủ) ─────────────────────────────┐
+│  presentation/city/                       domain/                 data/                   │
+│  ├── CityViewModel (MVI) ◄── CityState (A) ◄── CityRepository ◄── Room · Retrofit         │
+│  │        │ toRenderState(serverNow)                                 │ REST (hợp đồng A)  │
+│  │        ▼                                                          ▼                    │
+│  │   CityRenderState (B)                                   Spring Boot Backend            │
+│  └── CityRenderer (interface)                              (Server Authority)             │
+│       ├── ComposeCityRenderer (đường lui)                                                 │
+│       └── WebCityRenderer ── WebView + WebViewAssetLoader (assets/city/ = city-web/dist)  │
+└──────────────────────────────┼────────────────────────────────────────────────────────────┘
+                               │ Kotlin → Web: evaluateJavascript("LinguaCity.setState(json)")
+                               │ Web → Kotlin: AndroidBridge.postMessage(json) (WebMessageListener)
+┌──────────────────────────────▼──────────── city-web (Three.js + TypeScript) ──────────────┐
+│  bridge/cityState.ts → normalizeState()  ·  world/city.ts → vẽ theo level  ·  people/      │
+│  ✘ Không HTTP · ✘ Không lưu tài nguyên · ✘ Không tính thời gian xây                         │
+└───────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### 9.2. Hợp đồng cầu nối (Bridge Contract — bản nháp)
+### 9.2. Hai hợp đồng và lớp dịch ở giữa
 
-**Kotlin → Unity: `CityState`**
+Thành phố đi qua **hai hợp đồng khác nhau**, mỗi cái phục vụ một mục đích:
+
+| | (A) API — Backend → Kotlin | (B) Bridge — Kotlin → bản đồ |
+| :--- | :--- | :--- |
+| Mục đích | Sự thật nghiệp vụ | Chỉ những gì cần để **vẽ** |
+| Đặc tả | §7.2.7, §7.2.8 | mục này (v1) |
+| Thời gian | `startedAt`, `finishAt`, `serverTime` | không có, chỉ `progress` 0..1 |
+| Code | DTO Retrofit → `domain/model/city/City.kt` | `CityRenderState.kt`, `CityBridgeJson.kt` ⇄ `city-web/src/bridge/cityState.ts` |
+
+**Lớp dịch (A) → (B):** `CityState.toRenderState(serverNow)` trong `presentation/city/CityRenderState.kt`. Đây là nơi **duy nhất** tính tiến độ.
+
+#### 9.2.1. Bảng ánh xạ
+
+| (A) `user_buildings` / API | (B) `CityState` v1 | Quy tắc |
+| :--- | :--- | :--- |
+| `building.code` | `code` | `HOUSING` · `SCHOOL` · `PARK` · `ROAD` |
+| `currentLevel` | `level` | Kẹp 0..3. **0 = chưa xây**: bản đồ hiện lô đất trống. |
+| `status` | `upgrading` | `upgrading = (status == "UPGRADING")` |
+| `startedAt`, `finishAt`, `serverTime` | `progress` | `serverNow = giờ máy + (serverTime − giờ máy lúc nhận)`; `progress = clamp((serverNow − startedAt) / (finishAt − startedAt), 0, 1)`; `finishAt ≤ startedAt` → 1 |
+| `targetLevel`, `maxLevel` | *(không gửi)* | Dùng cho UI Compose (thẻ công trình), không cần để vẽ. |
+| events (id số hoặc chuỗi) | `events[].id` (chuỗi), `kind` | Id là chuỗi mờ (opaque). Bản đồ tự chọn người dân mang dấu (!), không có toạ độ. |
+
+#### 9.2.2. Kotlin → bản đồ: `CityState` v1
 ```json
 {
+  "v": 1,
   "buildings": [
-    { "code": "HOUSING", "level": 1, "status": "IDLE", "upgradeFinishAt": null },
-    { "code": "SCHOOL", "level": 1, "status": "UPGRADING", "upgradeFinishAt": "2026-10-20T10:00:00Z" }
+    { "code": "HOUSING", "level": 1, "upgrading": false, "progress": 0 },
+    { "code": "SCHOOL",  "level": 1, "upgrading": true,  "progress": 0.42 },
+    { "code": "PARK",    "level": 0, "upgrading": false, "progress": 0 },
+    { "code": "ROAD",    "level": 2, "upgrading": false, "progress": 0 }
   ],
-  "cityEvents": [ { "id": 12, "x": 3, "y": 5 } ],
-  "serverTime": "2026-10-20T09:30:00Z"
+  "events": [ { "id": "evt-12", "kind": "GRAMMAR" } ]
 }
 ```
+Kotlin gửi lại khoảng 1 giây/lần khi có công trình đang xây. Bản đồ tự làm mượt thanh tiến độ giữa các lần gửi.
 
-**Unity → Kotlin: `CityIntent`**
+#### 9.2.3. Bản đồ → Kotlin: intent
 ```json
-{ "type": "BUILDING_TAPPED", "buildingCode": "HOUSING" }
-{ "type": "UPGRADE_REQUESTED", "buildingCode": "HOUSING" }
-{ "type": "CITY_EVENT_TAPPED", "eventId": 12 }
-{ "type": "BACK_PRESSED" }
+{ "type": "Ready" }
+{ "type": "BuildingTapped", "buildingCode": "HOUSING" }
+{ "type": "CityEventTapped", "eventId": "evt-12" }
 ```
+- `Ready`: chỉ sau khi nhận intent này Kotlin mới gửi `setState` (trước đó `window.LinguaCity` chưa tồn tại).
+- Không có `UpgradeRequested`: nút nâng cấp nằm trong UI Compose (thẻ công trình).
+- Không có `BackPressed`: phím Back do Compose Navigation xử lý.
 
-**Nguyên tắc:**
-1. `CityState` chỉ được tạo từ dữ liệu Room đã đồng bộ với Server — Unity luôn hiển thị **sự thật của Server**.
-2. Unity chỉ phát **ý định**; Kotlin quyết định gọi API nào (ví dụ `UPGRADE_REQUESTED` → `UpgradeBuildingUseCase`).
-3. Đếm ngược thời gian xây trong Unity chỉ để **hiển thị**, tính từ `serverTime`; hoàn tất thật do Backend xác nhận (FR-SYS-04).
-4. Mỗi thông điệp có trường `type`; thêm trường mới không phá phiên bản cũ.
+#### 9.2.4. Nguyên tắc
+1. **Server Authority:** (A) chỉ đến từ Backend (qua Room). Bản đồ chỉ hiển thị.
+2. **Thời gian chỉ để hiển thị:** `progress = 1` mà server chưa xác nhận thì vẫn là `upgrading: true`. App gọi lại `GET /api/v1/city`, Backend tự hoàn tất công trình đã quá `finish_at` (lazy completion, FR-SYS-04).
+3. **Không tin dữ liệu bên kia:**
+   - Bản đồ dùng `normalizeState()` (kẹp level, bỏ mã lạ).
+   - Kotlin dùng `CityBridgeJson.decodeIntent()`: dữ liệu sai thì trả `null` và ghi log, không crash.
+4. **Tiến hoá:** chỉ thêm trường tuỳ chọn. Hai bên bỏ qua trường lạ. Đổi nghĩa một trường thì tăng `v`.
+5. **Test giữ hợp đồng:** `CityBridgeJsonTest` (chuỗi JSON chính xác) và `CityRenderStateTest` (tính tiến độ).
 
 ### 9.3. Ảnh hưởng tới cấu trúc repository
 
 ```text
 LinguaCity/
 ├── backend/        (không đổi)
-├── mobile/         + module :unityLibrary (sinh ra từ Unity Export) + presentation/city/
-├── unity/          MỚI — project Unity (Assets/, ProjectSettings/, Packages/)
+├── city-web/       MỚI: bản đồ Three.js (Vite + TypeScript); `npm run build` → dist/
+├── mobile/         + presentation/city/ ; Gradle task `syncCityWeb` chép city-web/dist → assets/city/ (thư mục sinh ra, không commit)
 ├── database/
 └── docs/
 ```
-`.gitignore` cần thêm `unity/Library/`, `unity/Temp/`, `unity/Logs/`, `unity/Build/`, `unity/UserSettings/`.
 
-### 9.4. Việc cần chốt trong Tech Spike
-- ⬜ Phiên bản Unity LTS và Android `minSdk`/NDK tương thích.
-- ⬜ Unity mở toàn màn hình (Activity riêng) hay chiếm một phần màn hình Compose.
-- ⬜ Cách quay lại Compose và giữ Unity "ấm" để mở lại nhanh.
-- ⬜ Dung lượng APK trước/sau (NFR-07).
+### 9.4. Việc còn mở
+- ⬜ Đo FPS và bộ nhớ trên máy Android thật (điều kiện để ADR-010 chuyển sang Accepted).
+- ⬜ Tạo lại WebView khi hệ thống kill render process (`onRenderProcessGone`).
+- ⬜ VS5: code `GET /api/v1/city` (§7.2.8), `CityRepositoryImpl` (Retrofit + Room) thay cho `FakeCityRepository`.
+- ⬜ Bảng và API cho City Events (FR-CITY-06, sau MVP).
