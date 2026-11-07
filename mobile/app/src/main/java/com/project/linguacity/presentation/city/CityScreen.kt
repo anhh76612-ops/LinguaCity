@@ -18,13 +18,19 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import com.project.linguacity.domain.model.city.BuildingCode
+import com.project.linguacity.domain.model.content.BuildingLevelInfo
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.project.linguacity.presentation.city.web.WebCityRenderer
 
@@ -34,11 +40,22 @@ import com.project.linguacity.presentation.city.web.WebCityRenderer
  */
 @Composable
 fun CityScreen(
+    onOpenVocabulary: (BuildingCode, Int) -> Unit = { _, _ -> },
     renderer: CityRenderer = WebCityRenderer,
     viewModel: CityViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
     val snackbar = remember { SnackbarHostState() }
+
+    // Mỗi lần màn City quay lại foreground: kiểm tra gói nội dung mới (ADR-012, kiểu pull).
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_START) viewModel.onIntent(CityIntent.AppForeground)
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
     LaunchedEffect(state.message) {
         state.message?.let {
@@ -66,7 +83,9 @@ fun CityScreen(
             state.selected?.let { code -> render.building(code) }?.let { building ->
                 BuildingCard(
                     building = building,
+                    next = state.nextLevelInfo(building.code, building.level),
                     onUpgrade = { viewModel.onIntent(CityIntent.UpgradeSelected) },
+                    onVocabulary = { onOpenVocabulary(building.code, maxOf(1, building.level)) },
                     onClose = { viewModel.onIntent(CityIntent.DismissSelection) }
                 )
             }
@@ -75,7 +94,13 @@ fun CityScreen(
 }
 
 @Composable
-private fun BuildingCard(building: BuildingView, onUpgrade: () -> Unit, onClose: () -> Unit) {
+private fun BuildingCard(
+    building: BuildingView,
+    next: BuildingLevelInfo?,
+    onUpgrade: () -> Unit,
+    onVocabulary: () -> Unit,
+    onClose: () -> Unit
+) {
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             val levelText = if (building.isBuilt) "Lv ${building.level}" else "Chưa xây"
@@ -92,13 +117,28 @@ private fun BuildingCard(building: BuildingView, onUpgrade: () -> Unit, onClose:
                 building.isMaxLevel -> Text("Đã đạt level tối đa")
                 !building.isBuilt -> Text("Lô đất trống: xây để mở công trình")
             }
+            // Điều kiện Level kế tiếp, đọc từ Room (building_levels, gói CORE).
+            if (next != null && !building.upgrading) {
+                Text(
+                    "Lên Lv ${next.level}: ${next.knowledgeCost} KP · ${formatDuration(next.constructionTimeSeconds)}" +
+                        if (next.requiredCollected > 0) " · cần ${next.requiredCollected} từ" else "",
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 // Giả lập: bản thật sẽ cần Bản vẽ + KP và gọi Backend (VS5).
                 Button(onClick = onUpgrade, enabled = !building.upgrading && !building.isMaxLevel) {
                     Text(if (building.isBuilt) "Nâng cấp (giả lập)" else "Xây (giả lập)")
                 }
+                TextButton(onClick = onVocabulary) { Text("Thẻ từ") }
                 TextButton(onClick = onClose) { Text("Đóng") }
             }
         }
     }
+}
+
+private fun formatDuration(seconds: Long): String = when {
+    seconds < 60 -> "$seconds giây"
+    seconds < 3600 -> "${seconds / 60} phút"
+    else -> "${seconds / 3600} giờ"
 }

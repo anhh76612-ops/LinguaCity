@@ -3,6 +3,9 @@ package com.project.linguacity.presentation.city
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.project.linguacity.domain.repository.CityRepository
+import com.project.linguacity.domain.repository.ContentRepository
+import com.project.linguacity.domain.usecase.SyncContentUseCase
+import android.util.Log
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,7 +22,9 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class CityViewModel @Inject constructor(
-    private val cityRepository: CityRepository
+    private val cityRepository: CityRepository,
+    contentRepository: ContentRepository,
+    private val syncContent: SyncContentUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(
@@ -32,6 +37,12 @@ class CityViewModel @Inject constructor(
         viewModelScope.launch {
             cityRepository.city.collect { city ->
                 _state.update { it.copy(city = city, deviceNowMillis = System.currentTimeMillis()) }
+            }
+        }
+        // Chi phí xây/nâng cấp từng Level: đọc từ Room (gói CORE).
+        viewModelScope.launch {
+            contentRepository.observeBuildingLevels().collect { levels ->
+                _state.update { it.copy(levels = levels) }
             }
         }
         // Đồng hồ hiển thị: khi có công trình đang xây, mỗi giây tính lại tiến độ (bản đồ tự làm mượt ở giữa).
@@ -51,6 +62,7 @@ class CityViewModel @Inject constructor(
             CityIntent.DismissSelection -> _state.update { it.copy(selected = null) }
             CityIntent.UpgradeSelected -> upgradeSelected()
             CityIntent.MessageShown -> _state.update { it.copy(message = null) }
+            CityIntent.AppForeground -> syncQuietly()
         }
     }
 
@@ -74,7 +86,17 @@ class CityViewModel @Inject constructor(
         }
     }
 
+    /** Đồng bộ im lặng: có gói mới thì tải, lỗi mạng thì bỏ qua vì đã có cache (UC_03 E2). */
+    private fun syncQuietly() {
+        viewModelScope.launch {
+            runCatching { syncContent() }
+                .onSuccess { if (it.downloaded.isNotEmpty()) Log.i(TAG, "Đã tải gói mới: ${it.downloaded}") }
+                .onFailure { Log.w(TAG, "Bỏ qua đồng bộ nền: ${it.message}") }
+        }
+    }
+
     private companion object {
+        const val TAG = "CityViewModel"
         const val TICK_MILLIS = 1_000L
     }
 }

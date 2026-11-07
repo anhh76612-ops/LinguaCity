@@ -3,6 +3,7 @@ package com.project.linguacity.presentation.onboarding
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.project.linguacity.domain.usecase.OnboardUserUseCase
+import com.project.linguacity.presentation.common.friendlyNetworkError
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -47,7 +48,8 @@ class OnboardingViewModel @Inject constructor(
 
                 _state.value = OnboardingState(
                     isLoading = false,
-                    error = exception.message ?: "Onboarding failed"
+                    // Câu dễ hiểu thay cho lỗi kỹ thuật "failed to connect to /10.0.2.2…" (ghi nhận nghiệm thu VS1)
+                    error = friendlyNetworkError(exception, firstRun = true)
                 )
             }
         }

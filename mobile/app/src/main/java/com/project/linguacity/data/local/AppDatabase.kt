@@ -1,20 +1,58 @@
 package com.project.linguacity.data.local
 
+import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
+import com.project.linguacity.data.local.content.BlueprintEntity
+import com.project.linguacity.data.local.content.BuildingEntity
+import com.project.linguacity.data.local.content.BuildingLevelEntity
+import com.project.linguacity.data.local.content.BuildingThemeEntity
+import com.project.linguacity.data.local.content.ContentDao
+import com.project.linguacity.data.local.content.ContentPackStateEntity
+import com.project.linguacity.data.local.content.ExamEntity
+import com.project.linguacity.data.local.content.ExamQuestionEntity
+import com.project.linguacity.data.local.content.ExamRequirementEntity
+import com.project.linguacity.data.local.content.QuestionEntity
+import com.project.linguacity.data.local.content.QuestionVocabularyEntity
+import com.project.linguacity.data.local.content.ThemeEntity
+import com.project.linguacity.data.local.content.VocabularyEntity
 import com.project.linguacity.data.local.user.UserProfileDao
 import com.project.linguacity.data.local.user.UserProfileEntity
 
+/**
+ * v1 → v2: thêm tutorialCompleted (UC_02, migration viết tay).
+ * v2 → v3: thêm 12 bảng nội dung tĩnh (VS2). Chỉ thêm bảng mới nên dùng AutoMigration:
+ *          Room so sánh schemas/…/2.json với 3.json và tự sinh các câu CREATE TABLE.
+ */
 @Database(
-    entities = [UserProfileEntity::class],
-    version = 2,
-    exportSchema = true
+    entities = [
+        UserProfileEntity::class,
+        ThemeEntity::class,
+        BuildingEntity::class,
+        BuildingThemeEntity::class,
+        BuildingLevelEntity::class,
+        BlueprintEntity::class,
+        VocabularyEntity::class,
+        QuestionEntity::class,
+        QuestionVocabularyEntity::class,
+        ExamEntity::class,
+        ExamRequirementEntity::class,
+        ExamQuestionEntity::class,
+        ContentPackStateEntity::class
+    ],
+    version = 3,
+    exportSchema = true,
+    autoMigrations = [AutoMigration(from = 2, to = 3)]
 )
+@TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun userProfileDao(): UserProfileDao
+
+    abstract fun contentDao(): ContentDao
 }
 
 /**
