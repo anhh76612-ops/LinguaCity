@@ -1408,6 +1408,10 @@ Build toolchain must be fixed early
 
 ---
 
+# 24b. Cập nhật 08/11/2026: VS2 + VS3 đã xong
+
+VS2 (gói nội dung theo Level, ADR-012) và VS3 (phiên học trên server, ADR-013) đã Implemented, cùng tutorial thư ký (ADR-014), danh hiệu và giao diện M9. Thiết kế chi tiết: system-design chương 10; kết quả: test-plan §4–§6; bài học: `docs/05-implementation/vs2-vs3-tutorial-ui-lessons.md`. Các mục §12–§20 bên dưới là bản đề xuất ban đầu, giữ để đối chiếu.
+
 # 25. Chốt trạng thái VS1
 
 > **Cập nhật 08/11/2026: VS1 = VERIFIED.** Toàn bộ TC-VS1-01..17 đạt, có ảnh minh chứng (`docs/06-testing/test-plan.md` §2–§3, §5). Kế hoạch tiếp theo: VS2 (gói nội dung theo Level, ADR-012) và VS3 (phiên học trên server, ADR-013), xem `docs/05-implementation/plans/`.
