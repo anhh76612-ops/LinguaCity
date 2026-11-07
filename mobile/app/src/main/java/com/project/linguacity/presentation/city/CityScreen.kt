@@ -26,7 +26,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.project.linguacity.domain.model.city.BuildingState
 import com.project.linguacity.presentation.city.web.WebCityRenderer
 
 /**
@@ -48,9 +47,11 @@ fun CityScreen(
         }
     }
 
+    val render = state.render // dữ liệu để vẽ (hợp đồng B), tính lại mỗi lần state đổi
+
     Box(Modifier.fillMaxSize()) {
         renderer.Render(
-            state = state.city,
+            state = render,
             onIntent = { viewModel.onIntent(CityIntent.Map(it)) },
             modifier = Modifier.fillMaxSize()
         )
@@ -62,7 +63,7 @@ fun CityScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             SnackbarHost(snackbar)
-            state.selected?.let { code -> state.city.building(code) }?.let { building ->
+            state.selected?.let { code -> render.building(code) }?.let { building ->
                 BuildingCard(
                     building = building,
                     onUpgrade = { viewModel.onIntent(CityIntent.UpgradeSelected) },
@@ -74,24 +75,27 @@ fun CityScreen(
 }
 
 @Composable
-private fun BuildingCard(building: BuildingState, onUpgrade: () -> Unit, onClose: () -> Unit) {
+private fun BuildingCard(building: BuildingView, onUpgrade: () -> Unit, onClose: () -> Unit) {
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            val levelText = if (building.isBuilt) "Lv ${building.level}" else "Chưa xây"
             Text(
-                "${building.code.icon} ${building.code.displayName} · Lv ${building.level}",
+                "${building.code.icon} ${building.code.displayName} · $levelText",
                 style = MaterialTheme.typography.titleMedium
             )
             when {
+                building.upgrading && building.progress >= 1f -> Text("Đang chờ máy chủ xác nhận hoàn tất…")
                 building.upgrading -> {
                     Text("Đang nâng cấp… ${(building.progress * 100).toInt()}%")
                     LinearProgressIndicator(progress = { building.progress }, modifier = Modifier.fillMaxWidth())
                 }
                 building.isMaxLevel -> Text("Đã đạt level tối đa")
+                !building.isBuilt -> Text("Lô đất trống: xây để mở công trình")
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 // Giả lập: bản thật sẽ cần Bản vẽ + KP và gọi Backend (VS5).
                 Button(onClick = onUpgrade, enabled = !building.upgrading && !building.isMaxLevel) {
-                    Text("Nâng cấp (giả lập)")
+                    Text(if (building.isBuilt) "Nâng cấp (giả lập)" else "Xây (giả lập)")
                 }
                 TextButton(onClick = onClose) { Text("Đóng") }
             }

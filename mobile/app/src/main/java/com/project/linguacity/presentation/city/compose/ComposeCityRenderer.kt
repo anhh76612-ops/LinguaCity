@@ -18,9 +18,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.project.linguacity.domain.model.city.BuildingState
-import com.project.linguacity.domain.model.city.CityState
+import com.project.linguacity.presentation.city.BuildingView
 import com.project.linguacity.presentation.city.CityMapIntent
+import com.project.linguacity.presentation.city.CityRenderState
 import com.project.linguacity.presentation.city.CityRenderer
 
 /**
@@ -30,7 +30,7 @@ import com.project.linguacity.presentation.city.CityRenderer
 object ComposeCityRenderer : CityRenderer {
 
     @Composable
-    override fun Render(state: CityState, onIntent: (CityMapIntent) -> Unit, modifier: Modifier) {
+    override fun Render(state: CityRenderState, onIntent: (CityMapIntent) -> Unit, modifier: Modifier) {
         // Bản Compose sẵn sàng ngay khi được vẽ.
         LaunchedEffect(Unit) { onIntent(CityMapIntent.Ready) }
 
@@ -52,7 +52,7 @@ object ComposeCityRenderer : CityRenderer {
     }
 
     @Composable
-    private fun BuildingTile(b: BuildingState, modifier: Modifier, onClick: () -> Unit) {
+    private fun BuildingTile(b: BuildingView, modifier: Modifier, onClick: () -> Unit) {
         Card(modifier = modifier.aspectRatio(1f).clickable(onClick = onClick)) {
             Column(
                 modifier = Modifier.fillMaxWidth().padding(12.dp),
@@ -60,7 +60,7 @@ object ComposeCityRenderer : CityRenderer {
             ) {
                 Text(b.code.icon, style = MaterialTheme.typography.displayMedium)
                 Text(b.code.displayName, style = MaterialTheme.typography.titleMedium)
-                Text("Lv ${b.level}")
+                Text(if (b.isBuilt) "Lv ${b.level}" else "Chưa xây")
                 if (b.upgrading) LinearProgressIndicator(progress = { b.progress }, modifier = Modifier.fillMaxWidth())
             }
         }

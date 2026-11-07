@@ -21,8 +21,8 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.webkit.WebViewAssetLoader
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
-import com.project.linguacity.domain.model.city.CityState
 import com.project.linguacity.presentation.city.CityMapIntent
+import com.project.linguacity.presentation.city.CityRenderState
 import com.project.linguacity.presentation.city.CityRenderer
 import org.json.JSONObject
 
@@ -47,7 +47,7 @@ object WebCityRenderer : CityRenderer {
 
     @Composable
     override fun Render(
-        state: CityState,
+        state: CityRenderState,
         onIntent: (CityMapIntent) -> Unit,
         modifier: Modifier
     ) {

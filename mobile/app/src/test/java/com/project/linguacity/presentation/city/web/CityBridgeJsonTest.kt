@@ -1,10 +1,10 @@
 package com.project.linguacity.presentation.city.web
 
 import com.project.linguacity.domain.model.city.BuildingCode
-import com.project.linguacity.domain.model.city.BuildingState
 import com.project.linguacity.domain.model.city.CityEvent
-import com.project.linguacity.domain.model.city.CityState
+import com.project.linguacity.presentation.city.BuildingView
 import com.project.linguacity.presentation.city.CityMapIntent
+import com.project.linguacity.presentation.city.CityRenderState
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -16,13 +16,17 @@ class CityBridgeJsonTest {
     @Test
     fun encodeState_dungTenTruongMaBanDoDoc() {
         val json = CityBridgeJson.encodeState(
-            CityState(
-                buildings = listOf(BuildingState(BuildingCode.SCHOOL, level = 2, upgrading = true, progress = 0.5f)),
+            CityRenderState(
+                buildings = listOf(
+                    BuildingView(BuildingCode.SCHOOL, level = 2, upgrading = true, progress = 0.5f),
+                    BuildingView(BuildingCode.PARK, level = 0, upgrading = false, progress = 0f)
+                ),
                 events = listOf(CityEvent("evt-1"))
             )
         )
         assertEquals(
-            """{"buildings":[{"code":"SCHOOL","level":2,"upgrading":true,"progress":0.5}],"events":[{"id":"evt-1","kind":"GRAMMAR"}]}""",
+            """{"v":1,"buildings":[{"code":"SCHOOL","level":2,"upgrading":true,"progress":0.5},""" +
+                """{"code":"PARK","level":0,"upgrading":false,"progress":0.0}],"events":[{"id":"evt-1","kind":"GRAMMAR"}]}""",
             json
         )
     }

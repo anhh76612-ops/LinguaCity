@@ -1,8 +1,8 @@
 package com.project.linguacity.presentation.city.web
 
 import com.project.linguacity.domain.model.city.BuildingCode
-import com.project.linguacity.domain.model.city.CityState
 import com.project.linguacity.presentation.city.CityMapIntent
+import com.project.linguacity.presentation.city.CityRenderState
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
@@ -13,13 +13,16 @@ import kotlinx.serialization.json.Json
  */
 internal object CityBridgeJson {
 
+    /** Phiên bản hợp đồng (B). Trùng với CONTRACT_VERSION trong cityState.ts. */
+    const val CONTRACT_VERSION = 1
+
     private val json = Json {
         ignoreUnknownKeys = true // bản đồ thêm trường mới cũng không làm app lỗi
         encodeDefaults = true
     }
 
     @Serializable
-    private data class StateDto(val buildings: List<BuildingDto>, val events: List<EventDto>)
+    private data class StateDto(val v: Int, val buildings: List<BuildingDto>, val events: List<EventDto>)
 
     @Serializable
     private data class BuildingDto(val code: String, val level: Int, val upgrading: Boolean, val progress: Float)
@@ -30,9 +33,10 @@ internal object CityBridgeJson {
     @Serializable
     private data class IntentDto(val type: String, val buildingCode: String? = null, val eventId: String? = null)
 
-    fun encodeState(state: CityState): String = json.encodeToString(
+    fun encodeState(state: CityRenderState): String = json.encodeToString(
         StateDto.serializer(),
         StateDto(
+            v = CONTRACT_VERSION,
             buildings = state.buildings.map { BuildingDto(it.code.name, it.level, it.upgrading, it.progress) },
             events = state.events.map { EventDto(it.id, it.kind) }
         )
