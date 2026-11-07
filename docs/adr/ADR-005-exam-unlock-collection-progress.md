@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 | :--- | :--- |
-| **Trạng thái** | ✅ Accepted |
+| **Trạng thái** | ✅ Accepted · ✏️ Sửa một phần bởi [ADR-013](ADR-013-server-learning-session.md) (08/11/2026): một thẻ được tính "đã sưu tầm" khi **trả lời đúng lần đầu** (`collected_at`), không còn là "đã gặp" (`first_seen_at`). Ý chính "không cần 100% Mastery" giữ nguyên. |
 | **Giai đoạn** | Giai đoạn 2 |
 | **Liên quan** | GDD §3 · System Design §3.3 |
 

@@ -111,3 +111,19 @@ Mỗi tính năng mở rộng tiếp tục được đóng gói thành một Lá
 ### 5.4. Ảnh hưởng tới thiết kế MVP hiện tại
 *   Giữ API trả **DTO độc lập nền tảng** (không có trường riêng cho Android) để Web dùng lại được.
 *   Giữ quy tắc "Unity không gọi API" (ADR-009) — nhờ vậy logic không bị phân tán khi có thêm Web.
+
+---
+
+## 6. GHI CHÚ MỞ RỘNG TỪ KẾ HOẠCH VS2/VS3 (08/11/2026)
+
+Các mục dưới đây đã được người dùng yêu cầu **ghi lại để làm sau**. MVP đang dùng bản đơn giản.
+
+| # | Chủ đề | Hiện tại (MVP) | Hướng mở rộng |
+| :--- | :--- | :--- | :--- |
+| 1 | **Thuật toán chọn từ** | Chưa sưu tầm → Mastery thấp; bỏ từ vừa ôn 10 phút; xáo ngẫu nhiên (ADR-013) | Trọng số theo độ khó, Mastery, độ "nguội" của từ; hoặc Spaced Repetition (SM-2/FSRS). Cần thêm cột `interval`, `ease`, `due_at` vào `user_vocab_progress` |
+| 2 | **AI chấm câu điền từ** | `trim` + không phân biệt hoa/thường + `accepted_answers` | Server gọi mô hình ngôn ngữ cho câu không khớp chính xác (sai chính tả nhẹ, số nhiều, đồng nghĩa) → `CORRECT / NEARLY / WRONG` + lý do. Server vẫn là nơi quyết định (Server Authority); cần cache kết quả và giới hạn chi phí |
+| 3 | **AI viết phản hồi / giải thích** | `explanation` soạn sẵn theo giọng tự nhiên + câu mở đầu ngẫu nhiên của thư ký | Mô hình ngôn ngữ viết giải thích **theo đúng câu trả lời sai** của người chơi (vì sao "deposit" không hợp ở đây) |
+| 4 | **Lớp học / giáo viên / AI tạo nội dung** | Gói nội dung `scope = 'GLOBAL'`, tải kiểu pull (ADR-012) | Mỗi thành phố là một lớp: `scope` = mã lớp. Giáo viên (có AI hỗ trợ) tạo câu hỏi, tìm nội dung, xếp câu vào công trình/Level, hoặc tạo bài kiểm tra → tăng `version` của gói → **FCM push** "có bài mới" → app pull. WebSocket chỉ khi cần chat lớp hoặc thi đấu real-time |
+| 5 | **Nội thất** | House có nội thất 3D (nhà trống, chọn tường/sàn) | Nội thất 3D cho Road/Park/School; đồ nội thất đặt được, mở bằng KP/danh hiệu |
+| 6 | **Nội dung** | Chỉ seed House Level 1 (30 từ) | Seed Road (Transportation, Vehicles), Park (Environment, Social), School (Education), các Level 2–3 |
+| 7 | **Migration** | SQL viết tay chạy bằng `psql`, `ddl-auto=update` | Flyway để migration tự chạy khi khởi động (tránh lệch schema như TC-VS1-13) |
