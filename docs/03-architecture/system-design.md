@@ -1244,7 +1244,7 @@ Mọi API đều cần `X-Guest-UUID`. Lỗi trả `ErrorResponse {code, message
 | Phiên bản | Thêm |
 | :--- | :--- |
 | v3 (VS2) | `ThemeEntity`, `BuildingEntity`, `BuildingThemeEntity`, `BuildingLevelEntity`, `BlueprintEntity`, `VocabularyEntity`, `QuestionEntity` (không answer/explanation), `QuestionVocabularyEntity`, `ExamEntity`, `ExamRequirementEntity`, `ExamQuestionEntity`, `ContentPackStateEntity(code, version, downloadedAtMillis)`. ✅ Đã cài (AutoMigration 2→3). Mọi bảng thuộc gói có cột `packCode` để xoá theo gói. `AchievementEntity` dời sang v4, `CosmeticItemEntity` sang v5 (cùng lúc với bảng server tương ứng) |
-| v4 (VS3) | `UserVocabProgressEntity` (mastery, maxMastery, collected, firstSeenAt, lastReviewedAt), `UserBuildingEntity`, `UserAchievementEntity`. `UserProfileEntity` thêm `tutorialStep`, `equippedTitle` |
+| v4 (VS3) | `UserVocabProgressEntity` (mastery, maxMastery, collected, lastReviewedAt), `UserBuildingEntity`, `AchievementEntity` (danh mục CORE), `UserAchievementEntity`. `UserProfileEntity` thêm `tutorialStep` (DEFAULT 'INTRO'), `equippedTitle`. ✅ Đã cài (AutoMigration 3→4). Một máy = một Guest nên các bảng Player State không có cột userId |
 
 - Static content dùng `@Upsert` trong `withTransaction` (§6.3).
 - Khi một gói có version mới: xoá các dòng của gói cũ (theo building + level) rồi upsert, để từ hoặc câu bị gỡ trên server cũng biến mất ở máy.

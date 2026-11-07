@@ -70,7 +70,7 @@ Test tự động backend: `backend/src/test/java/com/linguacity/backend/content
 | TC-VS2-10 | Lần đầu không mạng | Xoá dữ liệu, tắt mạng | Báo cần mạng + Thử lại | Đạt: chặn ngay ở SCR-01 (onboarding cũng cần mạng) với câu "Lần đầu vào game cần kết nối mạng…" (Hình 6.8); bật mạng, bấm Thử lại → SCR-03 tải CORE + HOUSING:1 → Tutorial | E2E | ✅ |
 | TC-VS2-11 | Seed V003 chạy trên PostgreSQL thật | `psql -f V003…` | Không lỗi; đếm dòng đúng | Đạt: 7 themes, 4 buildings, 7 building_themes, 12 building_levels, 8 blueprints, 30 từ, 90 câu, 1 exam / 10 câu, 2 packs | Thủ công | ✅ |
 
-## 5. VS3 — LEARNING SESSION (UC_05) 🟡 (backend ✅, mobile ở M5)
+## 5. VS3 — LEARNING SESSION (UC_05) ✅
 
 Test tự động backend (08/11/2026): 42/42 đạt — `LearningEngineTests` (5), `LearningFlowTests` (15, H2 + đồng hồ giả), `AchievementServiceTests` (3). E2E trên PostgreSQL thật: onboard → bài trình độ → học ở House → xây → `GET /city` (script `e2e_m4.py`).
 
@@ -90,8 +90,8 @@ Test tự động backend (08/11/2026): 42/42 đạt — `LearningEngineTests` (
 | TC-VS3-12 | `complete` idempotent | Gọi 2 lần | Kết quả như nhau, KP chỉ cộng 1 lần | Đạt: gọi lại trả cùng `kpAwarded`, KP hồ sơ không đổi; nộp tiếp → 409 `SESSION_CLOSED` | Integration (`LearningFlowTests`) | ✅ |
 | TC-VS3-13 | Chọn từ ưu tiên | Có từ chưa sưu tầm và từ đã sưu tầm | Từ chưa sưu tầm được chọn trước; từ vừa ôn < 10 phút bị bỏ | Đạt; PostgreSQL: sau bài trình độ (20 từ đã sưu tầm) phiên học chọn đúng 10 từ còn lại | Unit (`selectorPrefersUncollected…`) + E2E | ✅ |
 | TC-VS3-14 | Optimistic Locking | Hai `complete` song song | Không mất KP / không cộng đôi | Đạt: bản phiên cũ (version cũ) ghi đè sau khi đã complete → `ObjectOptimisticLockingFailureException` (API trả 409 `CONCURRENT_UPDATE`) | Integration (`LearningFlowTests`.staleSession…) | ✅ |
-| TC-VS3-15 | Xem mastery offline | Học xong → máy bay | Danh sách từ hiện ✓ và Mastery | | E2E | ⬜ |
-| TC-VS3-16 | Mất mạng giữa bài | Tắt mạng câu 5 → bật → Thử lại | Làm tiếp câu 5 | | E2E | ⬜ |
+| TC-VS3-15 | Xem mastery offline | Học xong → máy bay | Danh sách từ hiện ✓ và Mastery | Đạt (08/11/2026): bật chế độ máy bay, mở lại app → danh sách House Lv1 "Đã sưu tầm 13/30", dấu ✅ và Mastery 2/10 (Hình 6.10) | E2E | ✅ |
+| TC-VS3-16 | Mất mạng giữa bài | Tắt mạng câu 5 → bật → Thử lại | Làm tiếp câu 5 | Đạt: tắt mạng ở câu 5 → "Mất kết nối… câu bạn đang làm vẫn được giữ" (Hình 6.9); bật mạng, bấm Thử lại → server chấm đúng câu 5, hiện phản hồi. Thoát giữa bài rồi bấm Học lại → tiếp tục đúng câu 5/20 (TC-VS3-02 phía app) | E2E | ✅ |
 
 ## 6. TUTORIAL THƯ KÝ, DANH HIỆU, TUỲ BIẾN 🟡 (backend phần lớn ✅)
 
@@ -130,6 +130,11 @@ Test tự động backend (08/11/2026): 42/42 đạt — `LearningEngineTests` (
 | 6.6 | `6.6-tc-vs2-09-offline-flashcard.png` | TC-VS2-09: flashcard khi bật chế độ máy bay |
 | 6.7 | `6.7-tc-vs2-09-offline-list.png` | TC-VS2-09: danh sách từ khi offline |
 | 6.8 | `6.8-tc-vs2-10-first-run-offline.png` | TC-VS2-10: lần đầu mở app không có mạng |
+| 6.9 | `6.9-tc-vs3-16-offline-mid-lesson.png` | TC-VS3-16: mất mạng giữa bài |
+| 6.10 | `6.10-tc-vs3-15-offline-progress.png` | TC-VS3-15: tiến độ sưu tầm khi offline |
+| 6.11 | `6.11-tc-tut-05-build-not-met.png` | TC-TUT-05 phía app: "Cần sưu tầm thêm 10 từ để xây nhé." |
+
+**E2E app VS3 (08/11/2026, emulator + PostgreSQL thật):** Room v3 → v4 (AutoMigration) giữ nguyên dữ liệu; City dùng dữ liệu thật (4 lô Lv0); bài 20 câu: câu 1 chọn sai → đỏ/xanh + đáp án + giải thích + Mastery 0/10; kết quả 17/20 → 105 KP (85 + 20), sưu tầm 10/30, danh hiệu "Liên hoàn" (Hình 4.10, 4.11); bấm Xây khi mới 10/20 từ → "Cần sưu tầm thêm 10 từ để xây nhé."; danh hiệu: 2/7, đeo "Cư dân mới" → HUD hiện tên (Hình 4.12).
 
 **Ghi nhận khi nghiệm thu (chưa phải lỗi chặn):**
 - Màn lỗi hiện nguyên văn lỗi kỹ thuật (`failed to connect to /10.0.2.2 …`). Nên thay bằng câu dễ hiểu ở mốc giao diện.

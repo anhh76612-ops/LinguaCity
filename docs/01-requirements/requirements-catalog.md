@@ -17,7 +17,7 @@
 | :--- | :--- | :--- | :--- | :--- |
 | FR-USER-01 | Vào game không cần đăng nhập | Lần đầu mở app, hệ thống tạo Guest UUID cục bộ và đăng ký với Backend | VS1 | ✅ |
 | FR-USER-02 | Giữ tiến trình khi mở lại app | Cùng thiết bị → cùng UUID → cùng hồ sơ, không tạo trùng | VS1 | ✅ |
-| FR-USER-03 | Xem tài nguyên hiện có | Knowledge Points, Hourglass, Blueprint Shards | VS1/VS5 | 🟡 (API có, UI chưa) |
+| FR-USER-03 | Xem tài nguyên hiện có | Knowledge Points, Hourglass, Blueprint Shards | VS1/VS5 | 🟡 (HUD tạm hiện KP) |
 | FR-USER-04 | Hoàn thành Tutorial lần đầu | Đánh dấu đã xem hướng dẫn, không hiện lại | VS1 | ✅ (TC-VS1-09..17) |
 
 ### Bảng 1.2: Người chơi — Học tập (`FR-LEARN`)
@@ -26,9 +26,9 @@
 | :--- | :--- | :--- | :--- | :--- |
 | FR-LEARN-01 | Xem danh sách từ vựng theo công trình/Level | Đọc từ Room, dùng được khi offline | VS2 | ✅ (TC-VS2-09; dấu sưu tầm ở VS3) |
 | FR-LEARN-02 | Xem Flashcard | Từ, nghĩa, IPA, câu ví dụ; offline | VS2 | ✅ (TC-VS2-09) |
-| FR-LEARN-03 | Tham gia bài học | Phiên trên server: 20 câu từ 10 từ; cần online; làm tiếp trong 30 phút (ADR-013) | VS3 | 🟡 Backend ✅ (M4), app ở M5/M6 |
-| FR-LEARN-04 | Nhận kết quả và Knowledge Points | Server chấm từng câu, phản hồi ngay; KP cuối phiên, giảm sau phiên thứ 5 trong ngày | VS3 | 🟡 Backend ✅ (M4), app ở M5/M6 |
-| FR-LEARN-05 | Xem tiến độ thu thập (Collection Progress) | Ví dụ 22/30 từ của Level 1; "sưu tầm" = trả lời đúng lần đầu | VS3 | 🟡 Backend ✅ (M4), app ở M5/M6 |
+| FR-LEARN-03 | Tham gia bài học | Phiên trên server: 20 câu từ 10 từ; cần online; làm tiếp trong 30 phút (ADR-013) | VS3 | ✅ (TC-VS3-01..16) |
+| FR-LEARN-04 | Nhận kết quả và Knowledge Points | Server chấm từng câu, phản hồi ngay; KP cuối phiên, giảm sau phiên thứ 5 trong ngày | VS3 | ✅ |
+| FR-LEARN-05 | Xem tiến độ thu thập (Collection Progress) | Ví dụ 22/30 từ của Level 1; "sưu tầm" = trả lời đúng lần đầu | VS3 | ✅ |
 
 ### Bảng 1.3: Người chơi — Thi sát hạch (`FR-EXAM`)
 
@@ -65,9 +65,9 @@
 
 | Mã | Yêu cầu | Mô tả ngắn | Slice | Trạng thái |
 | :--- | :--- | :--- | :--- | :--- |
-| FR-ACH-01 | Nhận danh hiệu | Dễ / Khó / Ẩn; server xét sau mỗi phiên | VS3+ | 🟡 Backend ✅ (M4), app ở M5/M6 |
-| FR-ACH-02 | Bộ sưu tập danh hiệu | Danh hiệu Ẩn chưa có hiện "???" | VS3+ | 🟡 Specified |
-| FR-ACH-03 | Đeo danh hiệu | Một danh hiệu hiện trên HUD/Hồ sơ | VS3+ | 🟡 Backend ✅ (M4), app ở M5/M6 |
+| FR-ACH-01 | Nhận danh hiệu | Dễ / Khó / Ẩn; server xét sau mỗi phiên | VS3+ | ✅ (server + màn danh hiệu) |
+| FR-ACH-02 | Bộ sưu tập danh hiệu | Danh hiệu Ẩn chưa có hiện "???" | VS3+ | 🟡 bản cơ bản (SCR-18) |
+| FR-ACH-03 | Đeo danh hiệu | Một danh hiệu hiện trên HUD/Hồ sơ | VS3+ | 🟡 Đeo được, HUD tạm (đầy đủ ở M9) |
 | FR-COS-01 | Ngoại hình nhân vật | Phối bộ phận low-poly, miễn phí | VS3+ | 🟡 Specified |
 | FR-COS-02 | Kiểu nhà | Tường, sàn; mở bằng KP hoặc danh hiệu | VS3+ | 🟡 Specified |
 | FR-COS-03 | Lưu trên server | Đổi máy vẫn giữ (khi có tài khoản) | VS3+ | 🟡 Specified |
