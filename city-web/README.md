@@ -96,4 +96,4 @@ Kênh gửi được dò theo thứ tự: `window.AndroidBridge.postMessage` (An
 - **Thêm level 4:** tăng `MAX_LEVEL` trong `bridge/cityState.ts`, thêm nhánh `level >= 4` trong file công trình tương ứng.
 - **Thêm công trình mới:** thêm mã vào `BuildingCode`/`LOTS` (`world/grid.ts`), viết `buildXxx(level)`, đăng ký trong `BUILDERS` (`world/city.ts`). Nếu người dân cần tới công trình đó thì thêm nút và spot trong `people/nav.ts`.
 - **Thêm hoạt ảnh:** thêm một `case` trong `poseFor()` (`people/poses.ts`), rồi dùng trong một `Spot`.
-- **Nhúng vào Android** (bước sau): chép `dist/` vào `mobile/app/src/main/assets/city/`, phục vụ qua `WebViewAssetLoader` (không mở bằng `file://`, vì module ES bị chặn), gắn `addJavascriptInterface(..., "AndroidBridge")`, gửi state bằng `evaluateJavascript`.
+- **Nhúng vào Android:** đã làm. `npm run build` xong thì Gradle (task `syncCityWeb`) tự chép `dist/` vào APK. Phía Kotlin xem `WebCityRenderer.kt` và bài học [city-webview-integration.md](../docs/05-implementation/city-webview-integration.md).
