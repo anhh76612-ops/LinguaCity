@@ -1,0 +1,22 @@
+{
+  "name": "linguacity-city-web",
+  "private": true,
+  "version": "0.1.0",
+  "description": "City View của LinguaCity: bản đồ thành phố 3D isometric bằng Three.js, nhúng được vào WebView.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host",
+    "build": "tsc && vite build",
+    "preview": "vite preview --host",
+    "typecheck": "tsc"
+  },
+  "dependencies": {
+    "lil-gui": "0.19.2",
+    "three": "0.160.0"
+  },
+  "devDependencies": {
+    "@types/three": "0.160.0",
+    "typescript": "5.6.3",
+    "vite": "5.4.10"
+  }
+}
