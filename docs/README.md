@@ -50,7 +50,7 @@ Game mobile học tiếng Anh (TOEIC) kết hợp xây dựng thành phố. **Ko
 | Slice | Nội dung | Trạng thái |
 | :--- | :--- | :--- |
 | VS1 | Guest Onboarding + Tutorial | ✅ Verified (08/11/2026, TC-VS1-01..17) |
-| VS2 | Static Content Bootstrap | ⬜ |
+| VS2 | Static Content Bootstrap (gói theo Level) | ✅ Implemented (08/11/2026, TC-VS2-01..11) |
 | VS3 | Vocabulary Learning | ⬜ |
 | VS4 | Exam | ⬜ |
 | City View | Three.js + WebView (ADR-010, ADR-011) | 🟡 nhúng xong, dữ liệu giả lập |

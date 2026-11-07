@@ -1237,7 +1237,7 @@ Mọi API đều cần `X-Guest-UUID`. Lỗi trả `ErrorResponse {code, message
 ### 10.7. Room (mobile)
 | Phiên bản | Thêm |
 | :--- | :--- |
-| v3 (VS2) | `ThemeEntity`, `BuildingEntity`, `BuildingThemeEntity`, `BuildingLevelEntity`, `BlueprintEntity`, `VocabularyEntity`, `QuestionEntity` (không answer/explanation), `QuestionVocabularyEntity`, `ExamEntity`, `ExamRequirementEntity`, `ExamQuestionEntity`, `AchievementEntity`, `CosmeticItemEntity`, `ContentPackStateEntity(code, version, downloadedAt)` |
+| v3 (VS2) | `ThemeEntity`, `BuildingEntity`, `BuildingThemeEntity`, `BuildingLevelEntity`, `BlueprintEntity`, `VocabularyEntity`, `QuestionEntity` (không answer/explanation), `QuestionVocabularyEntity`, `ExamEntity`, `ExamRequirementEntity`, `ExamQuestionEntity`, `ContentPackStateEntity(code, version, downloadedAtMillis)`. ✅ Đã cài (AutoMigration 2→3). Mọi bảng thuộc gói có cột `packCode` để xoá theo gói. `AchievementEntity` dời sang v4, `CosmeticItemEntity` sang v5 (cùng lúc với bảng server tương ứng) |
 | v4 (VS3) | `UserVocabProgressEntity` (mastery, maxMastery, collected, firstSeenAt, lastReviewedAt), `UserBuildingEntity`, `UserAchievementEntity`. `UserProfileEntity` thêm `tutorialStep`, `equippedTitle` |
 
 - Static content dùng `@Upsert` trong `withTransaction` (§6.3).

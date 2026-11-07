@@ -89,7 +89,7 @@ Mẫu bảng đặc tả dùng chung (giống báo cáo mẫu):
 | **Tiền điều kiện** | App đã cài; thiết bị có mạng; Backend đang chạy. |
 | **Hậu điều kiện** | Có đúng một bản ghi `user_profiles` cho UUID; Room lưu `UserProfileEntity`; DataStore lưu UUID. |
 | **Luồng chính** | 1. Người chơi mở app → màn hình Onboarding hiển thị loading.<br>2. App đọc Guest UUID từ DataStore; nếu chưa có thì sinh UUID mới và lưu lại (BR-USER-01, 02).<br>3. App gọi `POST /api/v1/users/onboard` với header `X-Guest-UUID`.<br>4. Backend tìm `UserProfile` theo UUID; chưa có thì tạo mới với tài nguyên = 0 (BR-USER-03, 05).<br>5. Backend trả `OnboardUserResponse` (id, knowledgePoints, hourglassCount, blueprintShards).<br>6. App lưu hồ sơ vào Room và báo thành công. |
-| **Luồng thay thế** | 4a. UUID đã tồn tại → trả hồ sơ cũ, **không tạo mới, không ghi đè tài nguyên** (BR-USER-04). |
+| **Luồng thay thế** | 4a. UUID đã tồn tại → trả hồ sơ cũ, **không tạo mới, không ghi đè tài nguyên** (BR-USER-04).<br>3a. (VS2, 08/11/2026) Mất mạng nhưng Room đã có hồ sơ của UUID này → dùng hồ sơ cache để vào game đọc offline (ADR-004, FR-SYS-03). Chưa có hồ sơ → báo lỗi + Thử lại. |
 | **Ngoại lệ** | E1. Thiếu header `X-Guest-UUID` → HTTP 400.<br>E2. UUID sai định dạng → HTTP 400.<br>E3. Backend không phản hồi / mất mạng → màn hình hiện "Không thể khởi tạo người chơi." kèm thông báo lỗi. ⬜ Chưa có nút **Thử lại** (cần bổ sung). |
 | **Business Rules** | BR-USER-01 … BR-USER-05 (xem `05-implementation/vertical-slices/vs1-vs2-handover.md` §3) |
 | **API / Dữ liệu** | `POST /api/v1/users/onboard` · bảng `user_profiles` · Room `UserProfileEntity` · DataStore `GuestIdStore` |

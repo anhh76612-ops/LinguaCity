@@ -24,8 +24,8 @@
 
 | Mã | Yêu cầu | Mô tả ngắn | Slice | Trạng thái |
 | :--- | :--- | :--- | :--- | :--- |
-| FR-LEARN-01 | Xem danh sách từ vựng theo công trình/Level | Đọc từ Room, dùng được khi offline | VS2 | 🟡 Specified |
-| FR-LEARN-02 | Xem Flashcard | Từ, nghĩa, IPA, câu ví dụ; offline | VS2 | 🟡 Specified |
+| FR-LEARN-01 | Xem danh sách từ vựng theo công trình/Level | Đọc từ Room, dùng được khi offline | VS2 | ✅ (TC-VS2-09; dấu sưu tầm ở VS3) |
+| FR-LEARN-02 | Xem Flashcard | Từ, nghĩa, IPA, câu ví dụ; offline | VS2 | ✅ (TC-VS2-09) |
 | FR-LEARN-03 | Tham gia bài học | Phiên trên server: 20 câu từ 10 từ; cần online; làm tiếp trong 30 phút (ADR-013) | VS3 | 🟡 Specified |
 | FR-LEARN-04 | Nhận kết quả và Knowledge Points | Server chấm từng câu, phản hồi ngay; KP cuối phiên, giảm sau phiên thứ 5 trong ngày | VS3 | 🟡 Specified |
 | FR-LEARN-05 | Xem tiến độ thu thập (Collection Progress) | Ví dụ 22/30 từ của Level 1; "sưu tầm" = trả lời đúng lần đầu | VS3 | 🟡 Specified |
@@ -91,7 +91,7 @@
 | Mã | Yêu cầu | Mô tả ngắn | Slice | Trạng thái |
 | :--- | :--- | :--- | :--- | :--- |
 | FR-SYS-01 | Server Authority | Mọi thay đổi Player State do Backend quyết định | Mọi slice | ✅ (nguyên tắc) |
-| FR-SYS-02 | Tải và cache Static Content | Gói theo (công trình, Level), có version, kiểu pull (ADR-012) | VS2 | 🟡 Specified |
+| FR-SYS-02 | Tải và cache Static Content | Gói theo (công trình, Level), có version, kiểu pull (ADR-012) | VS2 | ✅ (TC-VS2-01..11) |
 | FR-SYS-03 | Đồng bộ On-Demand | Khi khởi động/có mạng: tải Player State từ Server ghi đè Room | VS2+ | ⬜ |
 | FR-SYS-04 | Hoàn tất xây dựng theo Server Time | Không tin giờ thiết bị | VS5 | ⬜ |
 | FR-SYS-05 | Chống request lặp | Optimistic Locking `@Version` trên `UserProfile` | VS3 | 🟡 Specified (V004) |
