@@ -36,6 +36,14 @@ import androidx.lifecycle.LifecycleEventObserver
 import com.project.linguacity.domain.model.city.BuildingCode
 import com.project.linguacity.domain.model.content.BuildingLevelInfo
 import com.project.linguacity.presentation.city.web.WebCityRenderer
+import com.project.linguacity.presentation.tutorial.LocalSpotlight
+import com.project.linguacity.presentation.tutorial.SecretaryOverlay
+import com.project.linguacity.presentation.tutorial.SpotKeys
+import com.project.linguacity.presentation.tutorial.TutorialNav
+import com.project.linguacity.presentation.tutorial.TutorialViewModel
+import com.project.linguacity.presentation.tutorial.rememberSpotlightRegistry
+import com.project.linguacity.presentation.tutorial.spotlightTarget
+import androidx.compose.runtime.CompositionLocalProvider
 
 /**
  * SCR-04 City View. Bản đồ chiếm toàn màn hình; UI Compose (HUD tạm, thẻ công trình, snackbar) nằm đè lên trên.
@@ -46,11 +54,33 @@ fun CityScreen(
     onOpenVocabulary: (BuildingCode, Int) -> Unit = { _, _ -> },
     onStartLesson: (BuildingCode) -> Unit = {},
     onOpenAchievements: () -> Unit = {},
+    onStartPlacement: () -> Unit = {},
     renderer: CityRenderer = WebCityRenderer,
-    viewModel: CityViewModel = hiltViewModel()
+    viewModel: CityViewModel = hiltViewModel(),
+    tutorial: TutorialViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
+    val guide by tutorial.state.collectAsState()
     val snackbar = remember { SnackbarHostState() }
+    val spotlight = rememberSpotlightRegistry()
+
+    // Tutorial thư ký (ADR-014): điều hướng theo nút của Mai; tự mở thẻ House khi Mai cần chỉ vào nút Học/Xây.
+    LaunchedEffect(Unit) {
+        tutorial.nav.collect { nav ->
+            when (nav) {
+                TutorialNav.Placement -> onStartPlacement()
+                is TutorialNav.Lesson -> onStartLesson(nav.code)
+            }
+        }
+    }
+    LaunchedEffect(guide.script?.id) {
+        if (guide.script?.selectHousing == true) {
+            viewModel.onIntent(CityIntent.Map(CityMapIntent.BuildingTapped(BuildingCode.HOUSING)))
+        }
+    }
+    LaunchedEffect(guide.message) {
+        guide.message?.let { snackbar.showSnackbar(it); tutorial.messageShown() }
+    }
 
     // Mỗi lần màn City quay lại foreground: tải lại thành phố + kiểm tra gói nội dung mới (ADR-012, kiểu pull).
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -71,6 +101,7 @@ fun CityScreen(
 
     val render = state.render // dữ liệu để vẽ (hợp đồng B), tính lại mỗi lần state đổi
 
+    CompositionLocalProvider(LocalSpotlight provides spotlight) {
     Box(Modifier.fillMaxSize()) {
         renderer.Render(
             state = render,
@@ -86,10 +117,13 @@ fun CityScreen(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            AssistChip(onClick = {}, label = { Text("💡 ${state.profile?.knowledgePoints ?: 0} KP") })
+            AssistChip(onClick = {}, label = { Text("💡 ${state.profile?.knowledgePoints ?: 0} KP") },
+                modifier = Modifier.spotlightTarget(SpotKeys.KP))
             state.equippedTitleName?.let { AssistChip(onClick = onOpenAchievements, label = { Text("🏅 $it") }) }
             Box(Modifier.weight(1f))
-            FilledTonalButton(onClick = onOpenAchievements) { Text("🏅 Danh hiệu") }
+            FilledTonalButton(onClick = onOpenAchievements, modifier = Modifier.spotlightTarget(SpotKeys.ACHIEVEMENTS)) {
+                Text("🏅 Danh hiệu")
+            }
         }
 
         Column(
@@ -111,6 +145,9 @@ fun CityScreen(
                 )
             }
         }
+
+        SecretaryOverlay(guide, onNext = tutorial::next, onAct = tutorial::act)
+    }
     }
 }
 
@@ -125,7 +162,7 @@ private fun BuildingCard(
     onVocabulary: () -> Unit,
     onClose: () -> Unit
 ) {
-    Card(Modifier.fillMaxWidth()) {
+    Card(Modifier.fillMaxWidth().spotlightTarget(SpotKeys.CARD)) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             val levelText = if (building.isBuilt) "Lv ${building.level}" else "Chưa xây"
             Text(
@@ -154,11 +191,14 @@ private fun BuildingCard(
                 )
             }
             Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
-                Button(onClick = onLearn, enabled = !building.isMaxLevel) { Text("Học") }
-                if (!building.isBuilt) {
-                    FilledTonalButton(onClick = onBuild, enabled = !building.upgrading && !busy) { Text("Xây") }
+                Button(onClick = onLearn, enabled = !building.isMaxLevel, modifier = Modifier.spotlightTarget(SpotKeys.LEARN)) {
+                    Text("Học")
                 }
-                TextButton(onClick = onVocabulary) { Text("Thẻ từ") }
+                if (!building.isBuilt) {
+                    FilledTonalButton(onClick = onBuild, enabled = !building.upgrading && !busy,
+                        modifier = Modifier.spotlightTarget(SpotKeys.BUILD)) { Text("Xây") }
+                }
+                TextButton(onClick = onVocabulary, modifier = Modifier.spotlightTarget(SpotKeys.VOCAB)) { Text("Thẻ từ") }
                 TextButton(onClick = onClose) { Text("Đóng") }
             }
         }

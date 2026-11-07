@@ -8,6 +8,7 @@ import com.project.linguacity.data.remote.IsoTime
 import com.project.linguacity.data.remote.player.EquipRequestDto
 import com.project.linguacity.data.remote.player.PlayerApi
 import com.project.linguacity.data.remote.player.PlayerDto
+import com.project.linguacity.data.remote.player.StepRequestDto
 import com.project.linguacity.domain.model.UserProfile
 import com.project.linguacity.domain.model.player.AchievementView
 import com.project.linguacity.domain.repository.PlayerRepository
@@ -53,6 +54,10 @@ class PlayerRepositoryImpl @Inject constructor(
 
     override suspend fun equip(code: String?) {
         save(api.equip(guestIdStore.getOrCreateGuestUuid(), EquipRequestDto(code)))
+    }
+
+    override suspend fun advanceTutorial(step: String) {
+        save(api.step(guestIdStore.getOrCreateGuestUuid(), StepRequestDto(step)))
     }
 
     private suspend fun save(me: PlayerDto) {

@@ -24,6 +24,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.project.linguacity.domain.model.learning.AnswerFeedback
 import com.project.linguacity.domain.model.learning.LessonItem
 import com.project.linguacity.domain.model.learning.LessonResult
+import com.project.linguacity.presentation.tutorial.MaiMood
+import com.project.linguacity.presentation.tutorial.MaiPortrait
+import com.project.linguacity.presentation.tutorial.TutorialGuide
 
 private val Good = Color(0xFF2E7D32)
 private val Bad = Color(0xFFC62828)
@@ -71,6 +74,18 @@ private fun ColumnScope.QuestionView(state: LessonUiState, onIntent: (LessonInte
         modifier = Modifier.fillMaxWidth())
     if (session.placement) {
         Text(tierLabel(item.question.tier), style = MaterialTheme.typography.labelMedium, modifier = Modifier.padding(top = 8.dp))
+        // Mai nhắc khi bước sang mức khó mới (câu đầu mỗi mức) — ADR-014
+        val previousTier = session.items.getOrNull(state.index - 1)?.question?.tier
+        if (state.feedback == null && previousTier != item.question.tier) {
+            Card(Modifier.fillMaxWidth().padding(top = 8.dp), colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.secondaryContainer)) {
+                Row(Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
+                    MaiPortrait(if (item.question.tier == 3) MaiMood.SURPRISED else MaiMood.ENCOURAGE, Modifier.size(44.dp))
+                    Spacer(Modifier.width(10.dp))
+                    Text("Mai: ${TutorialGuide.placementTip(item.question.tier)}", style = MaterialTheme.typography.bodyMedium)
+                }
+            }
+        }
     }
 
     Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(vertical = 16.dp),

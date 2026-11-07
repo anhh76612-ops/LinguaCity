@@ -11,7 +11,6 @@ import com.project.linguacity.presentation.city.CityScreen
 import com.project.linguacity.presentation.lesson.LessonScreen
 import com.project.linguacity.presentation.onboarding.OnboardingScreen
 import com.project.linguacity.presentation.sync.SyncScreen
-import com.project.linguacity.presentation.tutorial.TutorialScreen
 import com.project.linguacity.presentation.vocabulary.FlashcardScreen
 import com.project.linguacity.presentation.vocabulary.VocabularyListScreen
 import kotlinx.serialization.Serializable
@@ -20,12 +19,9 @@ import kotlinx.serialization.Serializable
 @Serializable
 object OnboardingRoute
 
-/** SCR-03: tải nội dung (UC_03), rồi đi tiếp tới Tutorial hoặc City. */
+/** SCR-03: tải nội dung (UC_03), rồi vào City. Tutorial thư ký chạy ngay trên City (ADR-014). */
 @Serializable
 data class SyncRoute(val tutorialCompleted: Boolean)
-
-@Serializable
-object TutorialRoute
 
 @Serializable
 object HomeRoute
@@ -65,23 +61,11 @@ fun AppNavHost(
             )
         }
 
-        composable<SyncRoute> { entry ->
-            val route = entry.toRoute<SyncRoute>()
+        composable<SyncRoute> {
             SyncScreen(
                 onFinished = {
-                    val next: Any = if (route.tutorialCompleted) HomeRoute else TutorialRoute
-                    navController.navigate(next) {
-                        popUpTo<SyncRoute> { inclusive = true }
-                    }
-                }
-            )
-        }
-
-        composable<TutorialRoute> {
-            TutorialScreen(
-                onTutorialCompleted = {
                     navController.navigate(HomeRoute) {
-                        popUpTo(TutorialRoute) { inclusive = true }
+                        popUpTo<SyncRoute> { inclusive = true }
                     }
                 }
             )
@@ -92,7 +76,8 @@ fun AppNavHost(
             CityScreen(
                 onOpenVocabulary = { code, level -> navController.navigate(VocabularyRoute(code.name, level)) },
                 onStartLesson = { code -> navController.navigate(LessonRoute(code.name)) },
-                onOpenAchievements = { navController.navigate(AchievementsRoute) }
+                onOpenAchievements = { navController.navigate(AchievementsRoute) },
+                onStartPlacement = { navController.navigate(LessonRoute("HOUSING", placement = true)) }
             )
         }
 

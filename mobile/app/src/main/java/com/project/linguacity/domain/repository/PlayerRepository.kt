@@ -11,4 +11,7 @@ interface PlayerRepository {
     /** GET /users/me + /users/me/achievements → Room. */
     suspend fun refresh()
     suspend fun equip(code: String?)
+
+    /** PUT /users/me/tutorial/step — chỉ các bước app được tự chuyển (BR-TUT-02). */
+    suspend fun advanceTutorial(step: String)
 }
