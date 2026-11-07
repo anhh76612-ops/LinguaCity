@@ -34,7 +34,8 @@ public class UserProfileController {
                 userProfile.getKnowledgePoints(),
                 userProfile.getHourglassCount(),
                 userProfile.getBlueprintShards(),
-                userProfile.isTutorialCompleted()
+                userProfile.isTutorialCompleted(),
+                userProfile.getTutorialStep()
         );
 
         return ResponseEntity.ok(response);

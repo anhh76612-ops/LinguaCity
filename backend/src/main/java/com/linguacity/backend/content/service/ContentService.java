@@ -1,5 +1,6 @@
 package com.linguacity.backend.content.service;
 
+import com.linguacity.backend.achievement.repository.AchievementRepository;
 import com.linguacity.backend.common.exception.ApiException;
 import com.linguacity.backend.content.dto.ContentDtos.*;
 import com.linguacity.backend.content.entity.*;
@@ -43,6 +44,7 @@ public class ContentService {
     private final ExamRepository exams;
     private final ExamRequirementRepository examRequirements;
     private final ExamQuestionRepository examQuestions;
+    private final AchievementRepository achievements;
     private final ObjectMapper json;
     private final Clock clock;
 
@@ -51,7 +53,8 @@ public class ContentService {
                           BlueprintRepository blueprints, VocabularyRepository vocabularies,
                           QuestionRepository questions, QuestionVocabularyRepository questionVocabularies,
                           ExamRepository exams, ExamRequirementRepository examRequirements,
-                          ExamQuestionRepository examQuestions, ObjectMapper json, Clock clock) {
+                          ExamQuestionRepository examQuestions, AchievementRepository achievements,
+                          ObjectMapper json, Clock clock) {
         this.packs = packs;
         this.themes = themes;
         this.buildings = buildings;
@@ -64,6 +67,7 @@ public class ContentService {
         this.exams = exams;
         this.examRequirements = examRequirements;
         this.examQuestions = examQuestions;
+        this.achievements = achievements;
         this.json = json;
         this.clock = clock;
     }
@@ -108,8 +112,13 @@ public class ContentService {
                 .map(b -> new BlueprintDto(b.getId(), b.getCode(), buildingCode.get(b.getBuildingId()), b.getTargetLevel()))
                 .toList();
 
+        List<AchievementDto> achievementDtos = achievements.findAllByOrderBySortOrderAsc().stream()
+                .map(a -> new AchievementDto(a.getCode(), a.getName(), a.isHidden() ? null : a.getDescription(),
+                        a.getTier(), a.isHidden(), a.getSortOrder()))
+                .toList();
+
         return new Core(pack.getCode(), pack.getVersion(), themeDtos, buildingDtos, levelDtos, blueprintDtos,
-                List.of(), List.of());
+                achievementDtos, List.of());
     }
 
     /**
@@ -149,6 +158,20 @@ public class ContentService {
                                 l.getRelationType()))
                         .toList(),
                 examsFor(building, level + 1));
+    }
+
+    /**
+     * Id các từ của gói (công trình, level): từ có level đó thuộc các chủ đề của công trình (§10.2.1).
+     * Dùng chung cho phiên học, điều kiện xây và tiến độ sưu tầm.
+     */
+    public List<Long> vocabularyIdsOf(Long buildingId, int level) {
+        List<Long> themeIds = buildingThemes.findByIdBuildingId(buildingId).stream()
+                .map(bt -> bt.getId().getThemeId()).toList();
+        if (themeIds.isEmpty()) {
+            return new ArrayList<>();
+        }
+        return new ArrayList<>(vocabularies.findByThemeIdInAndLevelOrderByIdAsc(themeIds, level).stream()
+                .map(Vocabulary::getId).toList());
     }
 
     private List<ExamDto> examsFor(Building building, int targetLevel) {

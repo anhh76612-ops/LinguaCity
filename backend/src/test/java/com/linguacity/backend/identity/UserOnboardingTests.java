@@ -1,5 +1,6 @@
 package com.linguacity.backend.identity;
 
+import com.linguacity.backend.achievement.service.AchievementService;
 import com.linguacity.backend.identity.controller.UserProfileController;
 import com.linguacity.backend.identity.entity.UserProfile;
 import com.linguacity.backend.identity.repository.UserProfileRepository;
@@ -9,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.time.Clock;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -23,7 +25,7 @@ class UserOnboardingTests {
     private final UserProfileRepository repository = mock(UserProfileRepository.class);
     private final UserOnboardingService service = new UserOnboardingService(repository);
     private final MockMvc api = MockMvcBuilders
-            .standaloneSetup(new UserProfileController(service, new TutorialService(repository))).build();
+            .standaloneSetup(new UserProfileController(service, new TutorialService(repository, mock(AchievementService.class), Clock.systemUTC()))).build();
 
     @Test
     void createsNewGuestWithZeroResources() {
