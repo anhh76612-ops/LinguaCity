@@ -55,11 +55,11 @@
 
 | Mã | Yêu cầu | Mô tả ngắn | Slice | Trạng thái |
 | :--- | :--- | :--- | :--- | :--- |
-| FR-TUT-01 | Thư ký hướng dẫn | Chân dung 2D, chữ chạy, spotlight khoanh nút | Tutorial | 🟡 Specified |
-| FR-TUT-02 | Bài kiểm tra trình độ | 30 câu từ 20 từ House Lv1, độ khó tăng dần | Tutorial | 🟡 Backend ✅ (M4), app ở M5/M6 |
-| FR-TUT-03 | Học + xây House Lv0→Lv1 | Bắt buộc 1 phiên học; cần 20/30 từ + 100 KP | Tutorial | 🟡 Backend ✅ (M4), app ở M5/M6 |
+| FR-TUT-01 | Thư ký hướng dẫn | Chân dung 2D, chữ chạy, spotlight khoanh nút | Tutorial | ✅ (SCR-16) |
+| FR-TUT-02 | Bài kiểm tra trình độ | 30 câu từ 20 từ House Lv1, độ khó tăng dần | Tutorial | ✅ (TC-TUT-02/03/09) |
+| FR-TUT-03 | Học + xây House Lv0→Lv1 | Bắt buộc 1 phiên học; cần 20/30 từ + 100 KP | Tutorial | ✅ (TC-TUT-04..06/09) |
 | FR-TUT-04 | Vào nhà và tuỳ biến | Chọn ngoại hình, tường/sàn | Tutorial | 🟡 Specified |
-| FR-TUT-05 | Làm tiếp sau khi thoát | Bước tutorial lưu trên server | Tutorial | 🟡 Backend ✅ (M4), app ở M5/M6 |
+| FR-TUT-05 | Làm tiếp sau khi thoát | Bước tutorial lưu trên server | Tutorial | ✅ (TC-TUT-08) |
 
 ### Bảng 1.6: Người chơi — Danh hiệu (`FR-ACH`) và Tuỳ biến (`FR-COS`)
 

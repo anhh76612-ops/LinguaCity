@@ -11,7 +11,7 @@
 | Mã | Màn hình | Công nghệ | UC | Slice | Trạng thái |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | SCR-01 | Splash / Onboarding | Compose | UC_01 | VS1 | ✅ (loading + lỗi + Thử lại) |
-| SCR-02 | Tutorial | Compose | UC_02 | VS1 | ✅ bản 3 trang · 🟡 sẽ thay bằng tutorial thư ký (ADR-014) |
+| SCR-02 | Tutorial | Compose overlay trên City (thư ký Mai, ADR-014) | UC_02 | Tutorial | ✅ thay bản 3 trang (M6); bước ENTER_HOUSE/CUSTOMIZE giữ chỗ cho M7/M8 |
 | SCR-03 | Đồng bộ nội dung (Content Sync) | Compose (tiến trình theo gói, Thử lại) | UC_03 | VS2 | 🟡 bản cơ bản (Loading đẹp ở M9) |
 | SCR-04 | City View (màn hình chính) | **WebView + city-web (Three.js)**, đường lui Compose (ADR-010) | UC_09 | VS5 | 🟡 (bản đồ + nhúng xong, dữ liệu giả lập) |
 | SCR-05 | Chi tiết công trình | Compose (thẻ đè lên bản đồ: Học / Xây / Thẻ từ, tiến độ sưu tầm, điều kiện Level kế) | UC_09, UC_10 | VS5 | 🟡 dữ liệu thật từ `GET /city` (`4.13`); thay bằng "vào công trình" ở M7 |
@@ -25,7 +25,7 @@
 | SCR-13 | Thanh tài nguyên (HUD) | Compose overlay (đè lên WebView bản đồ) | UC_09 | VS5 | 🟡 HUD tạm: KP + danh hiệu đang đeo (bản đầy đủ ở M9) |
 | SCR-14 | Splash | `core-splashscreen` + Compose | — | UI | ⬜ |
 | SCR-15 | Loading theo điểm đến | Compose (mỗi điểm đến một kiểu) | — | UI | ⬜ |
-| SCR-16 | Overlay thư ký (Mai) | Compose overlay (chân dung 2D, chữ chạy, spotlight) | UC_02, UC_05 | Tutorial | ⬜ |
+| SCR-16 | Overlay thư ký (Mai) | Compose overlay (chân dung 2D vẽ bằng Canvas, 4 biểu cảm, chữ chạy, spotlight) | UC_02, UC_05 | Tutorial | ✅ (`4.14`, `4.15`, `4.17`) |
 | SCR-17 | Bên trong công trình | city-web nội thất 3D (House) / Compose (khác) + bảng nhiệm vụ | UC_15 | VS3+ | ⬜ |
 | SCR-18 | Bộ sưu tập danh hiệu | Compose | UC_13 | VS3+ | 🟡 bản cơ bản (`4.12`; skeleton, hiệu ứng nhận ở M9) |
 | SCR-19 | Hồ sơ | Compose + xem trước avatar (city-web) | UC_13, UC_14 | VS3+ | ⬜ |

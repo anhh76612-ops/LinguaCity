@@ -110,7 +110,7 @@ object TutorialGuide {
             return GuideScript(
                 id = "build-ready",
                 lines = listOf(
-                    GuideLine("Bạn đã có ${ctx.collected}/${ctx.requiredCollected} thẻ từ và ${ctx.knowledgePoints} KP — đủ để xây rồi!", MaiMood.HAPPY, SpotKeys.CARD),
+                    GuideLine("Bạn đã sưu tầm ${ctx.collected} thẻ từ (cần ${ctx.requiredCollected}) và có ${ctx.knowledgePoints} KP — đủ để xây rồi!", MaiMood.HAPPY, SpotKeys.CARD),
                     GuideLine("Bấm Xây nào!", MaiMood.ENCOURAGE, SpotKeys.BUILD)
                 ),
                 action = GuideAction.BUILD, actionLabel = "Xây nhà", selectHousing = true
