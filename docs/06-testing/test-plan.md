@@ -112,8 +112,8 @@ Test tự động backend (08/11/2026): 42/42 đạt — `LearningEngineTests` (
 | TC-ACH-04 | Đeo danh hiệu | Chưa có → 409; có → HUD hiển thị | Đạt (phần server): chưa có → 409 `NOT_EARNED`; có → `equippedTitle`; `null` → tháo. HUD ở M9 | Integration (`LearningFlowTests`) | ✅ |
 | TC-COS-01 | Đổi ngoại hình | Mã sai category → 400; đúng → lưu | | Integration | ⬜ |
 | TC-COS-02 | Mở mẫu tường bằng KP | Thiếu KP → 409; đủ → trừ KP, mở | | Integration | ⬜ |
-| TC-UI-01 | Xoay màn hình | Dọc / Ngang / Tự động có hiệu lực ngay và giữ sau khi mở lại | | E2E | ⬜ |
-| TC-UI-02 | Tắt hiệu ứng | Chuyển cảnh không còn animation dài | | E2E | ⬜ |
+| TC-UI-01 | Xoay màn hình | Dọc / Ngang / Tự động có hiệu lực ngay và giữ sau khi mở lại | Đạt (08/11/2026): chọn Ngang → `requestedOrientation=USER_LANDSCAPE`, cửa sổ `ROTATION_90`, City 2340×1080 (Hình 4.22); Dọc / Tự động trở lại; lưu trong DataStore `linguacity_settings` | E2E | ✅ |
+| TC-UI-02 | Tắt hiệu ứng | Chuyển cảnh không còn animation dài | Đạt: bật "Giảm hiệu ứng chuyển động" → câu của Mai hiện đủ ngay (không còn chữ chạy, không có nút "Bỏ qua chữ"); mọi animation dùng `LocalReduceMotion` (thời lượng 0). Chưa đo bằng công cụ trên máy thật | E2E + đọc code | ✅ |
 
 ---
 
@@ -136,8 +136,11 @@ Test tự động backend (08/11/2026): 42/42 đạt — `LearningEngineTests` (
 | 6.12 | `6.12-tc-tut-08-resume.png` | TC-TUT-08: mở lại app giữa bài trình độ |
 | 6.13 | `6.13-tc-tut-09-placement-result.png` | TC-TUT-09: kết quả bài trình độ 30/30 |
 | 6.14 | `6.14-tc-tut-09-done.png` | TC-TUT-09: xong tutorial |
+| 6.15 | `6.15-tc-ui-replay-tour.png` | Xem lại hướng dẫn từ Cài đặt (tour chạy lại, nút "Đã hiểu") |
 
 **E2E app VS3 (08/11/2026, emulator + PostgreSQL thật):** Room v3 → v4 (AutoMigration) giữ nguyên dữ liệu; City dùng dữ liệu thật (4 lô Lv0); bài 20 câu: câu 1 chọn sai → đỏ/xanh + đáp án + giải thích + Mastery 0/10; kết quả 17/20 → 105 KP (85 + 20), sưu tầm 10/30, danh hiệu "Liên hoàn" (Hình 4.10, 4.11); bấm Xây khi mới 10/20 từ → "Cần sưu tầm thêm 10 từ để xây nhé."; danh hiệu: 2/7, đeo "Cư dân mới" → HUD hiện tên (Hình 4.12).
+
+**E2E giao diện M9 (08/11/2026):** splash hệ thống (ngôi nhà vector) → Splash Compose khi onboarding → loading "Mai đang dựng thành phố" cho tới khi bản đồ vẽ xong; HUD 💡/⏳/🧩 + danh hiệu; menu nổi bung 4 mục theo cung (Hình 4.19) và mở đúng Thẻ từ, Danh hiệu, Hồ sơ (Hình 4.20), Cài đặt (Hình 4.21); chạm thẻ "rent" → flashcard 1/30 (shared element); xem lại tour từ Cài đặt chạy 4 câu rồi tắt. Skeleton/loading theo điểm đến chỉ hiện khi dữ liệu về chậm hơn 150 ms — với Room trên emulator gần như không thấy, đúng chủ đích.
 
 **Ghi nhận khi nghiệm thu (chưa phải lỗi chặn):**
 - Màn lỗi hiện nguyên văn lỗi kỹ thuật (`failed to connect to /10.0.2.2 …`). Nên thay bằng câu dễ hiểu ở mốc giao diện.

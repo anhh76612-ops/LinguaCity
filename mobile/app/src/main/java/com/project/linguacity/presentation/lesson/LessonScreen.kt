@@ -25,6 +25,9 @@ import com.project.linguacity.domain.model.learning.AnswerFeedback
 import com.project.linguacity.domain.model.learning.LessonItem
 import com.project.linguacity.domain.model.learning.LessonResult
 import com.project.linguacity.presentation.tutorial.MaiMood
+import com.project.linguacity.ui.loading.DelayedLoading
+import com.project.linguacity.ui.loading.LoadingKind
+import com.project.linguacity.ui.motion.staggeredAppear
 import com.project.linguacity.presentation.tutorial.MaiPortrait
 import com.project.linguacity.presentation.tutorial.TutorialGuide
 
@@ -48,12 +51,8 @@ fun LessonScreen(
         when {
             problem != null -> ProblemView(problem, state.problemMessage, onRetry = { viewModel.onIntent(LessonIntent.Retry) }, onExit = onExit)
             result != null -> ResultView(result, state.newAchievementNames, onExit)
-            state.loading || state.completing || state.session == null -> Box(Modifier.fillMaxSize(), Alignment.Center) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    CircularProgressIndicator()
-                    Text(if (state.completing) "Mai đang chấm điểm…" else "Mai đang soạn bài cho bạn…")
-                }
-            }
+            state.completing -> DelayedLoading(LoadingKind.MEDAL)
+            state.loading || state.session == null -> DelayedLoading(LoadingKind.LESSON)
             else -> QuestionView(state, onIntent = viewModel::onIntent, onExit = onExit)
         }
     }
@@ -166,10 +165,13 @@ private fun ResultView(r: LessonResult, achievementNames: List<String>, onExit: 
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()), horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(14.dp)) {
         Spacer(Modifier.height(24.dp))
-        Text(if (r.placement) "Kết quả kiểm tra trình độ" else "Kết quả bài học", style = MaterialTheme.typography.titleLarge)
-        Text("${r.correct}/${r.total}", style = MaterialTheme.typography.displayMedium, fontWeight = FontWeight.Bold)
-        Text("Mai: ${MaiLines.forResult(r.correct, r.total)}", textAlign = TextAlign.Center)
-        Card(Modifier.fillMaxWidth()) {
+        Text(if (r.placement) "Kết quả kiểm tra trình độ" else "Kết quả bài học", style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.staggeredAppear(0))
+        Text("${r.correct}/${r.total}", style = MaterialTheme.typography.displayMedium, fontWeight = FontWeight.Bold,
+            modifier = Modifier.staggeredAppear(1, stepMillis = 90))
+        Text("Mai: ${MaiLines.forResult(r.correct, r.total)}", textAlign = TextAlign.Center,
+            modifier = Modifier.staggeredAppear(2, stepMillis = 90))
+        Card(Modifier.fillMaxWidth().staggeredAppear(3, stepMillis = 90)) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text("+${r.kpAwarded} Điểm Tri Thức (KP)", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                 if (r.kpBase != null && r.kpBonus != null) {
@@ -183,7 +185,7 @@ private fun ResultView(r: LessonResult, achievementNames: List<String>, onExit: 
                 Text("Tổng: ${r.knowledgePoints} KP", style = MaterialTheme.typography.bodySmall)
             }
         }
-        Card(Modifier.fillMaxWidth()) {
+        Card(Modifier.fillMaxWidth().staggeredAppear(4, stepMillis = 90)) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text("Bộ sưu tầm Level ${r.collectionLevel}: ${r.collected}/${r.collectionTotal} thẻ", fontWeight = FontWeight.SemiBold)
                 LinearProgressIndicator(progress = { if (r.collectionTotal == 0) 0f else r.collected.toFloat() / r.collectionTotal },
@@ -192,8 +194,8 @@ private fun ResultView(r: LessonResult, achievementNames: List<String>, onExit: 
         }
         if (achievementNames.isNotEmpty()) {
             Text("Danh hiệu mới", style = MaterialTheme.typography.titleMedium)
-            achievementNames.forEach {
-                Text("🏅 $it", modifier = Modifier.background(MaterialTheme.colorScheme.secondaryContainer, RoundedCornerShape(12.dp))
+            achievementNames.forEachIndexed { i, name ->
+                Text("🏅 $name", modifier = Modifier.staggeredAppear(5 + i, stepMillis = 120).background(MaterialTheme.colorScheme.secondaryContainer, RoundedCornerShape(12.dp))
                     .padding(horizontal = 14.dp, vertical = 8.dp))
             }
         }

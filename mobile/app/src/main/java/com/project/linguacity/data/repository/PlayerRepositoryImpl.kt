@@ -11,6 +11,10 @@ import com.project.linguacity.data.remote.player.PlayerDto
 import com.project.linguacity.data.remote.player.StepRequestDto
 import com.project.linguacity.domain.model.UserProfile
 import com.project.linguacity.domain.model.player.AchievementView
+import com.project.linguacity.domain.model.player.PlayerStats
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import com.project.linguacity.domain.repository.PlayerRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -27,6 +31,9 @@ class PlayerRepositoryImpl @Inject constructor(
     private val profiles: UserProfileDao,
     private val guestIdStore: GuestIdStore
 ) : PlayerRepository {
+
+    private val _stats = MutableStateFlow<PlayerStats?>(null)
+    override val stats: StateFlow<PlayerStats?> = _stats.asStateFlow()
 
     override fun observeProfile(): Flow<UserProfile?> = flow {
         emitAll(profiles.observeById(guestIdStore.getOrCreateGuestUuid()))
@@ -61,6 +68,7 @@ class PlayerRepositoryImpl @Inject constructor(
     }
 
     private suspend fun save(me: PlayerDto) {
+        _stats.value = PlayerStats(me.stats.collectedWords, me.stats.streakDays)
         val current = profiles.getById(me.userId)
         val base = current ?: com.project.linguacity.data.local.user.UserProfileEntity(id = me.userId)
         profiles.upsert(

@@ -27,6 +27,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.project.linguacity.domain.model.city.BuildingCode
+import com.project.linguacity.ui.motion.SkeletonList
+import com.project.linguacity.ui.motion.sharedCard
+import com.project.linguacity.ui.motion.staggeredAppear
 
 /**
  * SCR-06 Danh sách từ của một (công trình, Level). Bản cơ bản: skeleton/shimmer và shared element ở M9;
@@ -52,7 +55,8 @@ fun VocabularyListScreen(
         Text("Đã sưu tầm ${state.collectedCount}/${state.words.size} thẻ", style = MaterialTheme.typography.bodySmall)
 
         when {
-            state.loading -> Box(Modifier.fillMaxSize(), Alignment.Center) { CircularProgressIndicator() }
+            // Skeleton có hình dáng giống danh sách thẻ, thay vòng xoay (FR-UI-04)
+            state.loading -> SkeletonList(rows = 7, modifier = Modifier.padding(top = 12.dp))
             state.words.isEmpty() -> Box(Modifier.fillMaxSize(), Alignment.Center) {
                 Text(
                     "Level này chưa có thẻ từ trong máy.\nMở khoá khi xây công trình tới Level ${state.level - 1} và có mạng để tải.",
@@ -64,7 +68,7 @@ fun VocabularyListScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 itemsIndexed(state.words, key = { _, w -> w.id }) { index, word ->
-                    Card(Modifier.fillMaxWidth().clickable { onOpenCard(index) }) {
+                    Card(Modifier.fillMaxWidth().staggeredAppear(index).sharedCard("word-${word.id}").clickable { onOpenCard(index) }) {
                         Row(
                             Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
                             verticalAlignment = Alignment.CenterVertically

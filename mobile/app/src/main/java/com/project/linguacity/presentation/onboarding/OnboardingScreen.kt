@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.project.linguacity.presentation.splash.BrandedSplash
 
 @Composable
 fun OnboardingScreen(
@@ -41,8 +42,9 @@ fun OnboardingScreen(
     ) {
 
         when {
+            // SCR-14: thay vòng xoay bằng Splash có thương hiệu (thành phố mọc lên + tên game)
             state.isLoading -> {
-                CircularProgressIndicator()
+                BrandedSplash()
             }
 
             state.userProfile != null -> {

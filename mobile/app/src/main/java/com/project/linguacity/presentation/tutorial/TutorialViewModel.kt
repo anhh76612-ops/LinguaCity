@@ -2,6 +2,7 @@ package com.project.linguacity.presentation.tutorial
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.project.linguacity.data.local.preferences.SettingsStore
 import com.project.linguacity.domain.model.city.BuildingCode
 import com.project.linguacity.domain.model.content.packCode
 import com.project.linguacity.domain.model.player.BuildOutcome
@@ -49,7 +50,8 @@ class TutorialViewModel @Inject constructor(
     private val city: CityRepository,
     private val users: UserRepository,
     content: ContentRepository,
-    learning: LearningRepository
+    learning: LearningRepository,
+    private val settings: SettingsStore
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(TutorialUiState())
@@ -66,8 +68,10 @@ class TutorialViewModel @Inject constructor(
                 content.observeBuildingLevels(),
                 combine(content.observePackWordIds(), learning.observeProgress()) { packs, progress ->
                     packs[packCode(BuildingCode.HOUSING.name, 1)].orEmpty().count { progress[it]?.collected == true }
-                }
-            ) { profile, cityState, levels, collected ->
+                },
+                settings.settings
+            ) { profile, cityState, levels, collected, appSettings ->
+                if (profile?.tutorialStep == "DONE" && appSettings.replayTour) return@combine TutorialGuide.replayTour()
                 val house = cityState.building(BuildingCode.HOUSING)
                 val lv1 = levels.firstOrNull { it.buildingCode == BuildingCode.HOUSING.name && it.level == 1 }
                 profile?.let {
@@ -116,6 +120,7 @@ class TutorialViewModel @Inject constructor(
             // M7 sẽ chèn cảnh avatar đi vào nhà + nội thất 3D trước bước này; M8 thay CUSTOMIZE bằng màn tuỳ biến thật.
             GuideAction.ENTER_HOUSE -> run { player.advanceTutorial("CUSTOMIZE") }
             GuideAction.FINISH_CUSTOMIZE -> run { player.advanceTutorial("TOUR") }
+            GuideAction.FINISH_REPLAY -> run { settings.setReplayTour(false) }
             GuideAction.FINISH_TUTORIAL -> run {
                 users.completeTutorial()
                 runCatching { player.refresh() }

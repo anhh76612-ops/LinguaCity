@@ -7,7 +7,9 @@ package com.project.linguacity.presentation.tutorial
 enum class MaiMood { GREET, HAPPY, ENCOURAGE, SURPRISED }
 
 enum class GuideAction {
-    NONE, START_PLACEMENT, RESUME_PLACEMENT, START_LESSON, BUILD, ENTER_HOUSE, FINISH_CUSTOMIZE, FINISH_TUTORIAL
+    NONE, START_PLACEMENT, RESUME_PLACEMENT, START_LESSON, BUILD, ENTER_HOUSE, FINISH_CUSTOMIZE, FINISH_TUTORIAL,
+    /** Xem lại tour từ Cài đặt — chỉ phía app, không đổi bước server. */
+    FINISH_REPLAY
 }
 
 /** Khoá các phần tử có thể được khoanh sáng (đăng ký bằng Modifier.spotlightTarget). */
@@ -18,6 +20,7 @@ object SpotKeys {
     const val ACHIEVEMENTS = "achievements"
     const val CARD = "card"
     const val VOCAB = "vocab"
+    const val MENU = "menu"
 }
 
 data class GuideLine(val text: String, val mood: MaiMood, val target: String? = null)
@@ -87,13 +90,19 @@ object TutorialGuide {
             id = "tour",
             lines = listOf(
                 GuideLine("Đây là Điểm Tri Thức (KP). Học càng chăm, càng nhiều KP để xây và nâng cấp.", MaiMood.HAPPY, SpotKeys.KP),
-                GuideLine("Còn đây là bộ sưu tập danh hiệu. Có danh hiệu dễ, danh hiệu khó, và cả… danh hiệu ẩn nữa đó!", MaiMood.SURPRISED, SpotKeys.ACHIEVEMENTS),
+                GuideLine("Còn đây là menu: Thẻ từ, Danh hiệu, Hồ sơ và Cài đặt. Danh hiệu có loại dễ, loại khó, và cả… loại ẩn nữa đó!", MaiMood.SURPRISED, SpotKeys.MENU),
                 GuideLine("Chạm vào một công trình để Học, Xây hoặc lật Thẻ từ. Thẻ từ xem được cả khi không có mạng.", MaiMood.ENCOURAGE, SpotKeys.VOCAB),
                 GuideLine("Các công trình khác sẽ mở dần khi có bài học mới. Chúc bạn xây một thành phố thật đẹp nha!", MaiMood.GREET)
             ),
             action = GuideAction.FINISH_TUTORIAL, actionLabel = "Bắt đầu chơi", selectHousing = true
         )
         else -> null // DONE hoặc bước lạ: không hiện Mai
+    }
+
+    /** Tour chạy lại từ Cài đặt (người chơi đã DONE). */
+    fun replayTour(): GuideScript {
+        val tour = script(GuideContext("TOUR", 0, 0, 0, 0, 0, false))!!
+        return tour.copy(id = "tour-replay", action = GuideAction.FINISH_REPLAY, actionLabel = "Đã hiểu")
     }
 
     private fun buildHouse(ctx: GuideContext): GuideScript {

@@ -12,6 +12,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.project.linguacity.domain.model.player.AchievementView
+import com.project.linguacity.ui.motion.SkeletonList
+import com.project.linguacity.ui.motion.staggeredAppear
 
 /** SCR-18 (UC_13): Dễ / Khó / Ẩn; danh hiệu Ẩn chưa có hiện "???" (BR-ACH-02). */
 @Composable
@@ -26,12 +28,22 @@ fun AchievementsScreen(onBack: () -> Unit, viewModel: AchievementsViewModel = hi
             TextButton(onClick = onBack) { Text("‹ Thành phố") }
             Text("Danh hiệu", style = MaterialTheme.typography.titleLarge)
             Text("${items.count { it.earned }}/${items.size} đã có", style = MaterialTheme.typography.bodySmall)
-            LazyColumn(Modifier.padding(top = 12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            if (items.isEmpty()) {
+                SkeletonList(rows = 6, modifier = Modifier.padding(top = 12.dp), withAvatar = true)
+            } else LazyColumn(Modifier.padding(top = 12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                var order = 0
                 listOf("EASY" to "Dễ", "HARD" to "Khó", "HIDDEN" to "Ẩn").forEach { (tier, label) ->
                     val group = items.filter { it.tier == tier }
                     if (group.isNotEmpty()) {
-                        item(key = tier) { Text(label, style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 8.dp)) }
-                        items(group, key = { it.code }) { a -> AchievementRow(a, onEquip = viewModel::equip) }
+                        val headerIndex = order++
+                        item(key = tier) {
+                            Text(label, style = MaterialTheme.typography.titleMedium,
+                                modifier = Modifier.padding(top = 8.dp).staggeredAppear(headerIndex))
+                        }
+                        group.forEach { a ->
+                            val i = order++
+                            item(key = a.code) { Box(Modifier.staggeredAppear(i)) { AchievementRow(a, onEquip = viewModel::equip) } }
+                        }
                     }
                 }
             }

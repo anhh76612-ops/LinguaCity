@@ -36,6 +36,14 @@ import androidx.lifecycle.LifecycleEventObserver
 import com.project.linguacity.domain.model.city.BuildingCode
 import com.project.linguacity.domain.model.content.BuildingLevelInfo
 import com.project.linguacity.presentation.city.web.WebCityRenderer
+import com.project.linguacity.presentation.menu.FloatingMenu
+import com.project.linguacity.presentation.menu.MenuEntry
+import com.project.linguacity.ui.loading.DestinationLoading
+import com.project.linguacity.ui.loading.LoadingKind
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.size
 import com.project.linguacity.presentation.tutorial.LocalSpotlight
 import com.project.linguacity.presentation.tutorial.SecretaryOverlay
 import com.project.linguacity.presentation.tutorial.SpotKeys
@@ -49,12 +57,15 @@ import androidx.compose.runtime.CompositionLocalProvider
  * SCR-04 City View. Bản đồ chiếm toàn màn hình; UI Compose (HUD tạm, thẻ công trình, snackbar) nằm đè lên trên.
  * HUD đầy đủ + menu nổi ở M9. Muốn dùng bản dự phòng: truyền renderer = ComposeCityRenderer.
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun CityScreen(
     onOpenVocabulary: (BuildingCode, Int) -> Unit = { _, _ -> },
     onStartLesson: (BuildingCode) -> Unit = {},
     onOpenAchievements: () -> Unit = {},
     onStartPlacement: () -> Unit = {},
+    onOpenProfile: () -> Unit = {},
+    onOpenSettings: () -> Unit = {},
     renderer: CityRenderer = WebCityRenderer,
     viewModel: CityViewModel = hiltViewModel(),
     tutorial: TutorialViewModel = hiltViewModel()
@@ -109,27 +120,42 @@ fun CityScreen(
             modifier = Modifier.fillMaxSize()
         )
 
-        if (!state.mapReady) CircularProgressIndicator(Modifier.align(Alignment.Center))
+        // SCR-15: bản đồ cần vài giây cho khung hình đầu → loading "Mai đang dựng thành phố" thay vòng xoay
+        if (!state.mapReady) {
+            DestinationLoading(LoadingKind.CITY, Modifier.background(MaterialTheme.colorScheme.background))
+        }
 
-        // HUD tạm (M5): KP + danh hiệu đang đeo + nút Danh hiệu.
-        Row(
-            Modifier.align(Alignment.TopCenter).statusBarsPadding().padding(12.dp).fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically
+        // SCR-13 HUD: tài nguyên + danh hiệu đang đeo (chạm danh hiệu để mở bộ sưu tập).
+        FlowRow(
+            Modifier.align(Alignment.TopStart).statusBarsPadding().padding(12.dp).fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            AssistChip(onClick = {}, label = { Text("💡 ${state.profile?.knowledgePoints ?: 0} KP") },
+            val p = state.profile
+            AssistChip(onClick = onOpenProfile, label = { Text("💡 ${p?.knowledgePoints ?: 0} KP") },
                 modifier = Modifier.spotlightTarget(SpotKeys.KP))
+            AssistChip(onClick = onOpenProfile, label = { Text("⏳ ${p?.hourglassCount ?: 0}") })
+            AssistChip(onClick = onOpenProfile, label = { Text("🧩 ${p?.blueprintShards ?: 0}") })
             state.equippedTitleName?.let { AssistChip(onClick = onOpenAchievements, label = { Text("🏅 $it") }) }
-            Box(Modifier.weight(1f))
-            FilledTonalButton(onClick = onOpenAchievements, modifier = Modifier.spotlightTarget(SpotKeys.ACHIEVEMENTS)) {
-                Text("🏅 Danh hiệu")
-            }
         }
 
         Column(
-            modifier = Modifier.align(Alignment.BottomCenter).navigationBarsPadding().padding(16.dp),
+            modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().navigationBarsPadding().padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
+            // SCR-22 Menu nổi: Thẻ từ / Danh hiệu / Hồ sơ / Cài đặt
+            FloatingMenu(
+                entries = listOf(
+                    MenuEntry("vocab", "📖", "Thẻ từ") {
+                        val house = state.city.building(BuildingCode.HOUSING)
+                        onOpenVocabulary(BuildingCode.HOUSING, maxOf(1, house?.level ?: 1))
+                    },
+                    MenuEntry("titles", "🏅", "Danh hiệu", onOpenAchievements),
+                    MenuEntry("profile", "👤", "Hồ sơ", onOpenProfile),
+                    MenuEntry("settings", "⚙️", "Cài đặt", onOpenSettings)
+                ),
+                modifier = Modifier.align(Alignment.End).size(width = 220.dp, height = 190.dp),
+                fabModifier = Modifier.spotlightTarget(SpotKeys.MENU)
+            )
             SnackbarHost(snackbar)
             state.selected?.let { code -> render.building(code) }?.let { building ->
                 val learnLevel = minOf(3, building.level + 1)

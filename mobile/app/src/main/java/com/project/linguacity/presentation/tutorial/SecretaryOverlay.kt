@@ -82,8 +82,9 @@ fun SecretaryOverlay(state: TutorialUiState, onNext: () -> Unit, onAct: () -> Un
 
 @Composable
 private fun RowScope.DialogBox(script: GuideScript, state: TutorialUiState, line: GuideLine, onNext: () -> Unit, onAct: () -> Unit) {
-    // Chữ chạy từng ký tự; chạm vào hộp thoại để hiện hết ngay.
-    var shown by remember(script.id, state.lineIndex) { mutableIntStateOf(0) }
+    // Chữ chạy từng ký tự; chạm vào hộp thoại để hiện hết ngay. Tắt hiệu ứng (FR-UI-05) → hiện hết luôn.
+    val reduceMotion = com.project.linguacity.ui.motion.LocalReduceMotion.current
+    var shown by remember(script.id, state.lineIndex) { mutableIntStateOf(if (reduceMotion) line.text.length else 0) }
     LaunchedEffect(script.id, state.lineIndex) {
         while (shown < line.text.length) {
             delay(22)
