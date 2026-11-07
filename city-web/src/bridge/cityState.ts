@@ -1,13 +1,16 @@
-// "Hợp đồng" dữ liệu giữa ứng dụng chủ (Kotlin/Android, sau này web/iOS) và bản đồ.
-// Bản đồ CHỈ nhận CityState để vẽ, KHÔNG tự tính tài nguyên hay gọi API (theo tinh thần ADR-009/ADR-010).
+// "Hợp đồng" (B) giữa ứng dụng chủ (Kotlin/Android, sau này web/iOS) và bản đồ — phiên bản 1.
+// Đặc tả: docs/03-architecture/system-design.md §9.2 và ADR-011. Phía Kotlin: CityBridgeJson.kt.
+// Bản đồ CHỈ nhận CityState để vẽ, KHÔNG tự tính tài nguyên, thời gian hay gọi API.
+// Tiến hoá: chỉ THÊM trường tuỳ chọn; trường lạ bị bỏ qua; đổi nghĩa một trường thì tăng CONTRACT_VERSION.
 import type { BuildingCode } from '../world/grid';
 import { BUILDING_CODES } from '../world/grid';
 
 export const MAX_LEVEL = 3;
+export const CONTRACT_VERSION = 1;
 
 export interface BuildingState {
   code: BuildingCode;
-  level: number;         // 1..MAX_LEVEL
+  level: number;         // 0..MAX_LEVEL — 0 = chưa xây (lô đất trống)
   upgrading?: boolean;   // đang xây nâng cấp (server quyết định, bản đồ chỉ hiển thị)
   progress?: number;     // 0..1, tiến độ xây
 }
@@ -19,6 +22,7 @@ export interface CityEvent {
 }
 
 export interface CityState {
+  v?: number;            // phiên bản hợp đồng; thiếu thì coi như 1
   buildings: BuildingState[];
   events: CityEvent[];
 }
@@ -44,10 +48,13 @@ export const MOCK_STATE: CityState = {
 export function normalizeState(input: unknown): CityState {
   const raw = (typeof input === 'string' ? JSON.parse(input) : input) as Partial<CityState> | null;
   if (!raw || typeof raw !== 'object') throw new Error('CityState phải là object JSON');
+  const v = raw.v ?? CONTRACT_VERSION;
+  if (v > CONTRACT_VERSION) console.warn(`[LinguaCity] CityState v${v} mới hơn bản đồ (v${CONTRACT_VERSION}); vẫn đọc các trường đã biết`);
   const byCode = new Map<BuildingCode, BuildingState>();
   for (const b of Array.isArray(raw.buildings) ? raw.buildings : []) {
     if (!b || !BUILDING_CODES.includes(b.code)) continue;
-    const level = Math.min(MAX_LEVEL, Math.max(1, Math.round(Number(b.level) || 1)));
+    const n = Number(b.level);
+    const level = Math.min(MAX_LEVEL, Math.max(0, Math.round(Number.isFinite(n) ? n : 1)));
     const progress = Math.min(1, Math.max(0, Number(b.progress) || 0));
     byCode.set(b.code, { code: b.code, level, upgrading: !!b.upgrading, progress });
   }
@@ -56,5 +63,5 @@ export function normalizeState(input: unknown): CityState {
   const events = (Array.isArray(raw.events) ? raw.events : [])
     .filter((e): e is CityEvent => !!e && typeof e.id === 'string' && e.id.length > 0)
     .map((e) => ({ id: e.id, kind: e.kind ?? 'GRAMMAR' }));
-  return { buildings, events };
+  return { v: CONTRACT_VERSION, buildings, events };
 }

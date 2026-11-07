@@ -9,7 +9,7 @@
                                                │          │      M1, M2 = giữa cạnh (cửa vào lô)
                                                B ──────── O
    Bốn vạch qua đường nối các góc I của bốn khối với nhau. */
-import { LOT_C, WALK, WALK_OUT, lotCenter } from '../world/grid';
+import { type BuildingCode, LOT_C, WALK, WALK_OUT, lotCenter } from '../world/grid';
 import { PARK_BENCHES } from '../world/buildings/park';
 import { BUS_STOP } from '../world/buildings/road';
 import type { Anim } from './poses';
@@ -79,7 +79,8 @@ export interface Spot {
   face: number;             // hướng nhìn khi tới nơi
   act: Anim;
   sit?: boolean;
-  needs?: { code: 'PARK'; level: number }; // chỉ dùng khi công trình đủ level
+  /** Công trình sở hữu điểm này và level tối thiểu để dùng được. Mặc định: công trình theo tiền tố của node, level ≥ 1. */
+  needs?: { code: BuildingCode; level: number };
   by: object | null;
 }
 export const SPOTS: Spot[] = [];
