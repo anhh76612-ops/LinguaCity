@@ -89,11 +89,12 @@ Bài tập Ngữ pháp (Grammar) xuất hiện dưới dạng dấu chấm than 
 ## 5. PHÂN VAI HIỂN THỊ: UNITY vs KOTLIN
 
 Theo ADR-009 (🟡 Proposed): Kotlin là ứng dụng chủ, Unity chỉ hiển thị City View.
+ADR-010 (🟡 Proposed) đề xuất thay Unity bằng **Three.js chạy trong WebView** (prototype: `city-web/`); nguyên tắc phân vai bên dưới giữ nguyên, chỉ đổi công nghệ vẽ City View.
 
 | Trải nghiệm | Làm bằng | Ghi chú |
 | :--- | :--- | :--- |
 | Splash / Đồng bộ dữ liệu | Kotlin (Compose) | Onboarding Guest, tải Static Content |
-| City View (bản đồ, 4 công trình, hiệu ứng xây dựng, dấu (!)) | **Unity** (đường lui: Compose) | Chỉ nhận `CityState`, gửi intent về Kotlin |
+| City View (bản đồ, 4 công trình, hiệu ứng xây dựng, dấu (!)) | **Three.js/WebView** theo ADR-010 (trước đó: Unity, ADR-009; đường lui: Compose) | Chỉ nhận `CityState`, gửi intent về Kotlin |
 | Chi tiết công trình (level, chi phí nâng cấp) | Kotlin (Compose, dạng bottom sheet / màn hình) | ⬜ Có thể làm overlay trong Unity — chốt khi làm VS5 |
 | Học từ vựng, Flashcard, Mini-game | Kotlin (Compose) | Hỗ trợ offline đọc (ADR-004) |
 | Exam Center | Kotlin (Compose) | Bắt buộc online |
@@ -115,9 +116,9 @@ Theo ADR-009 (🟡 Proposed): Kotlin là ứng dụng chủ, Unity chỉ hiển 
 > Nguyên tắc (SRS Appendix A.5): **không hardcode Game Balance vào SRS**; các giá trị nằm trong bảng cấu hình (`building_levels`, `exam_requirements`) hoặc Constants ở Backend.
 
 ### 6.2. Phong cách hình ảnh & âm thanh (Art & Audio Direction)
-- ⬜ Góc nhìn: 2D top-down / isometric 2.5D / 3D low-poly.
-- ⬜ Bảng màu, phong cách nhân vật (người dân).
-- ⬜ Nguồn asset (tự vẽ / Unity Asset Store / Kenney.nl…) và giấy phép sử dụng.
+- 🟡 Góc nhìn: **3D low-poly isometric** (camera trực giao), bản đồ diorama 24×24 ô, hai trục đường cắt nhau, 4 lô công trình — xem `city-web/`.
+- 🟡 Bảng màu pastel (`city-web/src/core/palette.ts`); người dân dạng chibi đầu to, dựng bằng khối, số dân = 3 + 2 × level Housing.
+- 🟡 Nguồn asset: không dùng asset ngoài — mọi mô hình dựng bằng code (không vướng giấy phép).
 - ⬜ Âm thanh: nhạc nền, hiệu ứng đúng/sai, hoàn thành xây dựng.
 
 ### 6.3. Tiến trình người chơi (Progression)

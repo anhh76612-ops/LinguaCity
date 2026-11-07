@@ -1,6 +1,6 @@
 # LINGUACITY — TÀI LIỆU DỰ ÁN
 
-Game mobile học tiếng Anh (TOEIC) kết hợp xây dựng thành phố. **Kotlin** là ứng dụng chủ (màn hình học tập, flashcard, thi), **Unity** dự kiến hiển thị thành phố (ADR-009, đang thử nghiệm), **Spring Boot + PostgreSQL** là Backend.
+Game mobile học tiếng Anh (TOEIC) kết hợp xây dựng thành phố. **Kotlin** là ứng dụng chủ (màn hình học tập, flashcard, thi), thành phố hiển thị bằng **Three.js trong WebView** (prototype `city-web/`, ADR-010 — đề xuất thay hướng Unity của ADR-009), **Spring Boot + PostgreSQL** là Backend.
 
 **Bắt đầu từ đây:** [00-overview/learning-roadmap.md](00-overview/learning-roadmap.md) — danh sách việc cần làm tiếp theo.
 
