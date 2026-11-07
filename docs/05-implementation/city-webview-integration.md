@@ -1,6 +1,8 @@
 # Bài học: nhúng bản đồ city-web vào app Android (WebView)
 
-> Liên quan: [ADR-010](../adr/ADR-010-city-view-threejs-webview.md) · [city-web/README.md](../../city-web/README.md) · code tại `mobile/app/src/main/java/com/project/linguacity/presentation/city/`
+> Liên quan: [ADR-010](../adr/ADR-010-city-view-threejs-webview.md) · [ADR-011](../adr/ADR-011-city-state-contract.md) (hai hợp đồng A/B, `toRenderState`) · [system-design §9.2](../03-architecture/system-design.md) · [city-web/README.md](../../city-web/README.md) · code tại `mobile/app/src/main/java/com/project/linguacity/presentation/city/`
+>
+> **Cập nhật sau Bước 3:** renderer nhận `CityRenderState` (dữ liệu để vẽ), không nhận `CityState` (dữ liệu giống server) nữa. Câu hỏi thêm: *vì sao `progress` được tính ở `CityRenderState.kt` chứ không ở `cityState.ts`?* (gợi ý: đọc bảng Reason của ADR-011).
 
 ## 1. Bức tranh toàn cảnh
 
