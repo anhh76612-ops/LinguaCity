@@ -1,6 +1,9 @@
 package com.project.linguacity.di
 
+import com.project.linguacity.data.remote.city.CityApi
 import com.project.linguacity.data.remote.content.ContentApi
+import com.project.linguacity.data.remote.learning.LearningApi
+import com.project.linguacity.data.remote.player.PlayerApi
 import com.project.linguacity.data.remote.user.OnboardingApi
 import dagger.Module
 import dagger.Provides
@@ -50,4 +53,16 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideContentApi(retrofit: Retrofit): ContentApi = retrofit.create(ContentApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideLearningApi(retrofit: Retrofit): LearningApi = retrofit.create(LearningApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideCityApi(retrofit: Retrofit): CityApi = retrofit.create(CityApi::class.java)
+
+    @Provides
+    @Singleton
+    fun providePlayerApi(retrofit: Retrofit): PlayerApi = retrofit.create(PlayerApi::class.java)
 }

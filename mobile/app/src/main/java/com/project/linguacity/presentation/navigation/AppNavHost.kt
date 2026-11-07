@@ -6,7 +6,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import com.project.linguacity.presentation.achievements.AchievementsScreen
 import com.project.linguacity.presentation.city.CityScreen
+import com.project.linguacity.presentation.lesson.LessonScreen
 import com.project.linguacity.presentation.onboarding.OnboardingScreen
 import com.project.linguacity.presentation.sync.SyncScreen
 import com.project.linguacity.presentation.tutorial.TutorialScreen
@@ -31,6 +33,14 @@ object HomeRoute
 /** SCR-06. Tên tham số buildingCode/level được VocabularyViewModel đọc từ SavedStateHandle. */
 @Serializable
 data class VocabularyRoute(val buildingCode: String, val level: Int)
+
+/** SCR-08/09 Bài học. `placement = true` là bài kiểm tra trình độ (ADR-014, M6). LessonViewModel đọc tham số theo tên. */
+@Serializable
+data class LessonRoute(val buildingCode: String, val placement: Boolean = false)
+
+/** SCR-18 Bộ sưu tập danh hiệu. */
+@Serializable
+object AchievementsRoute
 
 /** SCR-07. */
 @Serializable
@@ -80,8 +90,18 @@ fun AppNavHost(
         // Màn chính sau onboarding/tutorial là City View (SCR-04).
         composable<HomeRoute> {
             CityScreen(
-                onOpenVocabulary = { code, level -> navController.navigate(VocabularyRoute(code.name, level)) }
+                onOpenVocabulary = { code, level -> navController.navigate(VocabularyRoute(code.name, level)) },
+                onStartLesson = { code -> navController.navigate(LessonRoute(code.name)) },
+                onOpenAchievements = { navController.navigate(AchievementsRoute) }
             )
+        }
+
+        composable<LessonRoute> {
+            LessonScreen(onExit = { navController.popBackStack() })
+        }
+
+        composable<AchievementsRoute> {
+            AchievementsScreen(onBack = { navController.popBackStack() })
         }
 
         composable<VocabularyRoute> { entry ->

@@ -1,6 +1,7 @@
 package com.linguacity.backend.identity;
 
 import com.linguacity.backend.common.exception.ApiExceptionHandler;
+import com.linguacity.backend.achievement.service.AchievementService;
 import com.linguacity.backend.identity.controller.UserProfileController;
 import com.linguacity.backend.identity.entity.UserProfile;
 import com.linguacity.backend.identity.exception.UserProfileNotFoundException;
@@ -11,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.time.Clock;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -28,7 +30,7 @@ class TutorialTests {
     private static final String COMPLETE_TUTORIAL = "/api/v1/users/me/tutorial/complete";
 
     private final UserProfileRepository repository = mock(UserProfileRepository.class);
-    private final TutorialService service = new TutorialService(repository);
+    private final TutorialService service = new TutorialService(repository, mock(AchievementService.class), Clock.systemUTC());
     private final MockMvc api = MockMvcBuilders
             .standaloneSetup(new UserProfileController(new UserOnboardingService(repository), service))
             .setControllerAdvice(new ApiExceptionHandler())

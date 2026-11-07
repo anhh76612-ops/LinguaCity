@@ -32,7 +32,10 @@ class UserRepositoryImpl @Inject constructor(
             knowledgePoints = response.knowledgePoints,
             hourglassCount = response.hourglassCount,
             blueprintShards = response.blueprintShards,
-            tutorialCompleted = response.tutorialCompleted
+            tutorialCompleted = response.tutorialCompleted,
+            tutorialStep = response.tutorialStep,
+            // danh hiệu đang đeo không có trong response onboard: giữ giá trị cũ trong máy
+            equippedTitle = userProfileDao.getById(response.userId)?.equippedTitle
         )
 
         userProfileDao.upsert(entity)
@@ -45,7 +48,9 @@ class UserRepositoryImpl @Inject constructor(
         knowledgePoints = knowledgePoints,
         hourglassCount = hourglassCount,
         blueprintShards = blueprintShards,
-        tutorialCompleted = tutorialCompleted
+        tutorialCompleted = tutorialCompleted,
+        tutorialStep = tutorialStep,
+        equippedTitle = equippedTitle
     )
 
     override suspend fun completeTutorial(): Boolean {

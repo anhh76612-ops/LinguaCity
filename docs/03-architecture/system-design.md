@@ -1157,7 +1157,13 @@ sequenceDiagram
 
 ### 10.4. Hợp đồng API mới
 
-Mọi API đều cần `X-Guest-UUID`. Lỗi trả `ErrorResponse {code, message}`; trường `code` mới được thêm (additive) để app phân biệt các lỗi 409.
+Mọi API đều cần `X-Guest-UUID`. Lỗi trả `ErrorResponse {code, message, details?}`; `code` và `details` mới được thêm (additive) để app phân biệt các lỗi 409 và biết còn thiếu gì. Xung đột `@Version` trả 409 `CONCURRENT_UPDATE`.
+
+> **Đã cài (M4, 08/11/2026):** toàn bộ §10.4.2, §10.4.3 và danh hiệu ở §10.4.4. Khác bản thiết kế:
+> - `GET /city` trả thêm `tutorialStep`.
+> - `POST /users/onboard` trả thêm `tutorialStep`.
+> - `POST /users/me/tutorial/complete` **tạm** chưa bắt buộc bước `TOUR` (BR-TUT-05) cho tới M6, để tutorial 3 trang của app hiện tại vẫn chạy.
+> - Thời gian lưu dạng UTC trong cột `TIMESTAMP`; API trả ISO-8601 có `Z`.
 
 #### 10.4.1. Nội dung (VS2)
 | Method | Endpoint | Response chính |
@@ -1238,7 +1244,7 @@ Mọi API đều cần `X-Guest-UUID`. Lỗi trả `ErrorResponse {code, message
 | Phiên bản | Thêm |
 | :--- | :--- |
 | v3 (VS2) | `ThemeEntity`, `BuildingEntity`, `BuildingThemeEntity`, `BuildingLevelEntity`, `BlueprintEntity`, `VocabularyEntity`, `QuestionEntity` (không answer/explanation), `QuestionVocabularyEntity`, `ExamEntity`, `ExamRequirementEntity`, `ExamQuestionEntity`, `ContentPackStateEntity(code, version, downloadedAtMillis)`. ✅ Đã cài (AutoMigration 2→3). Mọi bảng thuộc gói có cột `packCode` để xoá theo gói. `AchievementEntity` dời sang v4, `CosmeticItemEntity` sang v5 (cùng lúc với bảng server tương ứng) |
-| v4 (VS3) | `UserVocabProgressEntity` (mastery, maxMastery, collected, firstSeenAt, lastReviewedAt), `UserBuildingEntity`, `UserAchievementEntity`. `UserProfileEntity` thêm `tutorialStep`, `equippedTitle` |
+| v4 (VS3) | `UserVocabProgressEntity` (mastery, maxMastery, collected, lastReviewedAt), `UserBuildingEntity`, `AchievementEntity` (danh mục CORE), `UserAchievementEntity`. `UserProfileEntity` thêm `tutorialStep` (DEFAULT 'INTRO'), `equippedTitle`. ✅ Đã cài (AutoMigration 3→4). Một máy = một Guest nên các bảng Player State không có cột userId |
 
 - Static content dùng `@Upsert` trong `withTransaction` (§6.3).
 - Khi một gói có version mới: xoá các dòng của gói cũ (theo building + level) rồi upsert, để từ hoặc câu bị gỡ trên server cũng biến mất ở máy.

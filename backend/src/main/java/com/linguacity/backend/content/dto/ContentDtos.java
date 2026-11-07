@@ -28,10 +28,15 @@ public final class ContentDtos {
 
     public record BlueprintDto(Long id, String code, String buildingCode, int targetLevel) {}
 
-    /** Danh mục danh hiệu (bảng có từ V004) và cosmetics (V005) — tạm là danh sách rỗng ở VS2. */
+    /** Danh hiệu: danh hiệu Ẩn không gửi {@code description} (BR-ACH-02). */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public record AchievementDto(String code, String name, String description, String tier, boolean hidden,
+                                 int sortOrder) {}
+
+    /** cosmetics: danh mục có từ V005 (M8) — tạm là danh sách rỗng. */
     public record Core(String code, int version, List<ThemeDto> themes, List<BuildingDto> buildings,
                        List<BuildingLevelDto> buildingLevels, List<BlueprintDto> blueprints,
-                       List<JsonNode> achievements, List<JsonNode> cosmetics) {}
+                       List<AchievementDto> achievements, List<JsonNode> cosmetics) {}
 
     public record VocabularyDto(Long id, String word, String meaning, String wordType, String ipa,
                                 List<String> examples, String imageUrl, String themeCode, int level,

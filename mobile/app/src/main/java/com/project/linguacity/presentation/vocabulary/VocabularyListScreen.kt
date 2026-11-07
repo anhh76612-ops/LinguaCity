@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -48,7 +49,7 @@ fun VocabularyListScreen(
             "${building?.icon ?: ""} ${building?.displayName ?: state.buildingCode} · Level ${state.level}",
             style = MaterialTheme.typography.titleLarge
         )
-        Text("${state.words.size} từ", style = MaterialTheme.typography.bodySmall)
+        Text("Đã sưu tầm ${state.collectedCount}/${state.words.size} thẻ", style = MaterialTheme.typography.bodySmall)
 
         when {
             state.loading -> Box(Modifier.fillMaxSize(), Alignment.Center) { CircularProgressIndicator() }
@@ -68,11 +69,22 @@ fun VocabularyListScreen(
                             Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
+                            val p = state.progress[word.id]
+                            Text(if (p?.collected == true) "✅" else "⬜", modifier = Modifier.padding(end = 12.dp))
                             Column(Modifier.weight(1f)) {
                                 Text(word.word, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                                 Text(word.meaning, style = MaterialTheme.typography.bodyMedium)
+                                if (p != null) {
+                                    LinearProgressIndicator(
+                                        progress = { p.mastery.toFloat() / p.maxMastery },
+                                        modifier = Modifier.fillMaxWidth(0.6f).padding(top = 6.dp)
+                                    )
+                                }
                             }
-                            Text(word.ipa ?: "", style = MaterialTheme.typography.bodySmall)
+                            Column(horizontalAlignment = Alignment.End) {
+                                Text(word.ipa ?: "", style = MaterialTheme.typography.bodySmall)
+                                if (p != null) Text("${p.mastery}/${p.maxMastery}", style = MaterialTheme.typography.labelSmall)
+                            }
                         }
                     }
                 }

@@ -17,5 +17,12 @@ data class UserProfileEntity(
     val blueprintShards: Int = 0,
 
     @ColumnInfo(defaultValue = "0")
-    val tutorialCompleted: Boolean = false
+    val tutorialCompleted: Boolean = false,
+
+    /** v4 (ADR-014): bước tutorial do server giữ; app lưu lại để biết mở màn nào khi offline. */
+    @ColumnInfo(defaultValue = "INTRO")
+    val tutorialStep: String = "INTRO",
+
+    /** v4: danh hiệu đang đeo (UC_13). */
+    val equippedTitle: String? = null
 )

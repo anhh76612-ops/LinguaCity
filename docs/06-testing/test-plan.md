@@ -70,44 +70,46 @@ Test tự động backend: `backend/src/test/java/com/linguacity/backend/content
 | TC-VS2-10 | Lần đầu không mạng | Xoá dữ liệu, tắt mạng | Báo cần mạng + Thử lại | Đạt: chặn ngay ở SCR-01 (onboarding cũng cần mạng) với câu "Lần đầu vào game cần kết nối mạng…" (Hình 6.8); bật mạng, bấm Thử lại → SCR-03 tải CORE + HOUSING:1 → Tutorial | E2E | ✅ |
 | TC-VS2-11 | Seed V003 chạy trên PostgreSQL thật | `psql -f V003…` | Không lỗi; đếm dòng đúng | Đạt: 7 themes, 4 buildings, 7 building_themes, 12 building_levels, 8 blueprints, 30 từ, 90 câu, 1 exam / 10 câu, 2 packs | Thủ công | ✅ |
 
-## 5. VS3 — LEARNING SESSION (UC_05) ⬜
+## 5. VS3 — LEARNING SESSION (UC_05) ✅
+
+Test tự động backend (08/11/2026): 42/42 đạt — `LearningEngineTests` (5), `LearningFlowTests` (15, H2 + đồng hồ giả), `AchievementServiceTests` (3). E2E trên PostgreSQL thật: onboard → bài trình độ → học ở House → xây → `GET /city` (script `e2e_m4.py`).
 
 | Mã | Mô tả | Dữ liệu vào | Kết quả mong đợi | Kết quả thực tế | Loại | Trạng thái |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| TC-VS3-01 | Tạo phiên | `POST /learning/sessions {HOUSING}` | 201, 20 câu (10 READING rồi 10 WRITING), không đáp án | | Integration | ⬜ |
-| TC-VS3-02 | Làm tiếp phiên ACTIVE | Gọi tạo lần 2 | 200, cùng `sessionId` | | Integration | ⬜ |
-| TC-VS3-03 | Chấm đúng/sai + Mastery | Đáp án đúng rồi sai | +1 / −1, kẹp 0..max theo độ khó | | Unit | ⬜ |
-| TC-VS3-04 | Chuẩn hoá điền từ | `"  Rent "`, `"RENT"`, `"rents"` | đúng, đúng, sai | | Unit | ⬜ |
-| TC-VS3-05 | `accepted_answers` | Đáp án phụ | Đúng | | Unit | ⬜ |
-| TC-VS3-06 | Nộp lại một câu | Nộp câu 1 hai lần | 409 `ALREADY_ANSWERED` | | Integration | ⬜ |
-| TC-VS3-07 | Phiên hết hạn | Giờ server > `expires_at` | 410; Mastery câu đã nộp giữ nguyên; không KP | | Unit | ⬜ |
-| TC-VS3-08 | Sưu tầm = đúng lần đầu | Sai rồi đúng | `collected_at` ghi ở lần đúng, `collectedNow = true` một lần | | Unit | ⬜ |
-| TC-VS3-09 | KP cuối phiên | 17/20 | 85 + 20 = 105 | | Unit | ⬜ |
-| TC-VS3-10 | Giảm KP theo ngày | Phiên thứ 6 trong ngày | × 0.2 | | Unit | ⬜ |
-| TC-VS3-11 | `complete` khi còn câu | 19/20 câu | 409 `INCOMPLETE` | | Integration | ⬜ |
-| TC-VS3-12 | `complete` idempotent | Gọi 2 lần | Kết quả như nhau, KP chỉ cộng 1 lần | | Integration | ⬜ |
-| TC-VS3-13 | Chọn từ ưu tiên | Có từ chưa sưu tầm và từ đã sưu tầm | Từ chưa sưu tầm được chọn trước; từ vừa ôn < 10 phút bị bỏ | | Unit | ⬜ |
-| TC-VS3-14 | Optimistic Locking | Hai `complete` song song | Không mất KP / không cộng đôi | | Integration | ⬜ |
-| TC-VS3-15 | Xem mastery offline | Học xong → máy bay | Danh sách từ hiện ✓ và Mastery | | E2E | ⬜ |
-| TC-VS3-16 | Mất mạng giữa bài | Tắt mạng câu 5 → bật → Thử lại | Làm tiếp câu 5 | | E2E | ⬜ |
+| TC-VS3-01 | Tạo phiên | `POST /learning/sessions {HOUSING}` | 201, 20 câu (10 READING rồi 10 WRITING), không đáp án | Đạt: 201, 20 câu, câu 1–10 READING, 11–20 WRITING, 10 từ khác nhau, JSON không có answer/explanation/acceptedAnswers. PostgreSQL thật: 20 câu R×10 + W×10 | Integration (`LearningFlowTests`.sessionHasTwentyItems…) + E2E | ✅ |
+| TC-VS3-02 | Làm tiếp phiên ACTIVE | Gọi tạo lần 2 | 200, cùng `sessionId` | Đạt: gọi lần 2 trả 200 cùng `sessionId` | Integration (`LearningFlowTests`) | ✅ |
+| TC-VS3-03 | Chấm đúng/sai + Mastery | Đáp án đúng rồi sai | +1 / −1, kẹp 0..max theo độ khó | Đạt: sai → 0 (kẹp), đúng → 1; trần 10/15 theo độ khó D/C | Unit (`LearningEngineTests`) + Integration | ✅ |
+| TC-VS3-04 | Chuẩn hoá điền từ | `"  Rent "`, `"RENT"`, `"rents"` | đúng, đúng, sai | Đạt | Unit (`gradingIgnoresCaseAndExtraSpacesButNotSpelling`) | ✅ |
+| TC-VS3-05 | `accepted_answers` | Đáp án phụ | Đúng | Đạt: `neighbour` cho đáp án `neighbor` | Unit (`acceptedAnswersAreAlsoCorrect`) | ✅ |
+| TC-VS3-06 | Nộp lại một câu | Nộp câu 1 hai lần | 409 `ALREADY_ANSWERED` | Đạt: 409 `ALREADY_ANSWERED` | Integration (`LearningFlowTests`) | ✅ |
+| TC-VS3-07 | Phiên hết hạn | Giờ server > `expires_at` | 410; Mastery câu đã nộp giữ nguyên; không KP | Đạt: tua đồng hồ 31 phút → 410 `SESSION_EXPIRED`, phiên `EXPIRED`, Mastery câu đã nộp còn, KP = 0, mở phiên mới được | Integration (`LearningFlowTests`.expiredSession…) | ✅ |
+| TC-VS3-08 | Sưu tầm = đúng lần đầu | Sai rồi đúng | `collected_at` ghi ở lần đúng, `collectedNow = true` một lần | Đạt: sai → `collectedNow=false`; đúng (câu WRITING cùng từ, có khoảng trắng + viết hoa) → `collectedNow=true` | Integration (`LearningFlowTests`) | ✅ |
+| TC-VS3-09 | KP cuối phiên | 17/20 | 85 + 20 = 105 | Đạt: 85 + 20 = 105, hồ sơ KP = 105. PostgreSQL: 20/20 → 100 + 20 = 120 | Integration (`LearningFlowTests`) + E2E | ✅ |
+| TC-VS3-10 | Giảm KP theo ngày | Phiên thứ 6 trong ngày | × 0.2 | Đạt: 5 phiên đầu 120 KP, phiên 6 = 24 (×0.2) | Integration (`LearningFlowTests`.sixthSession…) | ✅ |
+| TC-VS3-11 | `complete` khi còn câu | 19/20 câu | 409 `INCOMPLETE` | Đạt: 409 `INCOMPLETE` | Integration (`LearningFlowTests`) | ✅ |
+| TC-VS3-12 | `complete` idempotent | Gọi 2 lần | Kết quả như nhau, KP chỉ cộng 1 lần | Đạt: gọi lại trả cùng `kpAwarded`, KP hồ sơ không đổi; nộp tiếp → 409 `SESSION_CLOSED` | Integration (`LearningFlowTests`) | ✅ |
+| TC-VS3-13 | Chọn từ ưu tiên | Có từ chưa sưu tầm và từ đã sưu tầm | Từ chưa sưu tầm được chọn trước; từ vừa ôn < 10 phút bị bỏ | Đạt; PostgreSQL: sau bài trình độ (20 từ đã sưu tầm) phiên học chọn đúng 10 từ còn lại | Unit (`selectorPrefersUncollected…`) + E2E | ✅ |
+| TC-VS3-14 | Optimistic Locking | Hai `complete` song song | Không mất KP / không cộng đôi | Đạt: bản phiên cũ (version cũ) ghi đè sau khi đã complete → `ObjectOptimisticLockingFailureException` (API trả 409 `CONCURRENT_UPDATE`) | Integration (`LearningFlowTests`.staleSession…) | ✅ |
+| TC-VS3-15 | Xem mastery offline | Học xong → máy bay | Danh sách từ hiện ✓ và Mastery | Đạt (08/11/2026): bật chế độ máy bay, mở lại app → danh sách House Lv1 "Đã sưu tầm 13/30", dấu ✅ và Mastery 2/10 (Hình 6.10) | E2E | ✅ |
+| TC-VS3-16 | Mất mạng giữa bài | Tắt mạng câu 5 → bật → Thử lại | Làm tiếp câu 5 | Đạt: tắt mạng ở câu 5 → "Mất kết nối… câu bạn đang làm vẫn được giữ" (Hình 6.9); bật mạng, bấm Thử lại → server chấm đúng câu 5, hiện phản hồi. Thoát giữa bài rồi bấm Học lại → tiếp tục đúng câu 5/20 (TC-VS3-02 phía app) | E2E | ✅ |
 
-## 6. TUTORIAL THƯ KÝ, DANH HIỆU, TUỲ BIẾN ⬜
+## 6. TUTORIAL THƯ KÝ, DANH HIỆU, TUỲ BIẾN 🟡 (backend phần lớn ✅)
 
 | Mã | Mô tả | Kết quả mong đợi | Kết quả thực tế | Loại | Trạng thái |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| TC-TUT-01 | Chuyển bước hợp lệ / sai | `INTRO→PLACEMENT` 200; `INTRO→TOUR` 409 | | Integration | ⬜ |
-| TC-TUT-02 | Phiên PLACEMENT | 30 câu, tier 1→2→3, từ 20 từ House Lv1 | | Unit | ⬜ |
-| TC-TUT-03 | KP placement | đúng×3 + 100; bước → `LEARN_HOUSE` | | Unit | ⬜ |
-| TC-TUT-04 | Học xong ở House | bước → `BUILD_HOUSE` | | Unit | ⬜ |
-| TC-TUT-05 | Xây khi thiếu điều kiện | 409 `REQUIREMENTS_NOT_MET` kèm số thiếu | | Integration | ⬜ |
-| TC-TUT-06 | Xây đủ điều kiện | Trừ 100 KP, UPGRADING 10 s; `GET /city` sau 10 s → Lv1, bước → `ENTER_HOUSE` | | Integration | ⬜ |
-| TC-TUT-07 | `tutorial/complete` sai bước | 409; ở `TOUR` → `DONE` + `NEW_RESIDENT` | | Integration | ⬜ |
+| TC-TUT-01 | Chuyển bước hợp lệ / sai | `INTRO→PLACEMENT` 200; `INTRO→TOUR` 409 | Đạt: `INTRO→TOUR` 409 `INVALID_STEP` (kèm `details.current`), `INTRO→PLACEMENT` 200, gọi lại 200 | Integration (`LearningFlowTests`) | ✅ |
+| TC-TUT-02 | Phiên PLACEMENT | 30 câu, tier 1→2→3, từ 20 từ House Lv1 | Đạt: 30 câu, tier 1 (1–10) → 2 (11–20) → 3 (21–30), 20 từ khác nhau; gọi khi chưa tới bước → 409 | Integration (`LearningFlowTests`) + E2E | ✅ |
+| TC-TUT-03 | KP placement | đúng×3 + 100; bước → `LEARN_HOUSE` | Đạt: 30/30 → 190 KP; PostgreSQL 24/30 → 172 KP; bước → `LEARN_HOUSE` | Integration (`LearningFlowTests`) + E2E | ✅ |
+| TC-TUT-04 | Học xong ở House | bước → `BUILD_HOUSE` | Đạt | Integration (`LearningFlowTests`) + E2E | ✅ |
+| TC-TUT-05 | Xây khi thiếu điều kiện | 409 `REQUIREMENTS_NOT_MET` kèm số thiếu | Đạt: `details.missingCollected = 20`, `missingKnowledge = 100` | Integration (`LearningFlowTests`) | ✅ |
+| TC-TUT-06 | Xây đủ điều kiện | Trừ 100 KP, UPGRADING 10 s; `GET /city` sau 10 s → Lv1, bước → `ENTER_HOUSE` | Đạt: KP 150 → 50, UPGRADING; gọi xây lại → `BUSY`; +11 s → Lv1 IDLE, bước `ENTER_HOUSE`; xây tiếp → `ALREADY_BUILT`. PostgreSQL thật cũng đạt | Integration (`LearningFlowTests`) + E2E | ✅ |
+| TC-TUT-07 | `tutorial/complete` sai bước | 409; ở `TOUR` → `DONE` + `NEW_RESIDENT` | 🟡 Phần `DONE` + `NEW_RESIDENT` đạt (`tutorialCompletionGrantsNewResident`). Kiểm tra bước `TOUR` cố ý **chưa bật** tới M6, vì app vẫn dùng tutorial 3 trang | Integration | ⬜ |
 | TC-TUT-08 | Làm tiếp sau khi tắt app | Tắt giữa bài PLACEMENT → mở lại đúng câu | | E2E | ⬜ |
 | TC-TUT-09 | Toàn bộ tutorial | Xoá dữ liệu → đi hết T0–T7 | | E2E | ⬜ |
-| TC-ACH-01 | GOOD_START | 16 từ đúng → có; 15 → không | | Unit | ⬜ |
-| TC-ACH-02 | TOP_ENTRANT | < 50 mẫu: 27/30 có, 26/30 không; ≥ 50 mẫu: so phần trăm | | Unit | ⬜ |
-| TC-ACH-03 | FLAWLESS / COMBO10 | 30/30; chuỗi 10 câu đúng | | Unit | ⬜ |
-| TC-ACH-04 | Đeo danh hiệu | Chưa có → 409; có → HUD hiển thị | | Integration + E2E | ⬜ |
+| TC-ACH-01 | GOOD_START | 16 từ đúng → có; 15 → không | Đạt: 15 từ → không, 16 từ → có | Integration (`LearningFlowTests`.goodStart…) | ✅ |
+| TC-ACH-02 | TOP_ENTRANT | < 50 mẫu: 27/30 có, 26/30 không; ≥ 50 mẫu: so phần trăm | Đạt: < 50 mẫu: 27 có / 26 không; ≥ 50 mẫu (45 bài 20/30 + 5 bài 29/30): 25 có, 20 không | Unit (`AchievementServiceTests`) + Integration | ✅ |
+| TC-ACH-03 | FLAWLESS / COMBO10 | 30/30; chuỗi 10 câu đúng | Đạt: 30/30 → FLAWLESS + COMBO10 (+ GOOD_START, TOP_ENTRANT) | Integration (`LearningFlowTests`) | ✅ |
+| TC-ACH-04 | Đeo danh hiệu | Chưa có → 409; có → HUD hiển thị | Đạt (phần server): chưa có → 409 `NOT_EARNED`; có → `equippedTitle`; `null` → tháo. HUD ở M9 | Integration (`LearningFlowTests`) | ✅ |
 | TC-COS-01 | Đổi ngoại hình | Mã sai category → 400; đúng → lưu | | Integration | ⬜ |
 | TC-COS-02 | Mở mẫu tường bằng KP | Thiếu KP → 409; đủ → trừ KP, mở | | Integration | ⬜ |
 | TC-UI-01 | Xoay màn hình | Dọc / Ngang / Tự động có hiệu lực ngay và giữ sau khi mở lại | | E2E | ⬜ |
@@ -128,6 +130,11 @@ Test tự động backend: `backend/src/test/java/com/linguacity/backend/content
 | 6.6 | `6.6-tc-vs2-09-offline-flashcard.png` | TC-VS2-09: flashcard khi bật chế độ máy bay |
 | 6.7 | `6.7-tc-vs2-09-offline-list.png` | TC-VS2-09: danh sách từ khi offline |
 | 6.8 | `6.8-tc-vs2-10-first-run-offline.png` | TC-VS2-10: lần đầu mở app không có mạng |
+| 6.9 | `6.9-tc-vs3-16-offline-mid-lesson.png` | TC-VS3-16: mất mạng giữa bài |
+| 6.10 | `6.10-tc-vs3-15-offline-progress.png` | TC-VS3-15: tiến độ sưu tầm khi offline |
+| 6.11 | `6.11-tc-tut-05-build-not-met.png` | TC-TUT-05 phía app: "Cần sưu tầm thêm 10 từ để xây nhé." |
+
+**E2E app VS3 (08/11/2026, emulator + PostgreSQL thật):** Room v3 → v4 (AutoMigration) giữ nguyên dữ liệu; City dùng dữ liệu thật (4 lô Lv0); bài 20 câu: câu 1 chọn sai → đỏ/xanh + đáp án + giải thích + Mastery 0/10; kết quả 17/20 → 105 KP (85 + 20), sưu tầm 10/30, danh hiệu "Liên hoàn" (Hình 4.10, 4.11); bấm Xây khi mới 10/20 từ → "Cần sưu tầm thêm 10 từ để xây nhé."; danh hiệu: 2/7, đeo "Cư dân mới" → HUD hiện tên (Hình 4.12).
 
 **Ghi nhận khi nghiệm thu (chưa phải lỗi chặn):**
 - Màn lỗi hiện nguyên văn lỗi kỹ thuật (`failed to connect to /10.0.2.2 …`). Nên thay bằng câu dễ hiểu ở mốc giao diện.

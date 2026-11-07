@@ -52,6 +52,12 @@ interface ContentDao {
     @Query("SELECT * FROM vocabularies WHERE packCode = :pack ORDER BY id")
     fun observeVocabularies(pack: String): Flow<List<VocabularyEntity>>
 
+    @Query("SELECT id, packCode FROM vocabularies")
+    fun observeVocabularyPacks(): Flow<List<VocabularyPackRow>>
+
     @Query("SELECT COUNT(*) FROM vocabularies")
     suspend fun vocabularyCount(): Int
 }
+
+/** Một từ thuộc gói nào — để đếm tiến độ sưu tầm theo gói. */
+data class VocabularyPackRow(val id: Long, val packCode: String)

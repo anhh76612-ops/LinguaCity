@@ -51,7 +51,7 @@ Game mobile học tiếng Anh (TOEIC) kết hợp xây dựng thành phố. **Ko
 | :--- | :--- | :--- |
 | VS1 | Guest Onboarding + Tutorial | ✅ Verified (08/11/2026, TC-VS1-01..17) |
 | VS2 | Static Content Bootstrap (gói theo Level) | ✅ Implemented (08/11/2026, TC-VS2-01..11) |
-| VS3 | Vocabulary Learning | ⬜ |
+| VS3 | Vocabulary Learning (phiên học trên server) | ✅ Implemented (08/11/2026, TC-VS3-01..16) |
 | VS4 | Exam | ⬜ |
 | City View | Three.js + WebView (ADR-010, ADR-011) | 🟡 nhúng xong, dữ liệu giả lập |
 | VS5 | Building Upgrade + City View | ⬜ |

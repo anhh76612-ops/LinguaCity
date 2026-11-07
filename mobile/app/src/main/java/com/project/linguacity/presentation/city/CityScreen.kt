@@ -8,9 +8,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
@@ -27,27 +30,29 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.project.linguacity.domain.model.city.BuildingCode
 import com.project.linguacity.domain.model.content.BuildingLevelInfo
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.project.linguacity.presentation.city.web.WebCityRenderer
 
 /**
- * SCR-04 City View. Bản đồ chiếm toàn màn hình; UI Compose (thẻ công trình, snackbar) nằm đè lên trên.
- * Muốn dùng bản dự phòng: truyền renderer = ComposeCityRenderer.
+ * SCR-04 City View. Bản đồ chiếm toàn màn hình; UI Compose (HUD tạm, thẻ công trình, snackbar) nằm đè lên trên.
+ * HUD đầy đủ + menu nổi ở M9. Muốn dùng bản dự phòng: truyền renderer = ComposeCityRenderer.
  */
 @Composable
 fun CityScreen(
     onOpenVocabulary: (BuildingCode, Int) -> Unit = { _, _ -> },
+    onStartLesson: (BuildingCode) -> Unit = {},
+    onOpenAchievements: () -> Unit = {},
     renderer: CityRenderer = WebCityRenderer,
     viewModel: CityViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
     val snackbar = remember { SnackbarHostState() }
 
-    // Mỗi lần màn City quay lại foreground: kiểm tra gói nội dung mới (ADR-012, kiểu pull).
+    // Mỗi lần màn City quay lại foreground: tải lại thành phố + kiểm tra gói nội dung mới (ADR-012, kiểu pull).
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
@@ -75,16 +80,32 @@ fun CityScreen(
 
         if (!state.mapReady) CircularProgressIndicator(Modifier.align(Alignment.Center))
 
+        // HUD tạm (M5): KP + danh hiệu đang đeo + nút Danh hiệu.
+        Row(
+            Modifier.align(Alignment.TopCenter).statusBarsPadding().padding(12.dp).fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            AssistChip(onClick = {}, label = { Text("💡 ${state.profile?.knowledgePoints ?: 0} KP") })
+            state.equippedTitleName?.let { AssistChip(onClick = onOpenAchievements, label = { Text("🏅 $it") }) }
+            Box(Modifier.weight(1f))
+            FilledTonalButton(onClick = onOpenAchievements) { Text("🏅 Danh hiệu") }
+        }
+
         Column(
             modifier = Modifier.align(Alignment.BottomCenter).navigationBarsPadding().padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             SnackbarHost(snackbar)
             state.selected?.let { code -> render.building(code) }?.let { building ->
+                val learnLevel = minOf(3, building.level + 1)
                 BuildingCard(
                     building = building,
                     next = state.nextLevelInfo(building.code, building.level),
-                    onUpgrade = { viewModel.onIntent(CityIntent.UpgradeSelected) },
+                    collected = state.collectionOf(building.code, learnLevel),
+                    busy = state.building,
+                    onBuild = { viewModel.onIntent(CityIntent.BuildSelected) },
+                    onLearn = { onStartLesson(building.code) },
                     onVocabulary = { onOpenVocabulary(building.code, maxOf(1, building.level)) },
                     onClose = { viewModel.onIntent(CityIntent.DismissSelection) }
                 )
@@ -97,7 +118,10 @@ fun CityScreen(
 private fun BuildingCard(
     building: BuildingView,
     next: BuildingLevelInfo?,
-    onUpgrade: () -> Unit,
+    collected: Pair<Int, Int>,
+    busy: Boolean,
+    onBuild: () -> Unit,
+    onLearn: () -> Unit,
     onVocabulary: () -> Unit,
     onClose: () -> Unit
 ) {
@@ -109,13 +133,17 @@ private fun BuildingCard(
                 style = MaterialTheme.typography.titleMedium
             )
             when {
-                building.upgrading && building.progress >= 1f -> Text("Đang chờ máy chủ xác nhận hoàn tất…")
+                building.upgrading && building.progress >= 1f -> Text("Sắp xong — đang chờ máy chủ xác nhận…")
                 building.upgrading -> {
-                    Text("Đang nâng cấp… ${(building.progress * 100).toInt()}%")
+                    Text("Đang xây… ${(building.progress * 100).toInt()}%")
                     LinearProgressIndicator(progress = { building.progress }, modifier = Modifier.fillMaxWidth())
                 }
                 building.isMaxLevel -> Text("Đã đạt level tối đa")
-                !building.isBuilt -> Text("Lô đất trống: xây để mở công trình")
+                !building.isBuilt -> Text("Lô đất trống: học từ của công trình này để xây")
+            }
+            if (collected.second > 0 && !building.isMaxLevel) {
+                Text("Bộ sưu tầm Level ${minOf(3, building.level + 1)}: ${collected.first}/${collected.second} thẻ",
+                    style = MaterialTheme.typography.bodySmall)
             }
             // Điều kiện Level kế tiếp, đọc từ Room (building_levels, gói CORE).
             if (next != null && !building.upgrading) {
@@ -125,10 +153,10 @@ private fun BuildingCard(
                     style = MaterialTheme.typography.bodySmall
                 )
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                // Giả lập: bản thật sẽ cần Bản vẽ + KP và gọi Backend (VS5).
-                Button(onClick = onUpgrade, enabled = !building.upgrading && !building.isMaxLevel) {
-                    Text(if (building.isBuilt) "Nâng cấp (giả lập)" else "Xây (giả lập)")
+            Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
+                Button(onClick = onLearn, enabled = !building.isMaxLevel) { Text("Học") }
+                if (!building.isBuilt) {
+                    FilledTonalButton(onClick = onBuild, enabled = !building.upgrading && !busy) { Text("Xây") }
                 }
                 TextButton(onClick = onVocabulary) { Text("Thẻ từ") }
                 TextButton(onClick = onClose) { Text("Đóng") }

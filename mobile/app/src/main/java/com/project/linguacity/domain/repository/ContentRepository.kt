@@ -21,4 +21,7 @@ interface ContentRepository {
     fun observeVocabularies(buildingCode: String, level: Int): Flow<List<Vocabulary>>
 
     fun observeBuildingLevels(): Flow<List<BuildingLevelInfo>>
+
+    /** Mã gói ("HOUSING:1") → id các từ trong gói. */
+    fun observePackWordIds(): Flow<Map<String, Set<Long>>>
 }

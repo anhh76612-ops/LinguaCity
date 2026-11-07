@@ -19,6 +19,11 @@ import com.project.linguacity.data.local.content.QuestionEntity
 import com.project.linguacity.data.local.content.QuestionVocabularyEntity
 import com.project.linguacity.data.local.content.ThemeEntity
 import com.project.linguacity.data.local.content.VocabularyEntity
+import com.project.linguacity.data.local.player.AchievementEntity
+import com.project.linguacity.data.local.player.PlayerDao
+import com.project.linguacity.data.local.player.UserAchievementEntity
+import com.project.linguacity.data.local.player.UserBuildingEntity
+import com.project.linguacity.data.local.player.UserVocabProgressEntity
 import com.project.linguacity.data.local.user.UserProfileDao
 import com.project.linguacity.data.local.user.UserProfileEntity
 
@@ -26,6 +31,7 @@ import com.project.linguacity.data.local.user.UserProfileEntity
  * v1 → v2: thêm tutorialCompleted (UC_02, migration viết tay).
  * v2 → v3: thêm 12 bảng nội dung tĩnh (VS2). Chỉ thêm bảng mới nên dùng AutoMigration:
  *          Room so sánh schemas/…/2.json với 3.json và tự sinh các câu CREATE TABLE.
+ * v3 → v4: Player State (VS3): tiến độ từ, công trình, danh hiệu + 2 cột hồ sơ (có DEFAULT) → vẫn AutoMigration.
  */
 @Database(
     entities = [
@@ -41,11 +47,15 @@ import com.project.linguacity.data.local.user.UserProfileEntity
         ExamEntity::class,
         ExamRequirementEntity::class,
         ExamQuestionEntity::class,
-        ContentPackStateEntity::class
+        ContentPackStateEntity::class,
+        UserVocabProgressEntity::class,
+        UserBuildingEntity::class,
+        AchievementEntity::class,
+        UserAchievementEntity::class
     ],
-    version = 3,
+    version = 4,
     exportSchema = true,
-    autoMigrations = [AutoMigration(from = 2, to = 3)]
+    autoMigrations = [AutoMigration(from = 2, to = 3), AutoMigration(from = 3, to = 4)]
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
@@ -53,6 +63,8 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun userProfileDao(): UserProfileDao
 
     abstract fun contentDao(): ContentDao
+
+    abstract fun playerDao(): PlayerDao
 }
 
 /**
