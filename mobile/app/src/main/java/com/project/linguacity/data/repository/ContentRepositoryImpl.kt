@@ -4,6 +4,8 @@ import androidx.room.withTransaction
 import com.project.linguacity.data.local.AppDatabase
 import com.project.linguacity.data.local.content.ContentDao
 import com.project.linguacity.data.local.content.ContentPackStateEntity
+import com.project.linguacity.data.local.player.AchievementEntity
+import com.project.linguacity.data.local.player.PlayerDao
 import com.project.linguacity.data.local.preferences.GuestIdStore
 import com.project.linguacity.data.mapper.toDomain
 import com.project.linguacity.data.mapper.toRows
@@ -31,6 +33,7 @@ class ContentRepositoryImpl @Inject constructor(
     private val api: ContentApi,
     private val db: AppDatabase,
     private val dao: ContentDao,
+    private val playerDao: PlayerDao,
     private val guestIdStore: GuestIdStore
 ) : ContentRepository {
 
@@ -71,6 +74,10 @@ class ContentRepositoryImpl @Inject constructor(
             dao.upsertBuildingThemes(rows.buildingThemes)
             dao.upsertBuildingLevels(rows.buildingLevels)
             dao.upsertBlueprints(rows.blueprints)
+            playerDao.clearAchievements()
+            playerDao.upsertAchievements(core.achievements.map {
+                AchievementEntity(it.code, it.name, it.description, it.tier, it.hidden, it.sortOrder)
+            })
             dao.upsertPackState(ContentPackStateEntity(core.code, core.version, System.currentTimeMillis()))
         }
     }
@@ -94,6 +101,9 @@ class ContentRepositoryImpl @Inject constructor(
 
     override fun observeVocabularies(buildingCode: String, level: Int): Flow<List<Vocabulary>> =
         dao.observeVocabularies(packCode(buildingCode, level)).map { list -> list.map { it.toDomain() } }
+
+    override fun observePackWordIds(): Flow<Map<String, Set<Long>>> =
+        dao.observeVocabularyPacks().map { rows -> rows.groupBy({ it.packCode }, { it.id }).mapValues { it.value.toSet() } }
 
     override fun observeBuildingLevels(): Flow<List<BuildingLevelInfo>> =
         dao.observeBuildingLevels().map { list -> list.map { it.toDomain() } }

@@ -8,5 +8,7 @@ data class OnboardUserResponseDto(
     val knowledgePoints: Int,
     val hourglassCount: Int,
     val blueprintShards: Int,
-    val tutorialCompleted: Boolean
+    val tutorialCompleted: Boolean,
+    /** v3.3 (ADR-014). Server cũ không gửi → mặc định INTRO. */
+    val tutorialStep: String = "INTRO"
 )

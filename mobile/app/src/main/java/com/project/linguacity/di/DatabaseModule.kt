@@ -5,6 +5,7 @@ import androidx.room.Room
 import com.project.linguacity.data.local.AppDatabase
 import com.project.linguacity.data.local.MIGRATION_1_2
 import com.project.linguacity.data.local.content.ContentDao
+import com.project.linguacity.data.local.player.PlayerDao
 import com.project.linguacity.data.local.user.UserProfileDao
 import dagger.Module
 import dagger.Provides
@@ -40,4 +41,7 @@ object DatabaseModule {
 
     @Provides
     fun provideContentDao(database: AppDatabase): ContentDao = database.contentDao()
+
+    @Provides
+    fun providePlayerDao(database: AppDatabase): PlayerDao = database.playerDao()
 }

@@ -1,10 +1,14 @@
 package com.project.linguacity.di
 
 import com.project.linguacity.data.repository.ContentRepositoryImpl
-import com.project.linguacity.data.repository.FakeCityRepository
+import com.project.linguacity.data.repository.CityRepositoryImpl
+import com.project.linguacity.data.repository.LearningRepositoryImpl
+import com.project.linguacity.data.repository.PlayerRepositoryImpl
 import com.project.linguacity.data.repository.UserRepositoryImpl
 import com.project.linguacity.domain.repository.CityRepository
 import com.project.linguacity.domain.repository.ContentRepository
+import com.project.linguacity.domain.repository.LearningRepository
+import com.project.linguacity.domain.repository.PlayerRepository
 import com.project.linguacity.domain.repository.UserRepository
 import dagger.Binds
 import dagger.Module
@@ -28,10 +32,18 @@ abstract class RepositoryModule {
         implementation: ContentRepositoryImpl
     ): ContentRepository
 
-    // Tạm dùng dữ liệu giả lập; đến VS5 đổi sang CityRepositoryImpl gọi Backend ở đúng chỗ này.
+    // M5: thành phố thật (GET /city, cache Room) thay cho FakeCityRepository.
     @Binds
     @Singleton
     abstract fun bindCityRepository(
-        implementation: FakeCityRepository
+        implementation: CityRepositoryImpl
     ): CityRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindLearningRepository(implementation: LearningRepositoryImpl): LearningRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindPlayerRepository(implementation: PlayerRepositoryImpl): PlayerRepository
 }
