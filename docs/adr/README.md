@@ -18,6 +18,9 @@
 | [ADR-009](ADR-009-unity-as-library.md) | Kotlin chủ + Unity nhúng cho City View | 🟡 Proposed |
 | [ADR-010](ADR-010-city-view-threejs-webview.md) | City View bằng Three.js (web), nhúng qua WebView — đề xuất thay ADR-009 | 🟡 Proposed |
 | [ADR-011](ADR-011-city-state-contract.md) | Hai hợp đồng City View (API / Bridge), Kotlin tính tiến độ, `level 0` = chưa xây | 🟡 Proposed |
+| [ADR-012](ADR-012-content-packs-by-level.md) | Nội dung tĩnh chia gói theo (công trình, Level), tải khi cần, kiểu pull; sẵn `scope` cho lớp học | 🟡 Proposed |
+| [ADR-013](ADR-013-server-learning-session.md) | Phiên học do server quản lý; sưu tầm = đúng lần đầu (sửa ADR-005); chống cày KP | 🟡 Proposed |
+| [ADR-014](ADR-014-secretary-tutorial-placement.md) | Tutorial thư ký + bài kiểm tra trình độ + xây House thật | 🟡 Proposed |
 
 Nhật ký sự cố: [troubleshooting-log.md](troubleshooting-log.md)
 

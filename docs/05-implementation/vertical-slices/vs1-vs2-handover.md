@@ -759,21 +759,21 @@ System Design có quy định Optimistic Locking (`@Version`) trên UserProfile 
 VS1 được xem là **Implemented** khi:
 
 ```text
-[ ] Guest UUID được tạo trên Mobile
-[ ] UUID được lưu DataStore
-[ ] Mobile gọi POST /api/v1/users/onboard
-[ ] Backend nhận X-Guest-UUID
-[ ] Backend tạo User nếu chưa tồn tại
-[ ] Backend không tạo duplicate nếu UUID đã tồn tại
-[ ] PostgreSQL lưu đúng UserProfile
-[ ] Backend trả DTO
-[ ] Android nhận DTO
-[ ] Android lưu UserProfile vào Room
-[ ] Android có thể đọc UserProfile từ Room
-[ ] App restart vẫn giữ cùng Guest UUID
-[ ] Không có lỗi Cleartext/network local
-[ ] EA traceability hoàn chỉnh
-[ ] Business Rules được ghi nhận
+[x] Guest UUID được tạo trên Mobile
+[x] UUID được lưu DataStore
+[x] Mobile gọi POST /api/v1/users/onboard
+[x] Backend nhận X-Guest-UUID
+[x] Backend tạo User nếu chưa tồn tại
+[x] Backend không tạo duplicate nếu UUID đã tồn tại
+[x] PostgreSQL lưu đúng UserProfile
+[x] Backend trả DTO
+[x] Android nhận DTO
+[x] Android lưu UserProfile vào Room
+[x] Android có thể đọc UserProfile từ Room
+[x] App restart vẫn giữ cùng Guest UUID
+[x] Không có lỗi Cleartext/network local
+[x] EA traceability hoàn chỉnh
+[x] Business Rules được ghi nhận
 ```
 
 Nếu tất cả điều trên đều đạt, đổi:
@@ -1266,8 +1266,8 @@ VS1 — Guest Onboarding
 ├── Android Presentation          ✅
 ├── End-to-end network flow       ✅
 ├── Duplicate prevention          ✅
-├── Formal EA/BR finalization     🟡
-└── Tutorial completion (UC_02)   🟡  ← đang làm (API xong, thiếu test/migration/UI)
+├── Formal EA/BR finalization     ✅ (handover §9)
+└── Tutorial completion (UC_02)   ✅  (TC-VS1-09..17, nghiệm thu 08/11/2026)
 
 VS2 — Static Content
 ├── Business Rules                ⬜
@@ -1282,11 +1282,11 @@ VS2 — Static Content
 
 VS3 — Vocabulary Learning
 VS4 — Exam
-TS-UNITY — Tech Spike Unity as a Library (ADR-009, tối đa 1–2 tuần)
-VS5 — Building Upgrade (City View: Unity nếu TS-UNITY đạt, ngược lại Compose)
+City View — Three.js nhúng WebView (ADR-010, ADR-011), thay cho TS-UNITY
+VS5 — Building Upgrade
 ```
 
-> **Cập nhật 20/10/2026:** chèn **TS-UNITY** trước VS5. TS-UNITY có thể làm sớm hơn (ngay sau VS2) nếu muốn biết sớm Unity có khả thi không — nó không phụ thuộc VS3/VS4.
+> **Cập nhật 20/10/2026 (đã thay bởi ADR-010):** chèn **TS-UNITY** trước VS5. TS-UNITY có thể làm sớm hơn (ngay sau VS2) nếu muốn biết sớm Unity có khả thi không — nó không phụ thuộc VS3/VS4.
 
 SRS Definition of Done hiện tại đi theo đúng thứ tự logic: Guest User → Static Content → Offline Learning → Online Learning → Exam → Building Upgrade → On-Demand Sync.
 
@@ -1409,6 +1409,8 @@ Build toolchain must be fixed early
 ---
 
 # 25. Chốt trạng thái VS1
+
+> **Cập nhật 08/11/2026: VS1 = VERIFIED.** Toàn bộ TC-VS1-01..17 đạt, có ảnh minh chứng (`docs/06-testing/test-plan.md` §2–§3, §5). Kế hoạch tiếp theo: VS2 (gói nội dung theo Level, ADR-012) và VS3 (phiên học trên server, ADR-013), xem `docs/05-implementation/plans/`.
 
 ### Kết luận
 

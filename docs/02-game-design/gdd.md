@@ -24,7 +24,7 @@ Vòng lặp Học tập (Learning Loop) và Vòng lặp Thành phố (City Loop)
 
 ## 2. THẾ GIỚI GAME: CÔNG TRÌNH = CHỦ ĐỀ (THEME), KHÔNG PHẢI KỸ NĂNG
 
-Mỗi công trình liên kết với một Theme (Chủ đề), không khóa cứng với kỹ năng để tránh coupling (xem ADR-003, Case 1).
+Mỗi công trình liên kết với **một hoặc nhiều** Theme (bảng `building_themes`, system-design §10.2.1), không khóa cứng với kỹ năng để tránh coupling (xem ADR-003, Case 1). Nội dung được tải theo gói (công trình, Level) — ADR-012.
 
 | Công trình | Theme từ vựng | Vai trò trong game |
 | :--- | :--- | :--- |
@@ -63,9 +63,23 @@ Bài tập Ngữ pháp (Grammar) xuất hiện dưới dạng dấu chấm than 
 - Unity: hiển thị dấu (!) và gửi `CityEventTapped(eventId)` về Kotlin.
 - Kotlin: mở màn hình câu hỏi, gọi Backend chấm điểm.
 
-### 3.2. Tutorial lần đầu (đang triển khai ở VS1)
-- Backend đã có `POST /api/v1/users/me/tutorial/complete` và cột `tutorial_completed` trên `UserProfile`.
-- ⬜ Chưa chốt: nội dung từng bước tutorial, tutorial chạy trong Kotlin hay Unity, có cho bỏ qua không.
+### 3.2. Tutorial lần đầu: thư ký Mai (ADR-014)
+- VS1 có bản 3 trang (đã nghiệm thu). Bản mới **chơi thật một vòng**:
+  1. kiểm tra trình độ 30 câu / 20 từ House Lv1, độ khó tăng dần;
+  2. bắt buộc học 1 phiên ở House;
+  3. xây House Lv0→1 (cần 20/30 từ + 100 KP, xây 10 giây);
+  4. vào nhà 3D, chọn ngoại hình nhân vật và tường/sàn;
+  5. tour chức năng.
+- Chạy trong Kotlin (overlay Compose: chân dung 2D + chữ chạy + spotlight), bước lưu trên server, **không cho bỏ qua**.
+- Phần thưởng: KP = đúng×3 + 100 quà chào mừng; danh hiệu GOOD_START (>15 từ), TOP_ENTRANT (top 10% / ≥27/30), FLAWLESS (ẩn, 30/30), NEW_RESIDENT (xong tutorial).
+
+### 3.3. Danh hiệu (Titles)
+- Ba nhóm: **Dễ** (ai chăm cũng có), **Khó** (cần giỏi/kiên trì), **Ẩn** (chỉ có khi vô tình làm được; điều kiện không hiển thị).
+- Đeo một danh hiệu, hiện trên HUD và Hồ sơ. Danh sách ban đầu: system-design §10.5.
+
+### 3.4. Tuỳ biến
+- **Nhân vật** low-poly như người dân city-web: màu da, kiểu tóc + màu tóc, màu áo, màu quần, phụ kiện. Miễn phí.
+- **Nhà:** tường và sàn, mỗi loại 2 mẫu miễn phí; mẫu khác mở bằng KP hoặc danh hiệu. Đồ nội thất: giai đoạn sau.
 
 ---
 
@@ -73,7 +87,7 @@ Bài tập Ngữ pháp (Grammar) xuất hiện dưới dạng dấu chấm than 
 
 | Tài nguyên | Cách kiếm | Cách tiêu | Lưu ở |
 | :--- | :--- | :--- | :--- |
-| **Knowledge Points** (Điểm Tri Thức) — tiền tệ chính | Thu hoạch thụ động từ Housing; làm bài học; City Events | Phí thi; phí nâng cấp | `user_profiles.knowledge_points` |
+| **Knowledge Points** (Điểm Tri Thức) — tiền tệ chính | Thu hoạch thụ động từ Housing; làm bài học; bài kiểm tra trình độ + quà chào mừng; City Events | Phí thi; phí xây/nâng cấp; mở mẫu tường/sàn | `user_profiles.knowledge_points` |
 | **Hourglass** (Đồng hồ cát) | ⬜ Chưa chốt | Tua nhanh thời gian xây | `user_profiles.hourglass_count` |
 | **Blueprint Shards** (Mảnh bản vẽ) — item nút thắt | Nhiệm vụ hằng ngày, City Events (Grammar) | Phí đầu vào bài thi | `user_profiles.blueprint_shards` |
 | **Blueprint** (Bản vẽ) | Pass Exam | Nâng cấp công trình đúng loại + đúng level | `user_blueprints` |
@@ -83,6 +97,8 @@ Bài tập Ngữ pháp (Grammar) xuất hiện dưới dạng dấu chấm than 
 - Pass nhận Blueprint cụ thể, gắn với Building + Target Level.
 - Upgrade dùng Blueprint của Target Level.
 - Mastery: đúng `+1`, sai `-1`, giới hạn trong `0..max_mastery` (xem System Design §3.3).
+- (08/11/2026, ADR-013) `max_mastery` theo độ khó: **D=10, C=15, B=20, A=25**. Một từ "đã sưu tầm" khi trả lời đúng lần đầu.
+- (08/11/2026, ADR-013) Bài học: **KP = đúng×5 + 20 nếu ≥80%**; 5 phiên đầu mỗi ngày nhận đủ, từ phiên thứ 6 × 0.2. Phiên hết hạn sau 30 phút.
 
 ---
 
@@ -95,20 +111,20 @@ ADR-010 (🟡 Proposed) đề xuất thay Unity bằng **Three.js chạy trong W
 | :--- | :--- | :--- |
 | Splash / Đồng bộ dữ liệu | Kotlin (Compose) | Onboarding Guest, tải Static Content |
 | City View (bản đồ, 4 công trình, hiệu ứng xây dựng, dấu (!)) | **Three.js/WebView** theo ADR-010 (trước đó: Unity, ADR-009; đường lui: Compose) | Chỉ nhận `CityState`, gửi intent về Kotlin |
-| Chi tiết công trình (level, chi phí nâng cấp) | Kotlin (Compose, dạng bottom sheet / màn hình) | ⬜ Có thể làm overlay trong Unity — chốt khi làm VS5 |
+| Chi tiết / bên trong công trình | city-web (avatar đi vào, zoom; **nội thất 3D cho House**) + Kotlin (bảng nhiệm vụ) | UC_15 |
 | Học từ vựng, Flashcard, Mini-game | Kotlin (Compose) | Hỗ trợ offline đọc (ADR-004) |
 | Exam Center | Kotlin (Compose) | Bắt buộc online |
-| Tutorial | ⬜ Chưa chốt | |
+| Tutorial | Kotlin (overlay thư ký Compose) | ADR-014 |
 
 ---
 
 ## 6. NỘI DUNG CẦN BỔ SUNG (⬜)
 
 ### 6.1. Cân bằng game (Game Balance) — để mở, chỉnh sau khi có prototype
-- ⬜ Giá xây dựng / nâng cấp từng Level, thời gian xây.
+- 🟡 Giá xây / thời gian xây (seed V003, chỉnh sau): Lv1 = 100 KP / 10 giây (House, tutorial); các công trình khác Lv1 = 150 KP / 60 giây; Lv2 = 300 KP / 1 giờ; Lv3 = 800 KP / 4 giờ.
 - ⬜ Tốc độ sinh Knowledge Points của Housing.
-- ⬜ Level tối đa của mỗi công trình.
-- ⬜ `max_mastery` theo Difficulty Rank; công thức weight chọn thẻ; cooldown khi thẻ vừa dùng.
+- 🟡 Level tối đa của mỗi công trình: 3.
+- ✅ `max_mastery` theo Difficulty Rank (D10/C15/B20/A25); cooldown 10 phút. 🟡 Cách chọn thẻ hiện là bản đơn giản (chưa sưu tầm → Mastery thấp); **sẽ thay bằng trọng số / Spaced Repetition** (future-expansion §6).
 - ⬜ Difficulty distribution cho các Level cao.
 - ⬜ Cách chấm điểm Exam và ngưỡng Pass.
 - ⬜ Nguồn kiếm Hourglass.
@@ -122,5 +138,5 @@ ADR-010 (🟡 Proposed) đề xuất thay Unity bằng **Three.js chạy trong W
 - ⬜ Âm thanh: nhạc nền, hiệu ứng đúng/sai, hoàn thành xây dựng.
 
 ### 6.3. Tiến trình người chơi (Progression)
-- ⬜ Bảng mở khóa theo Level: Level 1 có bao nhiêu từ, mở công trình nào trước.
+- 🟡 House Level 1 có 30 từ (seed duy nhất ở đợt này); xây Lv1 cần sưu tầm 20/30. House mở đầu tiên (tutorial). Road/Park/School chưa có nội dung, hiện biển "Chưa xây".
 - ⬜ Nhiệm vụ hằng ngày (Daily Quest) — nội dung và phần thưởng.

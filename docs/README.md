@@ -49,10 +49,10 @@ Game mobile học tiếng Anh (TOEIC) kết hợp xây dựng thành phố. **Ko
 
 | Slice | Nội dung | Trạng thái |
 | :--- | :--- | :--- |
-| VS1 | Guest Onboarding | ✅ Implemented · 🟡 Tutorial (UC_02) đang làm |
+| VS1 | Guest Onboarding + Tutorial | ✅ Verified (08/11/2026, TC-VS1-01..17) |
 | VS2 | Static Content Bootstrap | ⬜ |
 | VS3 | Vocabulary Learning | ⬜ |
 | VS4 | Exam | ⬜ |
-| TS-UNITY | Tech Spike Unity as a Library | ⬜ |
+| City View | Three.js + WebView (ADR-010, ADR-011) | 🟡 nhúng xong, dữ liệu giả lập |
 | VS5 | Building Upgrade + City View | ⬜ |
 | VS6+ | Auth, Teacher/Student, Web, Cộng đồng | Future — [future-expansion.md](03-architecture/future-expansion.md) |

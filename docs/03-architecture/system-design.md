@@ -7,10 +7,11 @@
 **Phiên bản:** 3.0 (Bản nâng cấp nhất quán hệ thống & API)
 **Người thực hiện:** Nông Hoàng Anh
 **Ngày tạo:** 19/08/2026
-**Ngày cập nhật cuối cùng:** 07/11/2026 — v3.2: Chương 9 viết lại cho City View WebView (ADR-010) với hai hợp đồng (A)/(B) (ADR-011); thêm `GET /api/v1/city` (§7.2.8) và trường `serverTime` cho §7.2.7. (v3.1, 20/10/2026: luồng Onboarding/Tutorial §4.0, chuẩn hóa mã UC §8.2.)
+**Ngày cập nhật cuối cùng:** 08/11/2026 — v3.3: thêm Chương 10 (gói nội dung theo Level, phiên học, tutorial thư ký, danh hiệu, tuỳ biến — ADR-012/013/014). 07/11/2026 — v3.2: Chương 9 viết lại cho City View WebView (ADR-010) với hai hợp đồng (A)/(B) (ADR-011); thêm `GET /api/v1/city` (§7.2.8) và trường `serverTime` cho §7.2.7. (v3.1, 20/10/2026: luồng Onboarding/Tutorial §4.0, chuẩn hóa mã UC §8.2.)
 
 > **Ghi chú v3.1:** Các chương 3–7 vẫn là baseline đã đóng băng. Thay đổi mới chỉ **bổ sung**, không sửa mô hình dữ liệu.
 > **Ghi chú v3.2:** §7.2.7 chỉ **thêm** trường `serverTime`, §7.2.8 là endpoint mới. Bảng `user_buildings` không đổi.
+> **Ghi chú v3.3:** Chương 10 **thay thế** một số mục baseline (§3.3 trần Mastery, §4.4, §5.1.2 `theme_id`, §7.2.2, §7.2.3) và bổ sung bảng/cột/API mới. Mỗi mục bị thay có ghi chú "→ §10" ngay tại chỗ.
 
 ---
 
@@ -100,6 +101,8 @@ Mô hình miền của LinguaCity được thiết kế xoay quanh một nguyên
     *   **Học từ vựng hàng ngày (Learning Question):** Khi người chơi hoàn thành câu hỏi ôn tập, kết quả trả lời (Đúng/Sai) được chuyển đến `MasteryEngine` để điều chỉnh `mastery_score` của từ vựng tương ứng (Đúng +1, Sai -1).
     *   **Thi sát hạch nâng cấp (Exam Question):** Khi chấm điểm bài thi tại Server, hệ thống lọc ra các từ vựng chính (TARGET) được kiểm tra trong đề thi. Kết quả đúng/sai của từng câu hỏi thi cũng được gửi tới `MasteryEngine` để cộng hoặc trừ điểm Mastery tương ứng.
     *   **Giới hạn biên (Clamping):** `MasteryEngine` đảm bảo `mastery_score` luôn nằm trong ranh giới an toàn từ `0` đến `max_mastery` (cấu hình động theo từng Level).
+
+> **→ §10 (v3.3, ADR-013):** `max_mastery` lấy theo **độ khó của từ** (D=10, C=15, B=20, A=25), không theo Level. Mastery chỉ áp cho từ `TARGET`.
 
 ---
 
@@ -267,6 +270,8 @@ sequenceDiagram
 
 ### 4.4. Luồng Học từ vựng thông thạo (Vocabulary Learning Flow)
 
+> **→ §10.3.2 (v3.3, ADR-013):** luồng từng câu bên dưới được thay bằng **phiên học** 10 từ / 20 câu do server quản lý. Giữ lại để đối chiếu.
+
 ```mermaid
 sequenceDiagram
     autonumber
@@ -316,7 +321,7 @@ Trong Enterprise Architect, **Physical View** được biểu diễn bằng sơ 
 #### 5.1.2. Bảng `buildings` (Static Content)
 *   `id`: `BIGSERIAL` (PK, NOT NULL)
 *   `code`: `VARCHAR(50)` (UNIQUE, NOT NULL) - Ví dụ: `HOUSING`, `ROAD`, `PARK`, `SCHOOL`
-*   `theme_id`: `BIGINT` (FK, NOT NULL) - Tham chiếu `themes(id)` ON DELETE RESTRICT
+*   `theme_id`: `BIGINT` (FK, NOT NULL) - Tham chiếu `themes(id)` ON DELETE RESTRICT — **→ §10.2.1 (v3.3): bỏ cột này, thay bằng bảng `building_themes` (n-n)**
 *   `max_level`: `INT` (NOT NULL, CHECK `max_level > 0`)
 
 #### 5.1.3. Bảng `building_levels` (Static Content)
@@ -617,6 +622,8 @@ Toàn bộ các API đều bắt buộc đính kèm Header: `X-Guest-UUID: <UUID
     ```
 
 #### 7.2.2. Lấy Bài tập Tiếp theo (Get Learning Item)
+> **→ §10.4.2 (v3.3):** thay bằng API phiên học. Không cài đặt endpoint này.
+
 *   **HTTP Method & Endpoint:** `GET /api/v1/buildings/{buildingId}/learning/next`
 *   **Mục đích:** Lấy một từ vựng ngẫu nhiên kèm snapshot bài tập tương ứng dựa trên thuật toán Weighted Random.
 *   **Response (200 OK):** (Đáp án chuẩn `answer` hoàn toàn ẩn đi để tránh gian lận)
@@ -652,6 +659,8 @@ Toàn bộ các API đều bắt buộc đính kèm Header: `X-Guest-UUID: <UUID
     ```
 
 #### 7.2.3. Chấm điểm học từ vựng (Submit Answer)
+> **→ §10.4.2 (v3.3):** thay bằng `POST /learning/sessions/{id}/items/{itemNo}/answer`. Nguyên tắc tách DTO bên dưới vẫn áp dụng.
+
 *   **HTTP Method & Endpoint:** `POST /api/v1/learning/answer`
 *   **Mục đích:** Kiểm tra đáp án chuẩn tại Server, cập nhật điểm Mastery của người chơi thông qua Mastery Engine.
 *   **Thiết kế Bảo mật và Tiện lợi UI (Thiết kế DTO riêng biệt):**
@@ -825,7 +834,7 @@ LinguaCity Project Model (Root)
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | **FR-USER-01, 02** | Người chơi có mã định danh không cần đăng nhập | `UC_01` (Onboard User) | `POST /api/v1/users/onboard` | `UserProfile` | `user_profiles` | `UserProfileEntity` |
 | **FR-USER-04** | Hoàn thành Tutorial lần đầu | `UC_02` (Complete Tutorial) | `POST /api/v1/users/me/tutorial/complete` | `UserProfile` | `user_profiles.tutorial_completed` | `UserProfileEntity` |
-| **FR-SYS-02, FR-LEARN-01/02** | Tải nội dung tĩnh, xem từ vựng/Flashcard offline | `UC_03`, `UC_04` | ⬜ (thiết kế ở VS2) | `Theme`, `Building`, `Vocabulary` | `themes`, `buildings`, `vocabularies` | `VocabularyEntity`… |
+| **FR-SYS-02, FR-LEARN-01/02** | Tải nội dung tĩnh, xem từ vựng/Flashcard offline | `UC_03`, `UC_04` | `/api/v1/content/…` (§10.4.1) | `Theme`, `Building`, `Vocabulary` | `themes`, `buildings`, `vocabularies` | `VocabularyEntity`… |
 | **FR-LEARN-03** | Học từ vựng theo Theme ngẫu nhiên có trọng số | `UC_05` (Take Learning Session) | `GET /api/v1/buildings/{buildingId}/learning/next` | `Vocabulary`, `Question` | `vocabularies`, `questions` | `VocabularyEntity`, `QuestionEntity` |
 | **FR-LEARN-04** | Chấm điểm học từ vựng bảo mật tại Server | `UC_05` (Take Learning Session) | `POST /api/v1/learning/answer` | `UserVocabProgress` | `user_vocab_progress` | `UserVocabProgressEntity` |
 | **FR-EXAM-02** | Cho phép thi sát hạch nâng cấp công trình | `UC_07` (Start Exam) | `POST /api/v1/exams/{id}/start` | `ExamAttempt`, `Exam` | `exam_attempts`, `exams` | `ExamAttemptEntity`, `ExamEntity` |
@@ -956,3 +965,291 @@ LinguaCity/
 - ⬜ Tạo lại WebView khi hệ thống kill render process (`onRenderProcessGone`).
 - ⬜ VS5: code `GET /api/v1/city` (§7.2.8), `CityRepositoryImpl` (Retrofit + Room) thay cho `FakeCityRepository`.
 - ⬜ Bảng và API cho City Events (FR-CITY-06, sau MVP).
+
+---
+
+## CHƯƠNG 10: MỞ RỘNG v3.3: NỘI DUNG THEO GÓI, PHIÊN HỌC, TUTORIAL THƯ KÝ, DANH HIỆU, TUỲ BIẾN (🟡 Proposed)
+
+> **Phạm vi:** VS2, VS3, Tutorial mới, Danh hiệu và Tuỳ biến (kế hoạch 08/11/2026). Các quyết định nằm ở ADR-012, ADR-013 và ADR-014.
+> **Quy tắc đọc:** chương này **thay thế** các mục được ghi chú "→ xem §10" ở chương 3–7. Những mục không bị đánh dấu vẫn giữ nguyên.
+
+### 10.1. Tóm tắt thay đổi so với baseline
+
+| Mục baseline | Thay đổi | Lý do |
+| :--- | :--- | :--- |
+| §3.3 `max_mastery` "theo Level" | Theo **độ khó** của từ: D=10, C=15, B=20, A=25 (cấu hình) | ADR-013 |
+| §4.4 Học từng câu | **Phiên học** 10 từ / 20 câu (§10.3.2) | ADR-013 |
+| §5.1.2 `buildings.theme_id` (1 theme) | Bỏ cột này, thêm bảng nối **`building_themes`** (n-n) | GDD: mỗi công trình nhiều chủ đề |
+| §5.1.6 `questions` | Thêm `tier` (1 dễ … 3 khó) và `accepted_answers` (chỉ ở server) | Bài kiểm tra trình độ, chấm điền từ |
+| §5.1.3 `building_levels` | Thêm `required_collected` | Điều kiện xây Lv0→1 (ADR-014) |
+| §5.1.11 `user_profiles` | Thêm `version`, `tutorial_step`, `equipped_achievement_code`, `avatar_config`, `house_style` | Optimistic Locking, Tutorial, Danh hiệu, Tuỳ biến |
+| §5.1.14 `user_vocab_progress` | Thêm `collected_at`, `updated_at` | "Sưu tầm" = đúng lần đầu; đồng bộ theo mốc |
+| §7.2.2, §7.2.3 | Thay bằng API phiên học (§10.4.2) | ADR-013 |
+| ADR-005 | Collection Progress dựa trên `collected_at` | ADR-013 |
+
+### 10.2. Bảng mới và cột mới (PostgreSQL)
+
+Migration viết tay là **nguồn sự thật duy nhất của schema** (`ddl-auto=none` từ 08/11/2026, troubleshooting #10): `V003__content_packs.sql` (VS2, seed sinh bởi `database/seed/housing_level1.py`), `V004__learning_tutorial_achievements.sql` (VS3 + Tutorial), `V005__cosmetics.sql` (Tuỳ biến).
+
+#### 10.2.1. Nội dung tĩnh (V003)
+*   **`buildings`**: bỏ `theme_id`. Thêm `name VARCHAR(100) NOT NULL` (tên hiển thị) và `sort_order INT NOT NULL DEFAULT 0`.
+*   **`building_themes`** (mới): `building_id BIGINT` PFK → `buildings(id)` ON DELETE CASCADE · `theme_id BIGINT` PFK → `themes(id)` ON DELETE RESTRICT · `PRIMARY KEY(building_id, theme_id)`.
+*   **`building_levels`**: thêm `required_collected INT NOT NULL DEFAULT 0 CHECK >= 0`. Đây là số từ **của chính Level đó** phải được sưu tầm trước khi xây lên Level đó.
+*   **`questions`**:
+    *   Thêm `tier SMALLINT NOT NULL DEFAULT 1 CHECK (tier BETWEEN 1 AND 3)`.
+    *   Thêm `accepted_answers JSONB NULL` (mảng chuỗi, **chỉ ở server**).
+    *   `metadata` **không bao giờ** chứa đáp án.
+    *   Quy ước `metadata`:
+        *   `MULT_CHOICE`: `{"options": ["…", "…", "…", "…"]}`.
+        *   `FILL_BLANK`: `{"hint": "r _ _ t", "sentence": "…___…"}`. `hint` có thể không có ở tier 3.
+*   **`content_packs`** (mới):
+    *   `id BIGSERIAL PK`
+    *   `code VARCHAR(80) UNIQUE NOT NULL`, ví dụ `CORE` hoặc `HOUSING:1`
+    *   `scope VARCHAR(50) NOT NULL DEFAULT 'GLOBAL'` (sau này là mã lớp)
+    *   `building_id BIGINT NULL` FK → `buildings(id)`
+    *   `level INT NULL`
+    *   `version INT NOT NULL DEFAULT 1 CHECK > 0`
+    *   `updated_at TIMESTAMP NOT NULL DEFAULT now()`
+    *   `CHECK ((building_id IS NULL) = (level IS NULL))`
+    *   `UNIQUE(scope, building_id, level)`
+*   **Thành phần một gói `(building, level)`:**
+    *   từ vựng `v` có `v.level = level` và `v.theme_id ∈ building_themes(building)`;
+    *   câu hỏi có ít nhất một liên kết `TARGET` tới các từ đó;
+    *   các dòng `question_vocabularies` của những câu hỏi đó;
+    *   bài thi có `building_id = building` và `target_level = level + 1`, kèm `exam_requirements` và `exam_questions`.
+*   **Gói `CORE`:** themes, buildings, building_themes, building_levels, blueprints, achievements, cosmetic_items.
+
+#### 10.2.2. Trạng thái người chơi và phiên học (V004)
+*   **`user_profiles`**:
+    *   `version BIGINT NOT NULL DEFAULT 0` (`@Version`)
+    *   `tutorial_step VARCHAR(30) NOT NULL DEFAULT 'INTRO'`; hồ sơ cũ có `tutorial_completed = true` thì đặt `'DONE'`
+    *   `equipped_achievement_code VARCHAR(50) NULL` FK → `achievements(code)`
+    *   `avatar_config JSONB NULL`
+    *   `house_style JSONB NULL`
+*   **`user_buildings`**: tạo đúng theo §5.1.12. Dòng được tạo lười cho đủ 4 công trình khi gọi `GET /city` hoặc `build` lần đầu.
+*   **`user_vocab_progress`**: tạo theo §5.1.14, thêm:
+    *   `collected_at TIMESTAMP NULL`: lần đầu trả lời đúng.
+    *   `updated_at TIMESTAMP NOT NULL DEFAULT now()`.
+    *   Index `(user_id, updated_at)`.
+*   **`learning_sessions`** (mới):
+    *   `id UUID PK`
+    *   `user_id UUID NOT NULL` FK → `user_profiles(id)` ON DELETE CASCADE
+    *   `building_id BIGINT NOT NULL` FK
+    *   `vocab_level INT NOT NULL`
+    *   `type VARCHAR(20) NOT NULL`: `LEARNING` | `PLACEMENT`
+    *   `status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE'`: `ACTIVE` | `COMPLETED` | `EXPIRED`
+    *   `started_at`, `expires_at TIMESTAMP NOT NULL`
+    *   `completed_at TIMESTAMP NULL`
+    *   `total_count INT NOT NULL`
+    *   `correct_count INT NOT NULL DEFAULT 0`
+    *   `current_streak INT NOT NULL DEFAULT 0`
+    *   `best_streak INT NOT NULL DEFAULT 0`
+    *   `kp_awarded INT NULL`
+    *   Partial unique index `uq_active_session (user_id, building_id, type) WHERE status = 'ACTIVE'`.
+*   **`learning_session_items`** (mới):
+    *   `session_id UUID` PFK → `learning_sessions(id)` ON DELETE CASCADE
+    *   `item_no INT` PK (bắt đầu từ 1)
+    *   `question_id BIGINT NOT NULL` FK
+    *   `vocabulary_id BIGINT NOT NULL` FK
+    *   `answer_given TEXT NULL`
+    *   `is_correct BOOLEAN NULL`
+    *   `answered_at TIMESTAMP NULL`
+*   **`achievements`** (nội dung tĩnh, thuộc gói CORE):
+    *   `code VARCHAR(50) PK`
+    *   `name VARCHAR(100) NOT NULL`
+    *   `description TEXT NOT NULL`
+    *   `tier VARCHAR(10) NOT NULL`: `EASY` | `HARD` | `HIDDEN`
+    *   `condition_type VARCHAR(40) NOT NULL`
+    *   `threshold INT NOT NULL DEFAULT 0`
+    *   `sort_order INT NOT NULL DEFAULT 0`
+*   **`user_achievements`**: `user_id UUID` PFK ON DELETE CASCADE · `achievement_code VARCHAR(50)` PFK · `earned_at TIMESTAMP NOT NULL`.
+
+#### 10.2.3. Tuỳ biến (V005)
+*   **`cosmetic_items`** (nội dung tĩnh, thuộc CORE):
+    *   `code VARCHAR(50) PK`
+    *   `category VARCHAR(20) NOT NULL`: `SKIN` | `HAIR_STYLE` | `HAIR_COLOR` | `SHIRT_COLOR` | `PANTS_COLOR` | `ACCESSORY` | `WALL` | `FLOOR`
+    *   `name VARCHAR(100) NOT NULL`
+    *   `unlock_type VARCHAR(20) NOT NULL`: `FREE` | `KP` | `ACHIEVEMENT`
+    *   `price_kp INT NOT NULL DEFAULT 0`
+    *   `achievement_code VARCHAR(50) NULL` FK
+    *   `asset_key VARCHAR(100) NOT NULL`: mã màu `#rrggbb` hoặc mã kiểu dáng để city-web vẽ
+    *   `sort_order INT`
+*   **`user_cosmetics`**: `user_id` PFK · `item_code` PFK · `unlocked_at`. Chỉ lưu những món mở bằng KP. Món FREE mặc định đã có. Món ACHIEVEMENT có khi người chơi giữ danh hiệu tương ứng.
+*   **JSON cấu hình:**
+    *   `avatar_config`: `{"skin":"SKIN_2","hairStyle":"HAIR_SHORT","hairColor":"HAIR_BROWN","shirtColor":"SHIRT_TEAL","pantsColor":"PANTS_NAVY","accessory":"ACC_NONE"}`.
+    *   `house_style`: `{"wall":"WALL_CREAM","floor":"FLOOR_OAK"}`.
+
+### 10.3. Luồng xử lý
+
+#### 10.3.1. Đồng bộ nội dung theo gói (UC_03)
+```mermaid
+sequenceDiagram
+    autonumber
+    participant App as Android App (Room)
+    participant S as Spring Boot
+    App->>S: GET /api/v1/content/manifest
+    S-->>App: {packs:[{code:"CORE",version}, {code:"HOUSING:1",version}, …]}
+    App->>App: So với content_pack_state trong Room
+    alt CORE mới hoặc đổi version
+        App->>S: GET /api/v1/content/core
+        S-->>App: themes, buildings, building_levels, …
+    end
+    loop mỗi gói cần (Level hiện tại và Level kế của từng công trình) đã đổi
+        App->>S: GET /api/v1/content/packs/{buildingCode}/{level}
+        S-->>App: vocabularies, questions (không đáp án), exams
+        App->>App: Room.withTransaction { @Upsert …; lưu version }
+    end
+```
+- **Gói cần:** `level` từ `max(1, currentLevel)` tới `min(maxLevel, currentLevel + 1)`, với gói tồn tại trong manifest.
+- **Lần đầu (Tutorial):** CORE + `HOUSING:1`.
+- **Nếu không có mạng:**
+  - Chưa có CORE thì chặn ở SCR-03 và hiện nút Thử lại.
+  - Đã có CORE thì vào game bằng cache.
+
+#### 10.3.2. Phiên học (UC_05)
+```mermaid
+sequenceDiagram
+    autonumber
+    actor U as Người chơi
+    participant App as Android App
+    participant S as Spring Boot
+    participant DB as PostgreSQL
+    U->>App: "Bắt đầu bài học" tại công trình
+    App->>S: POST /api/v1/learning/sessions {buildingCode}
+    S->>DB: Có phiên ACTIVE chưa hết hạn? → trả lại phiên cũ
+    S->>S: Chọn 10 từ (chưa sưu tầm → Mastery thấp, bỏ từ vừa ôn 10 phút) × 2 câu
+    S->>DB: INSERT learning_sessions + 20 items
+    S-->>App: 201 {sessionId, expiresAt, items[câu hỏi KHÔNG đáp án]}
+    loop từng câu
+        U->>App: Trả lời
+        App->>S: POST …/sessions/{id}/items/{n}/answer {answer}
+        S->>S: Chuẩn hoá + so với answer/accepted_answers; MasteryEngine ±1 (kẹp theo độ khó); collected_at nếu đúng lần đầu
+        S-->>App: {isCorrect, correctAnswer, explanation, masteryAfter, collectedNow, streak}
+        App-->>U: Mai phản hồi tự nhiên (đúng/sai + giải thích)
+    end
+    App->>S: POST …/sessions/{id}/complete
+    S->>S: KP = đúng×5 (+20 nếu ≥80%) × hệ số theo ngày; xét danh hiệu; chuyển tutorial_step nếu cần
+    S->>DB: UPDATE user_profiles (@Version), user_achievements
+    S-->>App: {correct, total, kpAwarded, collection, newAchievements, profile}
+```
+- **Thứ tự câu trong phiên:** câu 1–10 là READING (trắc nghiệm) của 10 từ; câu 11–20 là WRITING (điền từ) của cùng 10 từ, thứ tự xáo lại.
+- **Hết hạn:** khi đọc hoặc nộp mà `now > expires_at` và phiên còn `ACTIVE`, server chuyển phiên sang `EXPIRED`. Nộp tiếp trả 410.
+
+#### 10.3.3. Bài kiểm tra trình độ (Tutorial, PLACEMENT)
+- Chọn 20 từ ngẫu nhiên của `HOUSING:1`, trộn D và C.
+- 30 câu theo thứ tự tier:
+  - 10 câu tier 1 (trắc nghiệm nhận nghĩa) cho từ 1–10;
+  - 10 câu tier 2 (điền có gợi ý) cho từ 11–20;
+  - 10 câu tier 3 (điền trong ngữ cảnh) cho 10 từ chọn ngẫu nhiên trong cả 20 từ.
+- Hiệu lực 24 giờ.
+- `complete`:
+  - KP = đúng × 3 + 100 (quà chào mừng).
+  - `tutorial_step = LEARN_HOUSE`.
+  - Xét `GOOD_START`, `TOP_ENTRANT`, `FLAWLESS`.
+
+#### 10.3.4. Xây House Lv0 → Lv1 (Tutorial bước BUILD_HOUSE)
+- `POST /buildings/HOUSING/build`. Server kiểm tra:
+  - `current_level = 0`, `status = IDLE`;
+  - số từ **Level 1** đã sưu tầm ≥ `building_levels(HOUSING,1).required_collected` (20);
+  - KP ≥ `knowledge_cost` (100).
+- Nếu đạt: trừ KP, `status = UPGRADING`, `target_level = 1`, `finish_at = now + construction_time` (10 giây).
+- `GET /city` hoàn tất công trình kiểu lazy. Khi HOUSING lên Lv1 và `tutorial_step = BUILD_HOUSE` thì chuyển sang `ENTER_HOUSE`.
+
+### 10.4. Hợp đồng API mới
+
+Mọi API đều cần `X-Guest-UUID`. Lỗi trả `ErrorResponse {code, message}`; trường `code` mới được thêm (additive) để app phân biệt các lỗi 409.
+
+#### 10.4.1. Nội dung (VS2)
+| Method | Endpoint | Response chính |
+| :--- | :--- | :--- |
+| GET | `/api/v1/content/manifest` | `{"serverTime":"…","packs":[{"code":"CORE","version":1},{"code":"HOUSING:1","buildingCode":"HOUSING","level":1,"version":1}]}` |
+| GET | `/api/v1/content/core` | `{"code":"CORE","version":1,"themes":[{id,code,name,description}],"buildings":[{id,code,name,maxLevel,sortOrder,themeCodes:[]}],"buildingLevels":[{buildingCode,level,knowledgeCost,constructionTimeSeconds,requiredCollected}],"blueprints":[{id,code,buildingCode,targetLevel}],"achievements":[{code,name,description,tier,hidden,sortOrder}],"cosmetics":[…]}` (danh hiệu `HIDDEN` không gửi `description`) |
+| GET | `/api/v1/content/packs/{buildingCode}/{level}` | `{"code":"HOUSING:1","version":1,"vocabularies":[{id,word,meaning,wordType,ipa,examples[],imageUrl,themeCode,level,difficultyRank}],"questions":[{id,contentType,skill,questionType,tier,questionText,audioUrl,metadata}],"questionVocabularies":[{questionId,vocabularyId,relationType}],"exams":[{id,code,buildingCode,targetLevel,blueprintCode,questionCount,requirement:{requiredCardCount,requiredKnowledge,requiredBlueprintShards},questionIds:[]}]}` · 404 `PACK_NOT_FOUND` |
+
+> `questions` trong gói **không có** `answer`, `acceptedAnswers` hay `explanation` (NFR-01). `explanation` chỉ trả về sau khi đã nộp câu.
+
+#### 10.4.2. Phiên học (VS3)
+| Method | Endpoint | Ghi chú |
+| :--- | :--- | :--- |
+| POST | `/api/v1/learning/sessions` body `{"buildingCode":"HOUSING"}` | 201 phiên mới, hoặc 200 trả lại phiên ACTIVE. 409 `NO_CONTENT` nếu công trình chưa có từ. |
+| GET | `/api/v1/learning/sessions/{id}` | 404 nếu không phải phiên của người gọi. |
+| POST | `/api/v1/learning/sessions/{id}/items/{itemNo}/answer` body `{"answer":"rent"}` | 409 `ALREADY_ANSWERED` · 409 `SESSION_CLOSED` · 410 `SESSION_EXPIRED` |
+| POST | `/api/v1/learning/sessions/{id}/complete` | 409 `INCOMPLETE` nếu còn câu chưa nộp · 410 `SESSION_EXPIRED` · gọi lại sau khi đã COMPLETED thì trả kết quả cũ (idempotent) |
+| GET | `/api/v1/users/me/vocab-progress?since=<ISO>` | `{"serverTime","items":[{vocabularyId,masteryScore,maxMastery,collected,firstSeenAt,lastReviewedAt}]}` |
+
+**SessionDto:**
+```json
+{ "sessionId":"…uuid…", "type":"LEARNING", "buildingCode":"HOUSING", "vocabLevel":1, "status":"ACTIVE",
+  "startedAt":"…", "expiresAt":"…", "serverTime":"…", "totalCount":20, "correctCount":3,
+  "items":[ { "itemNo":1, "vocabularyId":12, "answered":true, "isCorrect":true,
+              "question":{ "id":101, "skill":"READING", "questionType":"MULT_CHOICE", "tier":1,
+                           "questionText":"What does \"rent\" mean?", "metadata":{"options":["tiền thuê nhà","tiền cọc","hoá đơn điện","tiền lương"]} } } ] }
+```
+**AnswerResultDto:** `{"itemNo":1,"isCorrect":false,"correctAnswer":"rent","explanation":"…","vocabularyId":12,"masteryAfter":0,"maxMastery":10,"collectedNow":false,"streak":0}`
+
+**CompleteResultDto:** `{"sessionId":"…","type":"LEARNING","correct":17,"total":20,"kpAwarded":105,"kpBase":85,"kpBonus":20,"dailySessionIndex":2,"dailyMultiplier":1.0,"collection":{"buildingCode":"HOUSING","level":1,"collected":22,"total":30},"newAchievements":["COMBO10"],"profile":{"knowledgePoints":205,"hourglassCount":0,"blueprintShards":0},"tutorialStep":"BUILD_HOUSE"}`
+
+#### 10.4.3. Tutorial, thành phố, người chơi
+| Method | Endpoint | Ghi chú |
+| :--- | :--- | :--- |
+| GET | `/api/v1/users/me` | `{userId, knowledgePoints, hourglassCount, blueprintShards, tutorialStep, tutorialCompleted, equippedTitle, avatar, houseStyle, stats:{collectedWords, streakDays}}` |
+| PUT | `/api/v1/users/me/tutorial/step` body `{"step":"PLACEMENT"}` | App chỉ được chuyển `INTRO→PLACEMENT`, `ENTER_HOUSE→CUSTOMIZE`, `CUSTOMIZE→TOUR`. Chuyển sai trả 409 `INVALID_STEP`. |
+| POST | `/api/v1/tutorial/placement` | Chỉ khi bước là `PLACEMENT`. Trả SessionDto (`type = PLACEMENT`, 30 câu). |
+| POST | `/api/v1/users/me/tutorial/complete` | (§7.2, VS1) Nay **chỉ** thành công khi bước là `TOUR` hoặc `DONE`. Đặt `DONE` và trao `NEW_RESIDENT`. |
+| GET | `/api/v1/city` | Theo §7.2.8 |
+| POST | `/api/v1/buildings/{code}/build` | Chỉ cho Lv0→1. Trả `{building, serverTime, profile}`. Lỗi 409: `REQUIREMENTS_NOT_MET {missing:{collected, knowledge}}`, `ALREADY_BUILT`, `BUSY`. |
+
+#### 10.4.4. Danh hiệu và tuỳ biến
+| Method | Endpoint | Ghi chú |
+| :--- | :--- | :--- |
+| GET | `/api/v1/users/me/achievements` | `{"equipped":"GOOD_START","items":[{"code":"GOOD_START","earnedAt":"…"}]}` |
+| PUT | `/api/v1/users/me/equipped-title` body `{"code":"GOOD_START"}` hoặc `null` | 409 `NOT_EARNED` |
+| GET | `/api/v1/users/me/cosmetics` | `{"unlocked":["WALL_BRICK"],"avatar":{…},"houseStyle":{…}}` |
+| POST | `/api/v1/cosmetics/{code}/unlock` | Chỉ món `KP`. Lỗi 409: `INSUFFICIENT_KP`, `NOT_PURCHASABLE`, `ALREADY_UNLOCKED`. |
+| PUT | `/api/v1/users/me/avatar` | Mỗi mã phải đúng category và dùng được. Không hợp lệ thì 400 `INVALID_COSMETIC`. |
+| PUT | `/api/v1/users/me/house-style` | Mã phải đã mở. Chưa mở thì 409 `LOCKED`. |
+
+### 10.5. Danh hiệu ban đầu
+| code | tier | condition_type | threshold | Xét khi |
+| :--- | :--- | :--- | :--- | :--- |
+| `NEW_RESIDENT` | EASY | `TUTORIAL_DONE` | 0 | `tutorial/complete` |
+| `GOOD_START` | EASY | `PLACEMENT_WORDS_CORRECT` | 15 (phải **>** 15) | `complete` phiên PLACEMENT |
+| `TOP_ENTRANT` | HARD | `PLACEMENT_TOP_PERCENT` | 90 | `complete` PLACEMENT. Có ≥ 50 bài PLACEMENT trước đó thì cần cao hơn ≥ 90% số bài đó; chưa đủ 50 thì cần ≥ 27/30 |
+| `FLAWLESS` | HIDDEN | `PLACEMENT_PERFECT` | 30 | `complete` PLACEMENT |
+| `COLLECTOR` | EASY | `LEVEL_COLLECTED` | 0 | `complete` bất kỳ: sưu tầm đủ mọi từ của một gói (building, level) |
+| `DILIGENT` | HARD | `STREAK_DAYS` | 3 | `complete`: có phiên COMPLETED ở 3 ngày liên tiếp, tính tới hôm nay |
+| `COMBO10` | HIDDEN | `ANSWER_STREAK` | 10 | `complete`: `best_streak ≥ 10` trong phiên |
+
+### 10.6. Thông số cấu hình (`linguacity.balance.*` trong `application.properties`)
+| Khoá | Giá trị | Ý nghĩa |
+| :--- | :--- | :--- |
+| `mastery.max.D/C/B/A` | 10 / 15 / 20 / 25 | Trần Mastery theo độ khó |
+| `learning.words-per-session` | 10 | |
+| `learning.session-ttl-minutes` | 30 | |
+| `learning.review-cooldown-minutes` | 10 | |
+| `kp.per-correct` / `kp.bonus-ratio` / `kp.bonus` | 5 / 0.8 / 20 | |
+| `kp.full-sessions-per-day` / `kp.reduced-multiplier` | 5 / 0.2 | Chống cày |
+| `day-zone` | `Asia/Ho_Chi_Minh` | Ranh giới "một ngày" |
+| `placement.words` / `placement.questions` / `placement.ttl-hours` | 20 / 30 / 24 | |
+| `placement.kp-per-correct` / `placement.welcome-kp` | 3 / 100 | |
+| `achievement.top-percent` / `min-samples` / `fallback-correct` | 90 / 50 / 27 | |
+
+### 10.7. Room (mobile)
+| Phiên bản | Thêm |
+| :--- | :--- |
+| v3 (VS2) | `ThemeEntity`, `BuildingEntity`, `BuildingThemeEntity`, `BuildingLevelEntity`, `BlueprintEntity`, `VocabularyEntity`, `QuestionEntity` (không answer/explanation), `QuestionVocabularyEntity`, `ExamEntity`, `ExamRequirementEntity`, `ExamQuestionEntity`, `AchievementEntity`, `CosmeticItemEntity`, `ContentPackStateEntity(code, version, downloadedAt)` |
+| v4 (VS3) | `UserVocabProgressEntity` (mastery, maxMastery, collected, firstSeenAt, lastReviewedAt), `UserBuildingEntity`, `UserAchievementEntity`. `UserProfileEntity` thêm `tutorialStep`, `equippedTitle` |
+
+- Static content dùng `@Upsert` trong `withTransaction` (§6.3).
+- Khi một gói có version mới: xoá các dòng của gói cũ (theo building + level) rồi upsert, để từ hoặc câu bị gỡ trên server cũng biến mất ở máy.
+
+### 10.8. Traceability bổ sung
+| Yêu cầu | UC | API | Bảng PostgreSQL | Room |
+| :--- | :--- | :--- | :--- | :--- |
+| FR-SYS-02 | UC_03 | `/content/manifest`, `/content/core`, `/content/packs/{b}/{l}` | `content_packs` + 11 bảng tĩnh | `*Entity` v3, `ContentPackStateEntity` |
+| FR-LEARN-01, 02 | UC_04 | (đọc Room) | `vocabularies` | `VocabularyEntity` |
+| FR-LEARN-03, 04 | UC_05 | `/learning/sessions…` | `learning_sessions`, `learning_session_items`, `user_vocab_progress` | `UserVocabProgressEntity` |
+| FR-LEARN-05 | UC_05 | `complete.collection`, `/users/me/vocab-progress` | `user_vocab_progress.collected_at` | `UserVocabProgressEntity` |
+| FR-TUT-01..05 | UC_02 | `/users/me/tutorial/step`, `/tutorial/placement`, `/buildings/{code}/build`, `/city` | `user_profiles.tutorial_step`, `user_buildings` | `UserProfileEntity`, `UserBuildingEntity` |
+| FR-ACH-01..03 | UC_13 | `/users/me/achievements`, `/users/me/equipped-title` | `achievements`, `user_achievements` | `AchievementEntity`, `UserAchievementEntity` |
+| FR-COS-01..03 | UC_14 | `/users/me/cosmetics`, `/cosmetics/{code}/unlock`, `/users/me/avatar`, `/users/me/house-style` | `cosmetic_items`, `user_cosmetics`, `user_profiles.avatar_config/house_style` | `CosmeticItemEntity` |
