@@ -52,7 +52,7 @@ Test tự động: `backend/src/test/java/com/linguacity/backend/identity/Tutori
 | TC-VS1-16 | Luồng màn hình lần sau | Đã hoàn thành tutorial | Tắt/mở app | Onboarding → Home (bỏ qua Tutorial) | Đạt (08/11/2026): mở thẳng City (Hình 6.3) | Thủ công E2E | ✅ |
 | TC-VS1-17 | Nút Thử lại | Tắt Backend | Mở app → bật Backend → bấm Thử lại | Vào được màn hình tiếp theo | Đạt (08/11/2026): lỗi kết nối + Thử lại (Hình 6.4); bật Backend, bấm Thử lại → Tutorial 1/3 (Hình 6.5) | Thủ công E2E | ✅ |
 
-## 4. VS2 — STATIC CONTENT (UC_03, UC_04) 🟡
+## 4. VS2 — STATIC CONTENT (UC_03, UC_04) ✅
 
 Test tự động backend: `backend/src/test/java/com/linguacity/backend/content/ContentApiTests.java` (6 test, H2). Chạy 08/11/2026: 19/19 test backend đạt.
 
@@ -64,10 +64,10 @@ Test tự động backend: `backend/src/test/java/com/linguacity/backend/content
 | TC-VS2-04 | Gói không có đáp án | Gói HOUSING:1 | JSON không chứa `answer`, `acceptedAnswers`, `explanation` | Đạt (H2 + PostgreSQL) | Integration (`packNeverLeaksAnswers`) | ✅ |
 | TC-VS2-05 | Gói không tồn tại | `/content/packs/ROAD/1` | 404 `PACK_NOT_FOUND` | Đạt | Integration (`unknownPackIs404WithCode`) | ✅ |
 | TC-VS2-06 | Thiếu header | Không `X-Guest-UUID` | 400 | Đạt: 400 `MISSING_HEADER`; UUID sai → 400 | Integration (`headerIsRequired`) | ✅ |
-| TC-VS2-07 | Room lưu gói, không trùng | Sync 2 lần | Số dòng không đổi, `content_pack_state.version` đúng | | Unit Android + E2E | ⬜ |
-| TC-VS2-08 | Gói đổi version | Tăng version trên DB | App tải lại đúng gói đó | | E2E | ⬜ |
-| TC-VS2-09 | Đọc offline | Chế độ máy bay | Danh sách từ + flashcard hiện đủ | | E2E | ⬜ |
-| TC-VS2-10 | Lần đầu không mạng | Xoá dữ liệu, tắt mạng | SCR-03 báo cần mạng + Thử lại | | E2E | ⬜ |
+| TC-VS2-07 | Room lưu gói, không trùng | Sync 2 lần | Số dòng không đổi, `content_pack_state.version` đúng | Đạt (08/11/2026): mở lại app → vẫn 30 từ / 90 câu / 90 liên kết; `CORE v1`, `HOUSING:1 v1`. Unit: `PackSelectorTest` (4), `ContentMapperTest` (4) | Unit + E2E (đọc file Room qua `adb run-as`) | ✅ |
+| TC-VS2-08 | Gói đổi version | Tăng version trên DB | App tải lại đúng gói đó | Đạt: đặt `HOUSING:1` version 2 trên PostgreSQL → đưa app ra nền rồi mở lại → log `Đã tải gói mới: [HOUSING:1]`, Room ghi version 2, vẫn 30 từ (không trùng) | E2E | ✅ |
+| TC-VS2-09 | Đọc offline | Chế độ máy bay | Danh sách từ + flashcard hiện đủ | Đạt: bật chế độ máy bay → app vẫn vào City (hồ sơ cache), danh sách 30 từ và flashcard 5/30 hiện đủ (Hình 6.6, 6.7) | E2E | ✅ |
+| TC-VS2-10 | Lần đầu không mạng | Xoá dữ liệu, tắt mạng | Báo cần mạng + Thử lại | Đạt: chặn ngay ở SCR-01 (onboarding cũng cần mạng) với câu "Lần đầu vào game cần kết nối mạng…" (Hình 6.8); bật mạng, bấm Thử lại → SCR-03 tải CORE + HOUSING:1 → Tutorial | E2E | ✅ |
 | TC-VS2-11 | Seed V003 chạy trên PostgreSQL thật | `psql -f V003…` | Không lỗi; đếm dòng đúng | Đạt: 7 themes, 4 buildings, 7 building_themes, 12 building_levels, 8 blueprints, 30 từ, 90 câu, 1 exam / 10 câu, 2 packs | Thủ công | ✅ |
 
 ## 5. VS3 — LEARNING SESSION (UC_05) ⬜
@@ -125,6 +125,9 @@ Test tự động backend: `backend/src/test/java/com/linguacity/backend/content
 | 6.3 | `6.3-tc-vs1-16.png` | TC-VS1-16: mở lại app vào thẳng City |
 | 6.4 | `6.4-tc-vs1-17-loi.png` | TC-VS1-08, TC-VS1-17: Backend tắt |
 | 6.5 | `6.5-tc-vs1-17-thu-lai.png` | TC-VS1-17: sau khi bấm Thử lại |
+| 6.6 | `6.6-tc-vs2-09-offline-flashcard.png` | TC-VS2-09: flashcard khi bật chế độ máy bay |
+| 6.7 | `6.7-tc-vs2-09-offline-list.png` | TC-VS2-09: danh sách từ khi offline |
+| 6.8 | `6.8-tc-vs2-10-first-run-offline.png` | TC-VS2-10: lần đầu mở app không có mạng |
 
 **Ghi nhận khi nghiệm thu (chưa phải lỗi chặn):**
 - Màn lỗi hiện nguyên văn lỗi kỹ thuật (`failed to connect to /10.0.2.2 …`). Nên thay bằng câu dễ hiểu ở mốc giao diện.

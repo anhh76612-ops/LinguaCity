@@ -1,5 +1,6 @@
 package com.project.linguacity.di
 
+import com.project.linguacity.data.remote.content.ContentApi
 import com.project.linguacity.data.remote.user.OnboardingApi
 import dagger.Module
 import dagger.Provides
@@ -45,4 +46,8 @@ object NetworkModule {
     ): OnboardingApi {
         return retrofit.create(OnboardingApi::class.java)
     }
+
+    @Provides
+    @Singleton
+    fun provideContentApi(retrofit: Retrofit): ContentApi = retrofit.create(ContentApi::class.java)
 }

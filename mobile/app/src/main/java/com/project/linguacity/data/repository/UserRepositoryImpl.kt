@@ -6,6 +6,7 @@ import com.project.linguacity.data.local.user.UserProfileEntity
 import com.project.linguacity.data.remote.user.OnboardingApi
 import com.project.linguacity.domain.model.UserProfile
 import com.project.linguacity.domain.repository.UserRepository
+import java.io.IOException
 import javax.inject.Inject
 
 class UserRepositoryImpl @Inject constructor(
@@ -17,7 +18,14 @@ class UserRepositoryImpl @Inject constructor(
     override suspend fun onboardUser(): UserProfile {
         val guestUuid = guestIdStore.getOrCreateGuestUuid()
 
-        val response = onboardingApi.onboardUser(guestUuid)
+        val response = try {
+            onboardingApi.onboardUser(guestUuid)
+        } catch (offline: IOException) {
+            // ADR-004 / FR-SYS-03: mất mạng nhưng máy đã có hồ sơ → vào game bằng bản cache để đọc offline
+            // (flashcard, danh sách từ). Lần đầu chưa có hồ sơ thì vẫn báo lỗi như cũ (BR-CONTENT-08).
+            val cached = userProfileDao.getById(guestUuid) ?: throw offline
+            return cached.toDomain()
+        }
 
         val entity = UserProfileEntity(
             id = response.userId,
@@ -29,14 +37,16 @@ class UserRepositoryImpl @Inject constructor(
 
         userProfileDao.upsert(entity)
 
-        return UserProfile(
-            id = entity.id,
-            knowledgePoints = entity.knowledgePoints,
-            hourglassCount = entity.hourglassCount,
-            blueprintShards = entity.blueprintShards,
-            tutorialCompleted = entity.tutorialCompleted
-        )
+        return entity.toDomain()
     }
+
+    private fun UserProfileEntity.toDomain() = UserProfile(
+        id = id,
+        knowledgePoints = knowledgePoints,
+        hourglassCount = hourglassCount,
+        blueprintShards = blueprintShards,
+        tutorialCompleted = tutorialCompleted
+    )
 
     override suspend fun completeTutorial(): Boolean {
         val guestUuid = guestIdStore.getOrCreateGuestUuid()

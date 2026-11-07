@@ -12,11 +12,11 @@
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | SCR-01 | Splash / Onboarding | Compose | UC_01 | VS1 | ✅ (loading + lỗi + Thử lại) |
 | SCR-02 | Tutorial | Compose | UC_02 | VS1 | ✅ bản 3 trang · 🟡 sẽ thay bằng tutorial thư ký (ADR-014) |
-| SCR-03 | Đồng bộ nội dung (Content Sync) | Compose (tiến trình theo gói, Thử lại) | UC_03 | VS2 | ⬜ |
+| SCR-03 | Đồng bộ nội dung (Content Sync) | Compose (tiến trình theo gói, Thử lại) | UC_03 | VS2 | 🟡 bản cơ bản (Loading đẹp ở M9) |
 | SCR-04 | City View (màn hình chính) | **WebView + city-web (Three.js)**, đường lui Compose (ADR-010) | UC_09 | VS5 | 🟡 (bản đồ + nhúng xong, dữ liệu giả lập) |
 | SCR-05 | Chi tiết công trình | Compose (thẻ đè lên bản đồ) | UC_09, UC_10 | VS5 | 🟡 (thẻ tạm trong `CityScreen`) |
-| SCR-06 | Danh sách từ vựng | Compose | UC_04 | VS2 | ⬜ |
-| SCR-07 | Flashcard | Compose | UC_04 | VS2 | ⬜ |
+| SCR-06 | Danh sách từ vựng | Compose | UC_04 | VS2 | 🟡 bản cơ bản (`4.6-scr06-vocabulary-list.png`; ✓ sưu tầm ở M5, skeleton ở M9) |
+| SCR-07 | Flashcard | Compose (HorizontalPager + lật thẻ 3D) | UC_04 | VS2 | 🟡 bản cơ bản (`4.7`, `4.8`; shared element ở M9) |
 | SCR-08 | Bài học (Learning Session / Mini-game) | Compose | UC_05 | VS3 | ⬜ |
 | SCR-09 | Kết quả bài học | Compose | UC_05 | VS3 | ⬜ |
 | SCR-10 | Exam Center (School) | Compose | UC_06 | VS4 | ⬜ |
