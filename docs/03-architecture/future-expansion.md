@@ -126,4 +126,4 @@ Các mục dưới đây đã được người dùng yêu cầu **ghi lại đ�
 | 4 | **Lớp học / giáo viên / AI tạo nội dung** | Gói nội dung `scope = 'GLOBAL'`, tải kiểu pull (ADR-012) | Mỗi thành phố là một lớp: `scope` = mã lớp. Giáo viên (có AI hỗ trợ) tạo câu hỏi, tìm nội dung, xếp câu vào công trình/Level, hoặc tạo bài kiểm tra → tăng `version` của gói → **FCM push** "có bài mới" → app pull. WebSocket chỉ khi cần chat lớp hoặc thi đấu real-time |
 | 5 | **Nội thất** | House có nội thất 3D (nhà trống, chọn tường/sàn) | Nội thất 3D cho Road/Park/School; đồ nội thất đặt được, mở bằng KP/danh hiệu |
 | 6 | **Nội dung** | Chỉ seed House Level 1 (30 từ) | Seed Road (Transportation, Vehicles), Park (Environment, Social), School (Education), các Level 2–3 |
-| 7 | **Migration** | SQL viết tay chạy bằng `psql`, `ddl-auto=update` | Flyway để migration tự chạy khi khởi động (tránh lệch schema như TC-VS1-13) |
+| 7 | **Migration** | SQL viết tay chạy bằng `psql`, `ddl-auto=none` (troubleshooting #10) | Flyway để migration tự chạy khi khởi động (tránh lệch schema như TC-VS1-13) |

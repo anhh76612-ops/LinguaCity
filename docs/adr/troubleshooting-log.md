@@ -13,6 +13,8 @@
 | 6 | Android chặn HTTP cleartext | VS1 | ✅ |
 | 7 | Emulator không gọi được `localhost` | VS1 | ✅ |
 | 8 | Lỗi parse XML AndroidManifest (dấu phẩy thừa) | VS1 | ✅ |
+| 9 | Migration V002 chưa chạy trên PostgreSQL dev | VS1 | ✅ |
+| 10 | Hibernate `ddl-auto=update` tự đổi kiểu cột của schema viết tay | VS2 | ✅ |
 
 ---
 
@@ -54,3 +56,18 @@
 *   **Triệu chứng:** `assembleDebug` thất bại do Manifest parse lỗi tại dòng 18.
 *   **Nguyên nhân:** Dấu phẩy thừa sau khai báo `MainActivity`.
 *   **Giải pháp:** Xóa dấu phẩy, build lại thành công. Chi tiết: `05-implementation/plans/2026-10-18-build-and-identity.md`.
+
+### 🛠️ Sự cố 9: Cột `tutorial_completed` không có trong PostgreSQL dev (VS1, 08/11/2026)
+*   **Triệu chứng:** Khi nghiệm thu TC-VS1-13, `information_schema.columns` của `user_profiles` chỉ có 4 cột. Unit test (H2) vẫn xanh vì H2 tự tạo bảng từ Entity.
+*   **Nguyên nhân:** Migration viết tay `V002__add_tutorial_completed.sql` chưa được chạy trên DB dev. Test H2 không phát hiện được vì không dùng file migration.
+*   **Giải pháp:** Chạy `psql -f database/migration/V002__add_tutorial_completed.sql`. Từ VS2, mỗi migration mới đều được chạy thử trên PostgreSQL thật (TC-VS2-11).
+*   **Bài học:** Test H2 chỉ chứng minh code đúng, **không** chứng minh schema thật đúng. Cần ít nhất một bước kiểm trên DB thật cho mỗi migration.
+
+### 🛠️ Sự cố 10: `ddl-auto=update` tự đổi kiểu cột (VS2, 08/11/2026)
+*   **Triệu chứng:** Sau khi thêm Entity cho nội dung tĩnh và chạy `bootRun`, log có hàng loạt `alter table … alter column … set data type varchar(255)`. Cột `TEXT` (`meaning`, `explanation`, `answer`) bị đổi thành `varchar(255)`, `tier SMALLINT` thành `integer`.
+*   **Nguyên nhân:** Hibernate 7 ở chế độ `update` không chỉ thêm cột thiếu mà còn **ép kiểu cột theo Entity**. Entity khai báo `String` không có `length`/`columnDefinition` nên Hibernate hiểu là `varchar(255)`. Một lời giải thích dài hơn 255 ký tự sau này sẽ làm lỗi ghi hoặc bị cắt.
+*   **Giải pháp:**
+    *   Đặt `spring.jpa.hibernate.ddl-auto=none` ở `application.properties`. Schema chỉ do `database/migration/V00N__*.sql` quản lý.
+    *   Xoá và tạo lại các bảng nội dung bằng V003.
+    *   Test vẫn dùng H2 + `create-drop`, cấu hình riêng trong từng lớp test.
+*   **Bài học:** Khi đã có migration viết tay thì **chỉ được có một nguồn sự thật cho schema**. Để Hibernate "tự cập nhật" song song là hai bên ghi đè nhau. Hướng lâu dài là dùng Flyway (future-expansion §6, mục 7).

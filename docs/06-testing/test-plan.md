@@ -52,21 +52,23 @@ Test tự động: `backend/src/test/java/com/linguacity/backend/identity/Tutori
 | TC-VS1-16 | Luồng màn hình lần sau | Đã hoàn thành tutorial | Tắt/mở app | Onboarding → Home (bỏ qua Tutorial) | Đạt (08/11/2026): mở thẳng City (Hình 6.3) | Thủ công E2E | ✅ |
 | TC-VS1-17 | Nút Thử lại | Tắt Backend | Mở app → bật Backend → bấm Thử lại | Vào được màn hình tiếp theo | Đạt (08/11/2026): lỗi kết nối + Thử lại (Hình 6.4); bật Backend, bấm Thử lại → Tutorial 1/3 (Hình 6.5) | Thủ công E2E | ✅ |
 
-## 4. VS2 — STATIC CONTENT (UC_03, UC_04) ⬜
+## 4. VS2 — STATIC CONTENT (UC_03, UC_04) 🟡
+
+Test tự động backend: `backend/src/test/java/com/linguacity/backend/content/ContentApiTests.java` (6 test, H2). Chạy 08/11/2026: 19/19 test backend đạt.
 
 | Mã | Mô tả | Dữ liệu vào | Kết quả mong đợi | Kết quả thực tế | Loại | Trạng thái |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| TC-VS2-01 | Manifest liệt kê CORE + HOUSING:1 | `GET /content/manifest` | 200, có version từng gói | | Integration | ⬜ |
-| TC-VS2-02 | CORE đủ bảng | `GET /content/core` | themes, buildings (themeCodes n-n), buildingLevels, blueprints, achievements, cosmetics | | Integration | ⬜ |
-| TC-VS2-03 | Gói HOUSING:1 | `GET /content/packs/HOUSING/1` | 30 từ, câu hỏi, exam `EXAM_HOUSING_LV2` | | Integration | ⬜ |
-| TC-VS2-04 | Gói không có đáp án | Gói HOUSING:1 | JSON không chứa `answer`, `acceptedAnswers`, `explanation` | | Integration | ⬜ |
-| TC-VS2-05 | Gói không tồn tại | `/content/packs/ROAD/1` | 404 `PACK_NOT_FOUND` | | Integration | ⬜ |
-| TC-VS2-06 | Thiếu header | Không `X-Guest-UUID` | 400 | | Integration | ⬜ |
+| TC-VS2-01 | Manifest liệt kê CORE + HOUSING:1 | `GET /content/manifest` | 200, có version từng gói | Đạt; PostgreSQL thật: `CORE v1`, `HOUSING:1 v1` | Integration (`manifestListsEveryPackWithItsVersion`) + curl | ✅ |
+| TC-VS2-02 | CORE đủ bảng | `GET /content/core` | themes, buildings (themeCodes n-n), buildingLevels, blueprints, achievements, cosmetics | Đạt; PostgreSQL: 4 công trình, HOUSING = [DAILY_LIFE, HOUSE], 12 building_levels, 8 blueprints. achievements/cosmetics rỗng cho tới V004/V005 | Integration (`coreContainsWorldDataWithManyThemesPerBuilding`) + curl | ✅ |
+| TC-VS2-03 | Gói HOUSING:1 | `GET /content/packs/HOUSING/1` | 30 từ, câu hỏi, exam `EXAM_HOUSING_LV2` | Đạt; PostgreSQL: 30 từ, 90 câu, 90 liên kết, 1 exam (yêu cầu 30 thẻ / 200 KP), 39 KB, 0,16 s | Integration (`packContainsOnlyThisBuildingAndLevel`) + curl | ✅ |
+| TC-VS2-04 | Gói không có đáp án | Gói HOUSING:1 | JSON không chứa `answer`, `acceptedAnswers`, `explanation` | Đạt (H2 + PostgreSQL) | Integration (`packNeverLeaksAnswers`) | ✅ |
+| TC-VS2-05 | Gói không tồn tại | `/content/packs/ROAD/1` | 404 `PACK_NOT_FOUND` | Đạt | Integration (`unknownPackIs404WithCode`) | ✅ |
+| TC-VS2-06 | Thiếu header | Không `X-Guest-UUID` | 400 | Đạt: 400 `MISSING_HEADER`; UUID sai → 400 | Integration (`headerIsRequired`) | ✅ |
 | TC-VS2-07 | Room lưu gói, không trùng | Sync 2 lần | Số dòng không đổi, `content_pack_state.version` đúng | | Unit Android + E2E | ⬜ |
 | TC-VS2-08 | Gói đổi version | Tăng version trên DB | App tải lại đúng gói đó | | E2E | ⬜ |
 | TC-VS2-09 | Đọc offline | Chế độ máy bay | Danh sách từ + flashcard hiện đủ | | E2E | ⬜ |
 | TC-VS2-10 | Lần đầu không mạng | Xoá dữ liệu, tắt mạng | SCR-03 báo cần mạng + Thử lại | | E2E | ⬜ |
-| TC-VS2-11 | Seed V003 chạy trên PostgreSQL thật | `psql -f V003…` | Không lỗi; đếm dòng đúng | | Thủ công | ⬜ |
+| TC-VS2-11 | Seed V003 chạy trên PostgreSQL thật | `psql -f V003…` | Không lỗi; đếm dòng đúng | Đạt: 7 themes, 4 buildings, 7 building_themes, 12 building_levels, 8 blueprints, 30 từ, 90 câu, 1 exam / 10 câu, 2 packs | Thủ công | ✅ |
 
 ## 5. VS3 — LEARNING SESSION (UC_05) ⬜
 
@@ -127,4 +129,4 @@ Test tự động: `backend/src/test/java/com/linguacity/backend/identity/Tutori
 **Ghi nhận khi nghiệm thu (chưa phải lỗi chặn):**
 - Màn lỗi hiện nguyên văn lỗi kỹ thuật (`failed to connect to /10.0.2.2 …`). Nên thay bằng câu dễ hiểu ở mốc giao diện.
 - Trên emulator, bản đồ City mất khoảng 10–15 giây để vẽ khung hình đầu. Cần màn Loading (mốc giao diện) và đo lại trên máy thật (ADR-010).
-- PostgreSQL dev đang chạy với `ddl-auto=update` nhưng cột `tutorial_completed` chưa từng được tạo. Migration viết tay phải được chạy thủ công; cân nhắc Flyway sau này.
+- Cột `tutorial_completed` chưa có trên PostgreSQL dev: migration viết tay phải chạy thủ công (troubleshooting #9). Từ VS2 đặt `ddl-auto=none` (troubleshooting #10).

@@ -989,7 +989,7 @@ LinguaCity/
 
 ### 10.2. Bảng mới và cột mới (PostgreSQL)
 
-Migration viết tay: `V003__content_packs.sql` (VS2), `V004__learning_tutorial_achievements.sql` (VS3 + Tutorial), `V005__cosmetics.sql` (Tuỳ biến).
+Migration viết tay là **nguồn sự thật duy nhất của schema** (`ddl-auto=none` từ 08/11/2026, troubleshooting #10): `V003__content_packs.sql` (VS2, seed sinh bởi `database/seed/housing_level1.py`), `V004__learning_tutorial_achievements.sql` (VS3 + Tutorial), `V005__cosmetics.sql` (Tuỳ biến).
 
 #### 10.2.1. Nội dung tĩnh (V003)
 *   **`buildings`**: bỏ `theme_id`. Thêm `name VARCHAR(100) NOT NULL` (tên hiển thị) và `sort_order INT NOT NULL DEFAULT 0`.
