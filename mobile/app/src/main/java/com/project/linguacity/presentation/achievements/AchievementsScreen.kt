@@ -80,6 +80,13 @@ private fun AchievementRow(a: AchievementView, onEquip: (String?) -> Unit) {
                     },
                     style = MaterialTheme.typography.bodySmall
                 )
+                if (a.revocable) {
+                    Text(
+                        "🔥 Mất khi đứt chuỗi ngày",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
             }
             if (a.earned) {
                 if (a.equipped) {

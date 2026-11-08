@@ -91,6 +91,11 @@ public class CityEventService {
     }
 
     /** Sự kiện của người chơi còn mở; không có thì 404, đã giải thì 409. */
+    /**
+     * noRollbackFor: lỗi nghiệp vụ ở đây không được đánh dấu rollback-only transaction của
+     * PracticeService.startEvent, nếu không lúc commit sẽ thành 500 (lỗi B1).
+     */
+    @Transactional(noRollbackFor = ApiException.class)
     public UserCityEvent requireOpen(UUID userId, Long eventId) {
         UserCityEvent event = events.findById(eventId)
                 .filter(row -> row.getUserId().equals(userId))
@@ -98,6 +103,11 @@ public class CityEventService {
                         "EVENT_NOT_FOUND", "No event " + eventId));
         if (UserCityEvent.RESOLVED.equals(event.getStatus())) {
             throw ApiException.conflict("EVENT_RESOLVED", "This event is already resolved");
+        }
+        // BR-EVT-04: sự kiện chỉ sống trong ngày sinh ra (lỗi B4)
+        LocalDate today = Times.localDate(Times.nowUtc(clock), balance.zone());
+        if (!today.equals(event.getSpawnDate())) {
+            throw ApiException.conflict("EVENT_EXPIRED", "This event belonged to another day");
         }
         return event;
     }

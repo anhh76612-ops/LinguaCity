@@ -2,7 +2,7 @@
 
 Kế hoạch: [plans/2026-11-08-m11-progression.md](plans/2026-11-08-m11-progression.md).
 
-**Chat code (ổ C)**
+**Chat code (ổ C)**ư
 - Viết code, migration, nội dung, tài liệu thiết kế.
 - Chỉ biên dịch và chạy `check_style.py`, không viết hay chạy test.
 
@@ -308,3 +308,21 @@ Lưu ý: **V006 đổi `learning_sessions.building_id` thành cho phép NULL.** 
 3. Chạy backend mới từ bản đã checkout nhánh này.
 
 **Còn mở:** Q10 (pool thi toàn câu tier 3, đậu 8/10) chờ người dùng quyết; các mục "Chưa làm" của M15.
+
+## M15b: Phần còn lại của M15 (08/11/2026)
+
+- **Mai ở Trung tâm thi:** lần đầu mở SCR-10 hiện thẻ giải thích luật; bấm "Mình hiểu rồi" thì lưu cờ `exam_tip_seen` (SettingsStore) và không hiện lại.
+- **SCR-18:** danh hiệu `STREAK_*` có nhãn "🔥 Mất khi đứt chuỗi ngày" (nhận theo tiền tố mã, vì Room v5 chưa có cột revocable).
+- **Lịch chuỗi 7 ngày:** `GET /quests` thêm `streakWeek: boolean[7]` (cũ trước, hôm nay cuối; một ngày = có bài học + nhiệm vụ hằng ngày, BR-STREAK-01). SCR-23 hiện hàng 🔥/⬜. `GET /city` không đổi.
+- **Chat test:** kiểm `streakWeek` bằng `MutableClock` (ngày đủ / thiếu một điều kiện); test `QuestsDto` cũ cần thêm tham số thứ 6.
+
+## Sửa lỗi B1–B4 (từ test-plan §10.10)
+
+| Mã | Sửa | File |
+| --- | --- | --- |
+| B1 | `CityEventService.requireOpen` thêm `@Transactional(noRollbackFor = ApiException.class)`: lỗi nghiệp vụ không còn đánh dấu rollback-only → trả đúng 409 `EVENT_RESOLVED` / 404 `EVENT_NOT_FOUND` | `event/service/CityEventService.java` |
+| B2 | Luyện tập: câu **đầu tiên** trong ngày của một từ (đúng hay sai) ghi `last_rewarded_on`; các câu sau cùng ngày không đổi Mastery. KP vẫn chỉ cộng khi đúng. Hệ quả: nếu câu đầu sai thì hôm đó từ ấy không còn được KP | `learning/service/LearningService.java` |
+| B3 | `QuestTracker.record/recordMax` trả danh hiệu chuỗi vừa trao; `afterComplete` gộp với `streak.recordActivity` → `STREAK_3` có trong `newAchievements` của `complete`. Còn hở: nếu nhiệm vụ xong ngay lúc **trả lời câu** (`NEW_WORDS`, `REVIEW_WORDS`, `STREAK_CORRECT`) thì danh hiệu trao lúc đó chưa được báo (API answer không có `newAchievements`) | `quest/service/QuestTracker.java`, `LearningService.java` |
+| B4 | `requireOpen` từ chối sự kiện của ngày khác: 409 `EVENT_EXPIRED` | `CityEventService.java` |
+
+Chưa làm: N1 (tách mapper mobile ra `ProgressionMapper`), N2 (thêm `kotlinx-coroutines-test`), Q9 (lọc sự kiện theo công trình đã xây).

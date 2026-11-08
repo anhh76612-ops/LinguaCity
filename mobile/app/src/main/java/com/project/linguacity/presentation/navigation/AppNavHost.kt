@@ -10,6 +10,7 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import com.project.linguacity.presentation.profile.ProfileScreen
+import com.project.linguacity.presentation.designsystem.DesignGalleryScreen
 import com.project.linguacity.presentation.settings.SettingsScreen
 import com.project.linguacity.ui.motion.LocalNavAnimScope
 import com.project.linguacity.ui.motion.LocalReduceMotion
@@ -87,6 +88,10 @@ object ProfileRoute
 object SettingsRoute
 
 /** SCR-20 Tuỳ biến nhân vật / nhà (M8). CustomizeViewModel đọc `houseTab` theo tên. */
+/** Màn "Bộ giao diện" (S1, chỉ bản debug): xem token và component trên máy thật. */
+@Serializable
+object DesignGalleryRoute
+
 @Serializable
 data class CustomizeRoute(val houseTab: Boolean = false)
 
@@ -212,8 +217,13 @@ fun AppNavHost(
                 composable<SettingsRoute> {
                     SettingsScreen(
                         onBack = { navController.popBackStack() },
-                        onReplayTour = { navController.popBackStack(HomeRoute, inclusive = false) }
+                        onReplayTour = { navController.popBackStack(HomeRoute, inclusive = false) },
+                        onOpenDesignGallery = { navController.navigate(DesignGalleryRoute) }
                     )
+                }
+
+                composable<DesignGalleryRoute> {
+                    DesignGalleryScreen(onBack = { navController.popBackStack() })
                 }
 
                 composable<VocabularyRoute> { entry ->
