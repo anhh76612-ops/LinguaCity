@@ -75,7 +75,24 @@ public final class LearningDtos {
             CollectionDto collection,
             List<String> newAchievements,
             ResourcesDto profile,
-            TutorialStep tutorialStep) {}
+            TutorialStep tutorialStep,
+            Integer shardsAwarded,
+            Boolean eventResolved) {}
+
+    /** POST /learning/practice (ADR-015 §6): mode REVIEW | MIXED, wordCount 10 | 20. */
+    public record PracticeRequest(String mode, List<String> themeCodes, Integer wordCount) {}
+
+    public record PracticeUsage(long used, int limit) {}
+
+    public record ThemeProgressDto(String code, String name, long collected, int total) {}
+
+    /** GET /learning/practice/status. */
+    public record PracticeStatusDto(
+            PracticeUsage review,
+            PracticeUsage mixed,
+            PracticeUsage newWords,
+            List<ThemeProgressDto> themes,
+            Instant resetsAt) {}
 
     public record ProgressItemDto(
             Long vocabularyId,

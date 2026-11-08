@@ -26,8 +26,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Xét và trao danh hiệu (BR-ACH-01..04, system-design §10.5). Danh hiệu chỉ trao một lần, không thu
- * hồi.
+ * Xét và trao danh hiệu (BR-ACH-01..05, system-design §10.5). Danh hiệu chỉ trao một lần,
+ * không thu hồi — trừ danh hiệu {@code revocable} (danh hiệu chuỗi, ADR-015 §7).
  */
 @Service
 public class AchievementService {
@@ -39,6 +39,8 @@ public class AchievementService {
     public static final String DILIGENT = "DILIGENT";
     public static final String FLAWLESS = "FLAWLESS";
     public static final String COMBO10 = "COMBO10";
+    /** condition_type của danh hiệu chuỗi (ADR-015 §7). */
+    public static final String STREAK_DAYS = "STREAK_DAYS";
 
     private final AchievementRepository catalog;
     private final UserAchievementRepository earned;
@@ -147,6 +149,45 @@ public class AchievementService {
             cursor = cursor.minusDays(1);
         }
         return streak;
+    }
+
+    /**
+     * Danh hiệu chuỗi (condition_type STREAK_DAYS) đạt mốc {@code days}: trao những cái chưa có
+     * (BR-STREAK-03). Trả danh sách mã vừa trao.
+     */
+    @Transactional
+    public List<String> grantStreakTitles(UUID userId, int days, LocalDateTime nowUtc) {
+        List<String> granted = new ArrayList<>();
+        for (Achievement achievement : catalog.findAllByOrderBySortOrderAsc()) {
+            // Chỉ danh hiệu thu hồi được: DILIGENT cũng dùng STREAK_DAYS nhưng theo luật cũ
+            boolean streakTitle = achievement.isRevocable()
+                    && STREAK_DAYS.equals(achievement.getConditionType());
+            if (streakTitle && days >= achievement.getThreshold()) {
+                grantInto(granted, userId, achievement.getCode(), nowUtc);
+            }
+        }
+        return granted;
+    }
+
+    /**
+     * Thu hồi mọi danh hiệu {@code revocable} của người chơi; đang đeo thì gỡ (BR-ACH-05).
+     * Người gọi tự lưu {@code profile}.
+     */
+    @Transactional
+    public void revokeRevocable(UserProfile profile) {
+        Set<String> revocable = catalog.findAll().stream()
+                .filter(Achievement::isRevocable)
+                .map(Achievement::getCode)
+                .collect(Collectors.toSet());
+        for (String code : revocable) {
+            UserAchievementId id = new UserAchievementId(profile.getId(), code);
+            if (earned.existsById(id)) {
+                earned.deleteById(id);
+            }
+        }
+        if (revocable.contains(profile.getEquippedAchievementCode())) {
+            profile.setEquippedAchievementCode(null);
+        }
     }
 
     @Transactional(readOnly = true)

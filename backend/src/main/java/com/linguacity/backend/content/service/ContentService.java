@@ -153,7 +153,8 @@ public class ContentService {
                         level.getId().getLevel(),
                         level.getKnowledgeCost(),
                         level.getConstructionTime(),
-                        level.getRequiredCollected()))
+                        level.getRequiredCollected(),
+                        level.getRequiredShards()))
                 .toList();
     }
 
@@ -177,7 +178,8 @@ public class ContentService {
                         achievement.isHidden() ? null : achievement.getDescription(),
                         achievement.getTier(),
                         achievement.isHidden(),
-                        achievement.getSortOrder()))
+                        achievement.getSortOrder(),
+                        achievement.isRevocable()))
                 .toList();
     }
 
@@ -257,15 +259,35 @@ public class ContentService {
                         list.stream().map(Exam::getRewardBlueprintId).toList()).stream()
                 .collect(Collectors.toMap(Blueprint::getId, Blueprint::getCode));
 
-        return list.stream().map(e -> {
-            ExamRequirement r = requirement.get(e.getId());
-            ExamRequirementDto rDto = r == null ? new ExamRequirementDto(0, 0, 0)
-                    : new ExamRequirementDto(r.getRequiredCardCount(), r.getRequiredKnowledge(),
-                    r.getRequiredBlueprintShards());
-            return new ExamDto(e.getId(), e.getCode(), building.getCode(), e.getTargetLevel(),
-                    blueprintCode.get(e.getRewardBlueprintId()), e.getQuestionCount(), rDto,
-                    pool.getOrDefault(e.getId(), List.of()).stream().sorted().toList());
-        }).toList();
+        return list.stream()
+                .map(exam -> new ExamDto(
+                        exam.getId(),
+                        exam.getCode(),
+                        building.getCode(),
+                        exam.getTargetLevel(),
+                        blueprintCode.get(exam.getRewardBlueprintId()),
+                        exam.getQuestionCount(),
+                        requirementDto(requirement.get(exam.getId())),
+                        pool.getOrDefault(exam.getId(), List.of()).stream().sorted().toList(),
+                        exam.getPassPercent()))
+                .toList();
+    }
+
+    /** Điều kiện thi gửi trong gói; công trình điều kiện đổi id → mã (ADR-015 §2). */
+    private ExamRequirementDto requirementDto(ExamRequirement requirement) {
+        if (requirement == null) {
+            return new ExamRequirementDto(0, 0, 0, null, 0);
+        }
+        String requiredBuilding = requirement.getRequiredBuildingId() == null
+                ? null
+                : buildings.findById(requirement.getRequiredBuildingId())
+                        .map(Building::getCode).orElse(null);
+        return new ExamRequirementDto(
+                requirement.getRequiredCardCount(),
+                requirement.getRequiredKnowledge(),
+                requirement.getRequiredBlueprintShards(),
+                requiredBuilding,
+                requirement.getRequiredBuildingLevel());
     }
 
     private VocabularyDto toDto(Vocabulary vocabulary, Map<Long, String> themeCode) {

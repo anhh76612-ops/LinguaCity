@@ -11,6 +11,7 @@ import lombok.Data;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Entity
@@ -59,4 +60,15 @@ public class UserProfile {
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "house_style")
     private String houseStyle;
+
+    /** Chuỗi ngày hiện tại (ADR-015 §7): ngày có học bài và xong nhiệm vụ hằng ngày. */
+    @Column(name = "streak_days", nullable = false)
+    private Integer streakDays = 0;
+
+    @Column(name = "best_streak", nullable = false)
+    private Integer bestStreak = 0;
+
+    /** Ngày (giờ Việt Nam) cuối cùng được tính vào chuỗi. */
+    @Column(name = "streak_last_date")
+    private LocalDate streakLastDate;
 }

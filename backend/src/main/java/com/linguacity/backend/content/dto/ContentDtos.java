@@ -36,7 +36,8 @@ public final class ContentDtos {
             int level,
             int knowledgeCost,
             long constructionTimeSeconds,
-            int requiredCollected) {}
+            int requiredCollected,
+            int requiredShards) {}
 
     public record BlueprintDto(Long id, String code, String buildingCode, int targetLevel) {}
 
@@ -48,7 +49,8 @@ public final class ContentDtos {
             String description,
             String tier,
             boolean hidden,
-            int sortOrder) {}
+            int sortOrder,
+            boolean revocable) {}
 
     /** cosmetics: danh mục món tuỳ biến (V005, M8). */
     public record Core(
@@ -79,7 +81,11 @@ public final class ContentDtos {
     public record QuestionVocabularyDto(Long questionId, Long vocabularyId, String relationType) {}
 
     public record ExamRequirementDto(
-            int requiredCardCount, int requiredKnowledge, int requiredBlueprintShards) {}
+            int requiredCardCount,
+            int requiredKnowledge,
+            int requiredBlueprintShards,
+            String requiredBuildingCode,
+            int requiredBuildingLevel) {}
 
     public record ExamDto(
             Long id,
@@ -89,7 +95,8 @@ public final class ContentDtos {
             String blueprintCode,
             int questionCount,
             ExamRequirementDto requirement,
-            List<Long> questionIds) {}
+            List<Long> questionIds,
+            int passPercent) {}
 
     public record Pack(
             String code,

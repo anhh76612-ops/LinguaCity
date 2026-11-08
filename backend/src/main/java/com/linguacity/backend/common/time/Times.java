@@ -31,7 +31,11 @@ public final class Times {
 
     /** [đầu ngày, đầu ngày hôm sau) của ngày chứa {@code utc} theo {@code zone}, đổi lại về UTC. */
     public static LocalDateTime[] dayRangeUtc(LocalDateTime utc, ZoneId zone) {
-        LocalDate day = localDate(utc, zone);
+        return dayRangeUtc(localDate(utc, zone), zone);
+    }
+
+    /** [0h, 0h hôm sau) của ngày {@code day} theo {@code zone}, đổi về UTC. */
+    public static LocalDateTime[] dayRangeUtc(LocalDate day, ZoneId zone) {
         LocalDateTime start = day.atStartOfDay(zone).withZoneSameInstant(ZoneOffset.UTC)
                 .toLocalDateTime();
         LocalDateTime end = day.plusDays(1).atStartOfDay(zone).withZoneSameInstant(ZoneOffset.UTC)

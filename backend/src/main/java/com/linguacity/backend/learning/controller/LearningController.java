@@ -2,6 +2,7 @@ package com.linguacity.backend.learning.controller;
 
 import com.linguacity.backend.learning.dto.LearningDtos.*;
 import com.linguacity.backend.learning.service.LearningService;
+import com.linguacity.backend.learning.service.PracticeService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,14 +15,17 @@ import java.util.UUID;
 public class LearningController {
 
     private final LearningService learning;
+    private final PracticeService practice;
 
-    public LearningController(LearningService learning) {
+    public LearningController(LearningService learning, PracticeService practice) {
         this.learning = learning;
+        this.practice = practice;
     }
 
     @PostMapping("/learning/sessions")
-    public ResponseEntity<SessionDto> start(@RequestHeader("X-Guest-UUID") UUID guest,
-                                            @RequestBody StartSessionRequest body) {
+    public ResponseEntity<SessionDto> start(
+            @RequestHeader("X-Guest-UUID") UUID guest,
+            @RequestBody StartSessionRequest body) {
         LearningService.Started started = learning.start(
                 guest, body.buildingCode() == null ? "" : body.buildingCode());
         return ResponseEntity.status(started.created() ? HttpStatus.CREATED : HttpStatus.OK)
@@ -51,6 +55,21 @@ public class LearningController {
     @PostMapping("/tutorial/placement")
     public ResponseEntity<SessionDto> placement(@RequestHeader("X-Guest-UUID") UUID guest) {
         LearningService.Started started = learning.startPlacement(guest);
+        return ResponseEntity.status(started.created() ? HttpStatus.CREATED : HttpStatus.OK)
+                .body(started.session());
+    }
+
+    /** Luyện tập mọi chủ đề (ADR-015 §6). */
+    @GetMapping("/learning/practice/status")
+    public PracticeStatusDto practiceStatus(@RequestHeader("X-Guest-UUID") UUID guest) {
+        return practice.status(guest);
+    }
+
+    @PostMapping("/learning/practice")
+    public ResponseEntity<SessionDto> startPractice(
+            @RequestHeader("X-Guest-UUID") UUID guest,
+            @RequestBody(required = false) PracticeRequest body) {
+        LearningService.Started started = practice.start(guest, body);
         return ResponseEntity.status(started.created() ? HttpStatus.CREATED : HttpStatus.OK)
                 .body(started.session());
     }

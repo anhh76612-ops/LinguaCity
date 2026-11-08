@@ -23,4 +23,8 @@ public class BuildingLevel {
 
     @Column(name = "required_collected", nullable = false)
     private Integer requiredCollected;
+
+    /** Mảnh bản vẽ cần để nâng lên level này (BR-UPG-01). */
+    @Column(name = "required_shards", nullable = false)
+    private Integer requiredShards = 0;
 }

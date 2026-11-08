@@ -149,3 +149,77 @@ ADR-015 đang ở trạng thái **Proposed**. Người dùng duyệt bảng cân
 3. **Soát nội dung:** đọc lướt 60 từ trong `housing_level2.py` / `school_level1.py`. Kiểm IPA, nghĩa, câu ví dụ, và đáp án trong câu tier 2 / tier 3 có khớp chỗ trống không. Một số câu dùng `___s` / `___d`; đáp án vẫn là dạng gốc, và dạng số nhiều / quá khứ nằm trong `accepted_answers`.
 
 Lưu ý: **V006 đổi `learning_sessions.building_id` thành cho phép NULL.** Test H2 tạo schema từ entity, nên chỉ kiểm được khi M14 sửa entity tương ứng.
+
+---
+
+## M14: Backend (08/11/2026)
+
+**Nhánh:** `feat/m12-progression`. Câu hỏi Q1–Q10 của chat test đã được chốt ở [system-design §11.10](../03-architecture/system-design.md).
+
+### API mới (đặc tả: system-design §11)
+
+| Nhóm | Endpoint |
+| --- | --- |
+| Thi | `GET /exams?building=`, `POST /exams/{code}/start`, `GET /exam-attempts/{id}`, `POST /exam-attempts/{id}/submit` |
+| Nâng cấp | `POST /buildings/{code}/build` giờ xây được mọi level. Lỗi mới: `MAX_LEVEL`, `NEEDS_BLUEPRINT`, `REQUIREMENTS_NOT_MET` có thêm `missingShards` |
+| Nhiệm vụ | `GET /quests`, `POST /quests/{code}/claim` |
+| Luyện tập | `GET /learning/practice/status`, `POST /learning/practice` |
+| Sự kiện | `POST /events/{id}/start`; trả lời và kết thúc dùng chung `/learning/sessions/{id}/…` |
+| `GET /city` | thêm `blueprints`, `profile`, `streak`; `events` giờ là sự kiện thật |
+| `GET /users/me` | `stats` thêm `bestStreak`; `streakDays` giờ là chuỗi ngày theo ADR-015 |
+| Gói nội dung | `buildingLevels[].requiredShards`, `exams[].passPercent`, `requirement.requiredBuildingCode/Level`, `achievements[].revocable` |
+
+### Thay đổi hành vi có thể làm test cũ đỏ
+
+- **Bài học đổi cỡ:** `LearningFlowTests` đang kỳ vọng phiên 10 từ / 20 câu, giờ là **20 từ / 30 câu** (`words-per-session=20`, `questions-per-session=30`).
+  - Câu đọc 1–20, câu viết 21–30.
+  - Phiên chỉ có câu viết cho 10 từ ưu tiên nhất.
+- **Chọn từ (BR-LEARN-09):** pool gồm mọi từ của level 1..level học. Từ chưa sưu tầm đứng trước, từ đã sưu tầm đứng sau để ôn.
+- **`CompleteResultDto`:** thêm `shardsAwarded` và `eventResolved`, chỉ có mặt với phiên EVENT. `collection` = null với phiên luyện tập / sự kiện.
+- **`LearningSessionRepository.countCompletedBetween`** (đã đổi ở M11) vẫn dùng cho hệ số KP trong ngày.
+
+### Lớp mới
+
+- **Dữ liệu và service:**
+  - `exam/` (ExamService);
+  - `quest/` (QuestService, QuestTracker);
+  - `event/` (CityEventService);
+  - `player/service/StreakService`.
+- **Trong `learning/service/`:** `PracticeService`, `SessionFactory`, `VocabProgressRecorder`, `QuestionViews`.
+- **Entity mới:** `ExamAttempt`, `ExamAttemptQuestion`, `UserBlueprint`, `Quest`, `UserQuest`, `CityEventTemplate`, `UserCityEvent`.
+
+### Chat code đã kiểm
+
+- `compileJava compileTestJava` qua; `check_style.py` 0 lỗi.
+- **Chưa chạy test nào.**
+
+### Việc của chat test
+
+1. **Chạy test cũ** và sửa những assertion chỉ đổi vì cỡ bài 20/30 (ghi rõ trong commit test).
+2. **Viết test mới** theo TC đã định nghĩa. Seed H2 cần thêm:
+   - `BuildingLevel` Lv2 có `requiredShards`;
+   - `Blueprint` (HOUSING, 2);
+   - `Exam` + `ExamRequirement` + `ExamQuestion`;
+   - `Quest` (MAIN, DAILY, BONUS);
+   - `CityEventTemplate`;
+   - các danh hiệu `STREAK_*` có `revocable = true`.
+3. **Ca nên soi kỹ:**
+   - **Thi:**
+     - hai lệnh `submit` song song → chỉ +1 bản vẽ (`@Version`);
+     - `start` lần hai → 200, không trừ phí lần nữa;
+     - trượt → không hoàn phí.
+   - **Luyện tập:**
+     - cùng một từ đúng hai lần trong ngày → chỉ lần đầu có KP / Mastery;
+     - lượt thứ 2 của chế độ Ôn → 409 `DAILY_LIMIT`.
+   - **Sự kiện:**
+     - mở sự kiện B khi A còn dở → phiên A hết hạn, B tạo được;
+     - đúng 4/5 → +1 mảnh, +15 KP, sự kiện biến khỏi `/city`.
+   - **Chuỗi** (dùng `MutableClock`):
+     - ngày 1, 2, 3 → được `STREAK_3`;
+     - bỏ một ngày → chuỗi về 0, mất `STREAK_3`, gỡ nếu đang đeo;
+     - DILIGENT **không** bị thu hồi.
+   - **Nhiệm vụ:**
+     - chính tuyến nhận theo thứ tự;
+     - nhận trước khi xong → 409 `NOT_COMPLETED`;
+     - `DAILY_BONUS` chỉ nhận được khi cả 3 nhiệm vụ hằng ngày đã xong.
+4. **E2E trên PostgreSQL** (người dùng chạy V006, V007 trước): đi theo luồng ở mục "Kiểm tra cuối" của kế hoạch.

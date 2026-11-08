@@ -1441,7 +1441,7 @@ Lỗi (đều là 409):
               "progress": 0, "goal": 1, "completed": false, "claimed": false,
               "rewardKp": 50, "rewardShards": 1 } ],
   "daily": [ { "code": "DAILY_LESSON", "progress": 1, "goal": 1, "completed": true, "claimed": false } ],
-  "dailyBonus": { "code": "DAILY_BONUS", "completed": false, "claimed": false, "rewardKp": 0, "rewardShards": 1 },
+  "dailyBonus": { "code": "DAILY_BONUS", "completed": false, "claimed": false, "rewardKp": 20, "rewardShards": 1 },
   "streak": { "days": 2, "best": 5, "todayCounted": false, "lessonDone": true, "questDone": false },
   "resetsAt": "2026-11-08T17:00:00Z" }
 ```
@@ -1551,3 +1551,14 @@ Không cache trong Room, chỉ dùng khi online: nhiệm vụ, sự kiện, lư�
 | FR-CITY-06 | UC_18 | `/city` (events), `/events/{id}/start` | `city_event_templates`, `user_city_events` |
 | FR-PRAC-01..03 | UC_19 | `/learning/practice`, `/learning/practice/status` | `learning_sessions`, `user_vocab_progress.last_rewarded_on` |
 | FR-STREAK-01..02 | UC_20 | `/users/me`, `/quests` | `user_profiles.streak_*`, `achievements.revocable` |
+
+### 11.10. Chốt các câu hỏi mở của chat test (M14)
+| # | Câu hỏi | Chốt (đã cài ở M14) |
+| :-: | :--- | :--- |
+| Q1 | Thưởng `DAILY_BONUS` | Theo dữ liệu V007: **20 KP + 1 mảnh**. Số trong bảng `quests` là nguồn đúng |
+| Q3 | Lượt luyện tập trừ khi nào | **Khi bắt đầu**: đếm số phiên `PRACTICE_*` tạo trong ngày (`countStartedBetween`), kể cả phiên bỏ dở hay hết hạn. Đang có phiên dở cùng chế độ thì `start` trả lại phiên đó (200), không tính thêm lượt |
+| Q4 | Giới hạn 20 từ mới/ngày chặn ở đâu | **Lúc chọn từ**: một bài Hỗn hợp lấy tối đa `min(wordCount/2, còn lại)` từ mới. Số đã dùng = số từ có `first_seen_at` hôm nay trong các phiên `PRACTICE_MIXED` hôm nay |
+| Q5 | Sự kiện thứ hai khi sự kiện đầu còn dở | `POST /events/{id}/start` cho phiên `EVENT` đang dở của sự kiện khác **hết hạn ngay** rồi mới tạo phiên mới, nên không vướng `uq_active_free_session`. Gọi lại đúng sự kiện đang dở thì trả lại phiên đó (200) |
+| Q7 | Chuỗi tính khi nhiệm vụ xong hay khi nhận | **Khi xong** (`completed_at`), không cần bấm Nhận |
+| Q8 | DILIGENT dùng chung `STREAK_DAYS` | Danh hiệu chuỗi chỉ xét những danh hiệu có `revocable = TRUE`. DILIGENT giữ luật cũ (3 ngày liên tiếp có phiên hoàn thành, vĩnh viễn) |
+| Q10 | Đề thi toàn câu tier 3, đậu 8/10 | **Chờ người dùng duyệt** cùng bảng cân bằng. Đổi được bằng dữ liệu, không cần sửa code: `exams.pass_percent`, hoặc thêm câu tier 1/2 vào `exam_questions` |

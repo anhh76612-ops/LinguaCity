@@ -19,7 +19,7 @@ public class BalanceProperties {
     private Map<String, Integer> masteryMax = Map.of("D", 10, "C", 15, "B", 20, "A", 25);
     private int defaultMasteryMax = 10;
 
-    private int wordsPerSession = 10;
+    private int wordsPerSession = 20;
     private int sessionTtlMinutes = 30;
     private int reviewCooldownMinutes = 10;
 
@@ -39,6 +39,28 @@ public class BalanceProperties {
     private int achievementTopPercent = 90;
     private int achievementMinSamples = 50;
     private int achievementFallbackCorrect = 27;
+
+    /** Số câu mỗi phiên LEARNING: mỗi từ một câu đọc, phần còn lại là câu viết (ADR-015 §1). */
+    private int questionsPerSession = 30;
+
+    /** Luyện tập (ADR-015 §6). */
+    private int practiceReviewPerDay = 1;
+    private int practiceMixedPerDay = 3;
+    private int practiceNewWordsPerDay = 20;
+    private int practiceKpPerCorrect = 3;
+    private int practiceTtlMinutes = 30;
+
+    /** Sự kiện thành phố (ADR-015 §5). */
+    private int eventPerDay = 3;
+    private int eventQuestions = 5;
+    private int eventPassCorrect = 4;
+    private int eventRewardKp = 15;
+    private int eventRewardShards = 1;
+    private int eventMinCollected = 5;
+    private int eventTtlMinutes = 30;
+
+    /** Nhiệm vụ hằng ngày (ADR-015 §4). */
+    private int dailyQuestCount = 3;
 
     public int maxMastery(String difficultyRank) {
         return masteryMax.getOrDefault(difficultyRank, defaultMasteryMax);
@@ -162,5 +184,117 @@ public class BalanceProperties {
     }
     public void setAchievementFallbackCorrect(int v) {
         this.achievementFallbackCorrect = v;
+    }
+
+    public int getQuestionsPerSession() {
+        return questionsPerSession;
+    }
+
+    public void setQuestionsPerSession(int value) {
+        this.questionsPerSession = value;
+    }
+
+    public int getPracticeReviewPerDay() {
+        return practiceReviewPerDay;
+    }
+
+    public void setPracticeReviewPerDay(int value) {
+        this.practiceReviewPerDay = value;
+    }
+
+    public int getPracticeMixedPerDay() {
+        return practiceMixedPerDay;
+    }
+
+    public void setPracticeMixedPerDay(int value) {
+        this.practiceMixedPerDay = value;
+    }
+
+    public int getPracticeNewWordsPerDay() {
+        return practiceNewWordsPerDay;
+    }
+
+    public void setPracticeNewWordsPerDay(int value) {
+        this.practiceNewWordsPerDay = value;
+    }
+
+    public int getPracticeKpPerCorrect() {
+        return practiceKpPerCorrect;
+    }
+
+    public void setPracticeKpPerCorrect(int value) {
+        this.practiceKpPerCorrect = value;
+    }
+
+    public int getPracticeTtlMinutes() {
+        return practiceTtlMinutes;
+    }
+
+    public void setPracticeTtlMinutes(int value) {
+        this.practiceTtlMinutes = value;
+    }
+
+    public int getEventPerDay() {
+        return eventPerDay;
+    }
+
+    public void setEventPerDay(int value) {
+        this.eventPerDay = value;
+    }
+
+    public int getEventQuestions() {
+        return eventQuestions;
+    }
+
+    public void setEventQuestions(int value) {
+        this.eventQuestions = value;
+    }
+
+    public int getEventPassCorrect() {
+        return eventPassCorrect;
+    }
+
+    public void setEventPassCorrect(int value) {
+        this.eventPassCorrect = value;
+    }
+
+    public int getEventRewardKp() {
+        return eventRewardKp;
+    }
+
+    public void setEventRewardKp(int value) {
+        this.eventRewardKp = value;
+    }
+
+    public int getEventRewardShards() {
+        return eventRewardShards;
+    }
+
+    public void setEventRewardShards(int value) {
+        this.eventRewardShards = value;
+    }
+
+    public int getEventMinCollected() {
+        return eventMinCollected;
+    }
+
+    public void setEventMinCollected(int value) {
+        this.eventMinCollected = value;
+    }
+
+    public int getEventTtlMinutes() {
+        return eventTtlMinutes;
+    }
+
+    public void setEventTtlMinutes(int value) {
+        this.eventTtlMinutes = value;
+    }
+
+    public int getDailyQuestCount() {
+        return dailyQuestCount;
+    }
+
+    public void setDailyQuestCount(int value) {
+        this.dailyQuestCount = value;
     }
 }

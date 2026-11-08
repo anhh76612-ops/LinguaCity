@@ -12,6 +12,7 @@ import com.linguacity.backend.learning.dto.LearningDtos.ProgressDto;
 import com.linguacity.backend.learning.repository.UserVocabProgressRepository;
 import com.linguacity.backend.learning.service.LearningService;
 import com.linguacity.backend.player.dto.PlayerDtos.*;
+import com.linguacity.backend.player.service.StreakService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,6 +37,7 @@ public class PlayerController {
     private final LearningService learning;
     private final AchievementService achievements;
     private final CosmeticService cosmetics;
+    private final StreakService streak;
     private final Clock clock;
 
     public PlayerController(
@@ -45,6 +47,7 @@ public class PlayerController {
             LearningService learning,
             AchievementService achievements,
             CosmeticService cosmetics,
+            StreakService streak,
             Clock clock) {
         this.users = users;
         this.progress = progress;
@@ -52,13 +55,14 @@ public class PlayerController {
         this.learning = learning;
         this.achievements = achievements;
         this.cosmetics = cosmetics;
+        this.streak = streak;
         this.clock = clock;
     }
 
     @GetMapping
     public PlayerDto me(@RequestHeader("X-Guest-UUID") UUID guest) {
         UserProfile profile = users.findById(guest).orElseThrow(UserProfileNotFoundException::new);
-        return toDto(profile);
+        return toDto(streak.refresh(profile));
     }
 
     @PutMapping("/tutorial/step")
@@ -104,7 +108,7 @@ public class PlayerController {
 
     private PlayerDto toDto(UserProfile profile) {
         long collected = progress.countByUserIdAndCollectedAtIsNotNull(profile.getId());
-        int streak = achievements.streakDays(profile.getId(), Times.nowUtc(clock));
+
         return new PlayerDto(
                 profile.getId(),
                 profile.getKnowledgePoints(),
@@ -115,6 +119,6 @@ public class PlayerController {
                 profile.getEquippedAchievementCode(),
                 cosmetics.avatarOf(profile),
                 cosmetics.houseStyleOf(profile),
-                new StatsDto(collected, streak));
+                new StatsDto(collected, profile.getStreakDays(), profile.getBestStreak()));
     }
 }

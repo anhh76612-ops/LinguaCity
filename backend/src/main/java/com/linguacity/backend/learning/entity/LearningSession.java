@@ -19,7 +19,8 @@ public class LearningSession {
     @Column(name = "user_id", nullable = false)
     private UUID userId;
 
-    @Column(name = "building_id", nullable = false)
+    /** NULL với phiên luyện tập và sự kiện — không gắn với một công trình (ADR-015). */
+    @Column(name = "building_id")
     private Long buildingId;
 
     @Column(name = "vocab_level", nullable = false)
