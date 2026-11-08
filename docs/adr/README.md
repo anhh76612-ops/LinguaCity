@@ -22,6 +22,7 @@
 | [ADR-013](ADR-013-server-learning-session.md) | Phiên học do server quản lý; sưu tầm = đúng lần đầu (sửa ADR-005); chống cày KP | 🟡 Proposed |
 | [ADR-014](ADR-014-secretary-tutorial-placement.md) | Tutorial thư ký + bài kiểm tra trình độ + xây House thật | 🟡 Proposed |
 | [ADR-015](ADR-015-progression-after-level-one.md) | Tiến trình sau Lv1: thi, nâng cấp, nhiệm vụ, sự kiện, luyện tập, chuỗi; bài học 20 từ / 30 câu | 🟡 Proposed |
+| [ADR-016](ADR-016-authentication-jwt.md) | VS6: JWT + refresh xoay vòng, tài khoản email/Google/Facebook, khách bắt buộc gắn tài khoản sau tutorial, OTP | 🟡 Proposed |
 
 Nhật ký sự cố: [troubleshooting-log.md](troubleshooting-log.md)
 
