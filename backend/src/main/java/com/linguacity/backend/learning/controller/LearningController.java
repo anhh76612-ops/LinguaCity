@@ -34,8 +34,11 @@ public class LearningController {
     }
 
     @PostMapping("/learning/sessions/{id}/items/{itemNo}/answer")
-    public AnswerResultDto answer(@RequestHeader("X-Guest-UUID") UUID guest, @PathVariable UUID id,
-                                  @PathVariable int itemNo, @RequestBody AnswerRequest body) {
+    public AnswerResultDto answer(
+            @RequestHeader("X-Guest-UUID") UUID guest,
+            @PathVariable UUID id,
+            @PathVariable int itemNo,
+            @RequestBody AnswerRequest body) {
         return learning.answer(guest, id, itemNo, body.answer());
     }
 

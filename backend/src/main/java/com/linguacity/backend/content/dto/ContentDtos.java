@@ -31,30 +31,50 @@ public final class ContentDtos {
             int sortOrder,
             List<String> themeCodes) {}
 
-    public record BuildingLevelDto(String buildingCode, int level, int knowledgeCost,
-                                   long constructionTimeSeconds, int requiredCollected) {}
+    public record BuildingLevelDto(
+            String buildingCode,
+            int level,
+            int knowledgeCost,
+            long constructionTimeSeconds,
+            int requiredCollected) {}
 
     public record BlueprintDto(Long id, String code, String buildingCode, int targetLevel) {}
 
     /** Danh hiệu: danh hiệu Ẩn không gửi {@code description} (BR-ACH-02). */
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    public record AchievementDto(String code, String name, String description, String tier,
+    public record AchievementDto(
+            String code,
+            String name,
+            String description,
+            String tier,
             boolean hidden,
-                                 int sortOrder) {}
+            int sortOrder) {}
 
     /** cosmetics: danh mục món tuỳ biến (V005, M8). */
-    public record Core(String code, int version, List<ThemeDto> themes, List<BuildingDto> buildings,
-                       List<BuildingLevelDto> buildingLevels, List<BlueprintDto> blueprints,
-                       List<AchievementDto> achievements, List<CosmeticItemDto> cosmetics) {}
+    public record Core(
+            String code,
+            int version,
+            List<ThemeDto> themes,
+            List<BuildingDto> buildings,
+            List<BuildingLevelDto> buildingLevels,
+            List<BlueprintDto> blueprints,
+            List<AchievementDto> achievements,
+            List<CosmeticItemDto> cosmetics) {}
 
     public record VocabularyDto(Long id, String word, String meaning, String wordType, String ipa,
                                 List<String> examples, String imageUrl, String themeCode, int level,
                                 String difficultyRank) {}
 
     /** Câu hỏi để hiển thị: KHÔNG có answer, acceptedAnswers, explanation. */
-    public record QuestionDto(Long id, String contentType, String skill, String questionType,
+    public record QuestionDto(
+            Long id,
+            String contentType,
+            String skill,
+            String questionType,
             int tier,
-                              String questionText, String audioUrl, JsonNode metadata) {}
+            String questionText,
+            String audioUrl,
+            JsonNode metadata) {}
 
     public record QuestionVocabularyDto(Long questionId, Long vocabularyId, String relationType) {}
 
@@ -71,7 +91,11 @@ public final class ContentDtos {
             ExamRequirementDto requirement,
             List<Long> questionIds) {}
 
-    public record Pack(String code, int version, List<VocabularyDto> vocabularies,
+    public record Pack(
+            String code,
+            int version,
+            List<VocabularyDto> vocabularies,
             List<QuestionDto> questions,
-                       List<QuestionVocabularyDto> questionVocabularies, List<ExamDto> exams) {}
+            List<QuestionVocabularyDto> questionVocabularies,
+            List<ExamDto> exams) {}
 }

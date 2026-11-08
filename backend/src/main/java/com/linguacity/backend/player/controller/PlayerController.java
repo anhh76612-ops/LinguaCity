@@ -71,8 +71,9 @@ public class PlayerController {
     }
 
     @GetMapping("/vocab-progress")
-    public ProgressDto vocabProgress(@RequestHeader("X-Guest-UUID") UUID guest,
-                                     @RequestParam(required = false) String since) {
+    public ProgressDto vocabProgress(
+            @RequestHeader("X-Guest-UUID") UUID guest,
+            @RequestParam(required = false) String since) {
         LocalDateTime sinceUtc = null;
         if (since != null && !since.isBlank()) {
             try {

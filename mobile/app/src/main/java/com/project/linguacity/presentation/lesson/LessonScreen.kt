@@ -75,6 +75,41 @@ private fun ColumnScope.QuestionView(
     val item = state.current ?: return
     val total = session.items.size
 
+    QuestionHeader(state, total, onExit)
+    if (session.placement) {
+        val previousTier = session.items.getOrNull(state.index - 1)?.question?.tier
+        PlacementTip(item.question.tier, showMai = state.feedback == null &&
+            previousTier != item.question.tier)
+    }
+
+    Column(
+        Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(vertical = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        QuestionBody(
+            item = item,
+            chosen = state.chosen,
+            input = state.input,
+            feedback = state.feedback,
+            submitting = state.submitting,
+            onChoose = { option -> onIntent(LessonIntent.Choose(option)) },
+            onInput = { text -> onIntent(LessonIntent.Input(text)) },
+            onSubmit = { onIntent(LessonIntent.Submit) }
+        )
+    }
+
+    AnimatedVisibility(state.feedback != null) {
+        state.feedback?.let { feedback ->
+            FeedbackPanel(feedback, state.maiLine, last = state.index + 1 >= total) {
+                onIntent(LessonIntent.Next)
+            }
+        }
+    }
+}
+
+/** Thanh trên cùng: nút thoát, số câu và số câu đúng, thanh tiến độ. */
+@Composable
+private fun QuestionHeader(state: LessonUiState, total: Int, onExit: () -> Unit) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         TextButton(onClick = onExit) { Text("‹ Thoát") }
         Spacer(Modifier.weight(1f))
@@ -83,102 +118,109 @@ private fun ColumnScope.QuestionView(
             style = MaterialTheme.typography.labelLarge
         )
     }
-    LinearProgressIndicator(progress = {
-        (state.index + if (state.feedback != null) 1 else 0).toFloat() / total
-    },
-        modifier = Modifier.fillMaxWidth())
-    if (session.placement) {
-        Text(
-            tierLabel(item.question.tier),
-            style = MaterialTheme.typography.labelMedium,
-            modifier = Modifier.padding(top = 8.dp)
-        )
-        // Mai nhắc khi bước sang mức khó mới (câu đầu mỗi mức) — ADR-014
-        val previousTier = session.items.getOrNull(state.index - 1)?.question?.tier
-        if (state.feedback == null && previousTier != item.question.tier) {
-            Card(Modifier.fillMaxWidth().padding(top = 8.dp), colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.secondaryContainer)) {
-                Row(Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
-                    MaiPortrait(
-                        if (item.question.tier == 3) MaiMood.SURPRISED else MaiMood.ENCOURAGE,
-                        Modifier.size(44.dp)
-                    )
-                    Spacer(Modifier.width(10.dp))
-                    Text(
-                        "Mai: ${TutorialGuide.placementTip(item.question.tier)}",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
-            }
-        }
+    val answered = state.index + if (state.feedback != null) 1 else 0
+    LinearProgressIndicator(
+        progress = { answered.toFloat() / total },
+        modifier = Modifier.fillMaxWidth()
+    )
+}
+
+/** Nhãn mức khó của bài kiểm tra trình độ; Mai nhắc ở câu đầu mỗi mức (ADR-014). */
+@Composable
+private fun PlacementTip(tier: Int, showMai: Boolean) {
+    Text(
+        tierLabel(tier),
+        style = MaterialTheme.typography.labelMedium,
+        modifier = Modifier.padding(top = 8.dp)
+    )
+    if (!showMai) {
+        return
     }
-
-    Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(vertical = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Text(
-            item.question.text,
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.SemiBold
+    Card(
+        Modifier.fillMaxWidth().padding(top = 8.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer
         )
-        item.question.sentence?.let {
-            Card(Modifier.fillMaxWidth()) {
-                Text(
-                    it.replace("___", "_____"),
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(16.dp)
-                )
-            }
-        }
-        item.question.hint?.let { Text("Gợi ý: $it", style = MaterialTheme.typography.bodyMedium) }
-
-        if (item.question.multipleChoice) {
-            item.question.options.forEach { option ->
-                OptionButton(
-                    option,
-                    item,
-                    state.chosen,
-                    state.feedback,
-                    enabled = state.feedback == null && !state.submitting
-                ) {
-                    onIntent(LessonIntent.Choose(option))
-                }
-            }
-        } else {
-            OutlinedTextField(
-                value = state.input,
-                onValueChange = { onIntent(LessonIntent.Input(it)) },
-                label = { Text("Gõ từ tiếng Anh") },
-                singleLine = true,
-                enabled = state.feedback == null && !state.submitting,
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                keyboardActions = KeyboardActions(onDone = { onIntent(LessonIntent.Submit) }),
-                modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
+            MaiPortrait(
+                if (tier == 3) MaiMood.SURPRISED else MaiMood.ENCOURAGE,
+                Modifier.size(44.dp)
             )
-            if (state.feedback == null) {
-                Button(
-                    onClick = { onIntent(LessonIntent.Submit) },
-                    enabled = state.input.isNotBlank() && !state.submitting,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(if (state.submitting) "Đang chấm…" else "Kiểm tra")
-                }
-            }
+            Spacer(Modifier.width(10.dp))
+            Text(
+                "Mai: ${TutorialGuide.placementTip(tier)}",
+                style = MaterialTheme.typography.bodyMedium
+            )
         }
     }
+}
 
-    AnimatedVisibility(state.feedback != null) {
-        state.feedback?.let { FeedbackPanel(
-            it,
-            state.maiLine,
-            last = state.index + 1 >= total
-        ) { onIntent(LessonIntent.Next) } }
+/**
+ * Phần thân một câu hỏi: đề, câu có chỗ trống, gợi ý và chỗ trả lời (trắc nghiệm hoặc ô gõ).
+ * Không giữ trạng thái — dùng chung cho bài học, bài thi và sự kiện thành phố.
+ */
+@Composable
+fun QuestionBody(
+    item: LessonItem,
+    chosen: String?,
+    input: String,
+    feedback: AnswerFeedback?,
+    submitting: Boolean,
+    onChoose: (String) -> Unit,
+    onInput: (String) -> Unit,
+    onSubmit: () -> Unit
+) {
+    val question = item.question
+    val enabled = feedback == null && !submitting
+    Text(
+        question.text,
+        style = MaterialTheme.typography.titleLarge,
+        fontWeight = FontWeight.SemiBold
+    )
+    question.sentence?.let { sentence ->
+        Card(Modifier.fillMaxWidth()) {
+            Text(
+                sentence.replace("___", "_____"),
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(16.dp)
+            )
+        }
+    }
+    question.hint?.let { hint ->
+        Text("Gợi ý: $hint", style = MaterialTheme.typography.bodyMedium)
+    }
+
+    if (question.multipleChoice) {
+        question.options.forEach { option ->
+            OptionButton(option, chosen, feedback, enabled) { onChoose(option) }
+        }
+        return
+    }
+    OutlinedTextField(
+        value = input,
+        onValueChange = onInput,
+        label = { Text("Gõ từ tiếng Anh") },
+        singleLine = true,
+        enabled = enabled,
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+        keyboardActions = KeyboardActions(onDone = { onSubmit() }),
+        modifier = Modifier.fillMaxWidth()
+    )
+    if (feedback == null) {
+        Button(
+            onClick = onSubmit,
+            enabled = input.isNotBlank() && !submitting,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(if (submitting) "Đang chấm…" else "Kiểm tra")
+        }
     }
 }
 
 @Composable
 private fun OptionButton(
     option: String,
-    item: LessonItem,
     chosen: String?,
     feedback: AnswerFeedback?,
     enabled: Boolean,
@@ -243,79 +285,104 @@ private fun FeedbackPanel(fb: AnswerFeedback, maiLine: String?, last: Boolean, o
 
 @Composable
 private fun ResultView(result: LessonResult, achievementNames: List<String>, onExit: () -> Unit) {
-    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+    Column(
+        Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(14.dp)) {
+        verticalArrangement = Arrangement.spacedBy(14.dp)
+    ) {
         Spacer(Modifier.height(24.dp))
-        Text(if (result.placement) "Kết quả kiểm tra trình độ" else "Kết quả bài học",
+        Text(
+            if (result.placement) "Kết quả kiểm tra trình độ" else "Kết quả bài học",
             style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.staggeredAppear(0))
-        Text("${result.correct}/${result.total}", style = MaterialTheme.typography.displayMedium,
+            modifier = Modifier.staggeredAppear(0)
+        )
+        Text(
+            "${result.correct}/${result.total}",
+            style = MaterialTheme.typography.displayMedium,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier.staggeredAppear(1, stepMillis = 90))
-        Text("Mai: ${MaiLines.forResult(result.correct, result.total)}",
+            modifier = Modifier.staggeredAppear(1, stepMillis = 90)
+        )
+        Text(
+            "Mai: ${MaiLines.forResult(result.correct, result.total)}",
             textAlign = TextAlign.Center,
-            modifier = Modifier.staggeredAppear(2, stepMillis = 90))
-        Card(Modifier.fillMaxWidth().staggeredAppear(3, stepMillis = 90)) {
-            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            modifier = Modifier.staggeredAppear(2, stepMillis = 90)
+        )
+        KnowledgeCard(result, Modifier.staggeredAppear(3, stepMillis = 90))
+        CollectionCard(result, Modifier.staggeredAppear(4, stepMillis = 90))
+        NewAchievements(achievementNames, firstIndex = 5)
+        Button(onClick = onExit, modifier = Modifier.fillMaxWidth()) { Text("Về thành phố") }
+    }
+}
+
+/** KP nhận được: phần cơ bản + thưởng, và lời nhắc khi đã qua số bài đủ KP trong ngày. */
+@Composable
+private fun KnowledgeCard(result: LessonResult, modifier: Modifier) {
+    Card(modifier.fillMaxWidth()) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text(
+                "+${result.kpAwarded} Điểm Tri Thức (KP)",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+            if (result.kpBase != null && result.kpBonus != null) {
+                val bonusLabel = if (result.placement) "quà chào mừng" else "thưởng"
                 Text(
-                    "+${result.kpAwarded} Điểm Tri Thức (KP)",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold
-                )
-                if (result.kpBase != null && result.kpBonus != null) {
-                    val bonusLabel = if (result.placement) "quà chào mừng" else "thưởng"
-                    Text(
-                        "${result.kpBase} + ${result.kpBonus} $bonusLabel",
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                }
-                if ((result.dailyMultiplier ?: 1.0) < 1.0) {
-                    Text(
-                        "Bài thứ ${result.dailySessionIndex} hôm nay: " +
-                            "KP còn ×${result.dailyMultiplier}. " +
-                            "Mai vẫn ghi nhận Mastery đầy đủ nhé!",
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                }
-                Text(
-                    "Tổng: ${result.knowledgePoints} KP",
+                    "${result.kpBase} + ${result.kpBonus} $bonusLabel",
                     style = MaterialTheme.typography.bodySmall
                 )
             }
-        }
-        Card(Modifier.fillMaxWidth().staggeredAppear(4, stepMillis = 90)) {
-            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                val collectedText = "${result.collected}/${result.collectionTotal}"
+            if ((result.dailyMultiplier ?: 1.0) < 1.0) {
                 Text(
-                    "Bộ sưu tầm Level ${result.collectionLevel}: $collectedText thẻ",
-                    fontWeight = FontWeight.SemiBold
-                )
-                val collectedRatio = if (result.collectionTotal == 0) {
-                    0f
-                } else {
-                    result.collected.toFloat() / result.collectionTotal
-                }
-                LinearProgressIndicator(
-                    progress = { collectedRatio },
-                    modifier = Modifier.fillMaxWidth()
+                    "Bài thứ ${result.dailySessionIndex} hôm nay: " +
+                        "KP còn ×${result.dailyMultiplier}. " +
+                        "Mai vẫn ghi nhận Mastery đầy đủ nhé!",
+                    style = MaterialTheme.typography.bodySmall
                 )
             }
+            Text("Tổng: ${result.knowledgePoints} KP", style = MaterialTheme.typography.bodySmall)
         }
-        if (achievementNames.isNotEmpty()) {
-            Text("Danh hiệu mới", style = MaterialTheme.typography.titleMedium)
-            achievementNames.forEachIndexed { i, name ->
-                Text("🏅 $name", modifier = Modifier.staggeredAppear(
-                    5 + i,
-                    stepMillis = 120
-                ).background(
+    }
+}
+
+@Composable
+private fun CollectionCard(result: LessonResult, modifier: Modifier) {
+    Card(modifier.fillMaxWidth()) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            val collectedText = "${result.collected}/${result.collectionTotal}"
+            Text(
+                "Bộ sưu tầm Level ${result.collectionLevel}: $collectedText thẻ",
+                fontWeight = FontWeight.SemiBold
+            )
+            val collectedRatio = if (result.collectionTotal == 0) {
+                0f
+            } else {
+                result.collected.toFloat() / result.collectionTotal
+            }
+            LinearProgressIndicator(
+                progress = { collectedRatio },
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+    }
+}
+
+@Composable
+private fun NewAchievements(names: List<String>, firstIndex: Int) {
+    if (names.isEmpty()) {
+        return
+    }
+    Text("Danh hiệu mới", style = MaterialTheme.typography.titleMedium)
+    names.forEachIndexed { index, name ->
+        Text(
+            "🏅 $name",
+            modifier = Modifier
+                .staggeredAppear(firstIndex + index, stepMillis = 120)
+                .background(
                     MaterialTheme.colorScheme.secondaryContainer,
                     RoundedCornerShape(12.dp)
                 )
-                    .padding(horizontal = 14.dp, vertical = 8.dp))
-            }
-        }
-        Button(onClick = onExit, modifier = Modifier.fillMaxWidth()) { Text("Về thành phố") }
+                .padding(horizontal = 14.dp, vertical = 8.dp)
+        )
     }
 }
 

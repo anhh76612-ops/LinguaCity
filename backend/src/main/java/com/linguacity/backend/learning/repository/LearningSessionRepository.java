@@ -39,7 +39,8 @@ public interface LearningSessionRepository extends JpaRepository<LearningSession
 
     @Query("select s.completedAt from LearningSession s"
             + " where s.userId = :user and s.status = :status and s.completedAt >= :since")
-    List<LocalDateTime> completedAtSince(@Param("user") UUID user,
+    List<LocalDateTime> completedAtSince(
+            @Param("user") UUID user,
             @Param("status") SessionStatus status,
-                                         @Param("since") LocalDateTime since);
+            @Param("since") LocalDateTime since);
 }

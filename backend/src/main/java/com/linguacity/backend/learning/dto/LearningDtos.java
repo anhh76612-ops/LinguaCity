@@ -19,9 +19,13 @@ public final class LearningDtos {
 
     public record AnswerRequest(String answer) {}
 
-    public record QuestionView(Long id, String skill, String questionType, int tier,
+    public record QuestionView(
+            Long id,
+            String skill,
+            String questionType,
+            int tier,
             String questionText,
-                               JsonNode metadata) {}
+            JsonNode metadata) {}
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public record ItemDto(
@@ -73,9 +77,13 @@ public final class LearningDtos {
             ResourcesDto profile,
             TutorialStep tutorialStep) {}
 
-    public record ProgressItemDto(Long vocabularyId, int masteryScore, int maxMastery,
+    public record ProgressItemDto(
+            Long vocabularyId,
+            int masteryScore,
+            int maxMastery,
             boolean collected,
-                                  Instant firstSeenAt, Instant lastReviewedAt) {}
+            Instant firstSeenAt,
+            Instant lastReviewedAt) {}
 
     public record ProgressDto(Instant serverTime, List<ProgressItemDto> items) {}
 }

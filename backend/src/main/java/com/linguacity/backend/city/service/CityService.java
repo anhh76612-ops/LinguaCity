@@ -112,33 +112,47 @@ public class CityService {
         BuildingLevel levelOne = levels.findById(new BuildingLevelId(building.getId(), 1))
                 .orElseThrow(() -> ApiException.conflict(
                         "NO_CONTENT", "No level 1 config for " + code));
-        List<Long> words = content.vocabularyIdsOf(building.getId(), 1);
-        long collected = words.isEmpty() ? 0
-                : progress.countByUserIdAndVocabularyIdInAndCollectedAtIsNotNull(userId, words);
-        long missingWords = Math.max(0, levelOne.getRequiredCollected() - collected);
-        long missingKp = Math.max(0, levelOne.getKnowledgeCost() - profile.getKnowledgePoints());
-        if (missingWords > 0 || missingKp > 0) {
-            Map<String, Object> details = new LinkedHashMap<>();
-            details.put("collected", collected);
-            details.put("requiredCollected", levelOne.getRequiredCollected());
-            details.put("missingCollected", missingWords);
-            details.put("knowledgePoints", profile.getKnowledgePoints());
-            details.put("requiredKnowledge", levelOne.getKnowledgeCost());
-            details.put("missingKnowledge", missingKp);
-            throw new ApiException(
-                    HttpStatus.CONFLICT, "REQUIREMENTS_NOT_MET", "Requirements not met", details);
-        }
+        checkRequirements(profile, building, levelOne);
 
         profile.setKnowledgePoints(profile.getKnowledgePoints() - levelOne.getKnowledgeCost());
         users.save(profile);
-        userBuilding.setUnlocked(true);
-        userBuilding.setStatus(UserBuilding.UPGRADING);
-        userBuilding.setTargetLevel(1);
-        userBuilding.setStartedAt(now);
-        userBuilding.setFinishAt(now.plusSeconds(levelOne.getConstructionTime()));
-        userBuildings.save(userBuilding);
+        startConstruction(userBuilding, levelOne, now);
         return new BuildResultDto(
                 toDto(userBuilding, building), Times.toInstant(now), ResourcesDto.of(profile));
+    }
+
+    /** Đủ từ đã sưu tầm và đủ KP chưa; thiếu thì 409 kèm chi tiết thiếu bao nhiêu (§10.4). */
+    private void checkRequirements(UserProfile profile, Building building, BuildingLevel level) {
+        List<Long> words = content.vocabularyIdsOf(building.getId(), level.getId().getLevel());
+        long collected = words.isEmpty()
+                ? 0
+                : progress.countByUserIdAndVocabularyIdInAndCollectedAtIsNotNull(
+                        profile.getId(), words);
+        long missingWords = Math.max(0, level.getRequiredCollected() - collected);
+        long missingKp = Math.max(0, level.getKnowledgeCost() - profile.getKnowledgePoints());
+        if (missingWords == 0 && missingKp == 0) {
+            return;
+        }
+        Map<String, Object> details = new LinkedHashMap<>();
+        details.put("collected", collected);
+        details.put("requiredCollected", level.getRequiredCollected());
+        details.put("missingCollected", missingWords);
+        details.put("knowledgePoints", profile.getKnowledgePoints());
+        details.put("requiredKnowledge", level.getKnowledgeCost());
+        details.put("missingKnowledge", missingKp);
+        throw new ApiException(
+                HttpStatus.CONFLICT, "REQUIREMENTS_NOT_MET", "Requirements not met", details);
+    }
+
+    /** Bắt đầu xây theo giờ server; xong khi tới finishAt (hoàn tất lười, FR-SYS-04). */
+    private void startConstruction(
+            UserBuilding userBuilding, BuildingLevel level, LocalDateTime now) {
+        userBuilding.setUnlocked(true);
+        userBuilding.setStatus(UserBuilding.UPGRADING);
+        userBuilding.setTargetLevel(level.getId().getLevel());
+        userBuilding.setStartedAt(now);
+        userBuilding.setFinishAt(now.plusSeconds(level.getConstructionTime()));
+        userBuildings.save(userBuilding);
     }
 
     private Map<Long, UserBuilding> ensureRows(UUID userId, List<Building> wanted) {

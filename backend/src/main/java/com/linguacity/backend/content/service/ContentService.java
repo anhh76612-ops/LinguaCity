@@ -65,7 +65,8 @@ public class ContentService {
             ExamQuestionRepository examQuestions,
             AchievementRepository achievements,
             CosmeticService cosmetics,
-                          ObjectMapper json, Clock clock) {
+            ObjectMapper json,
+            Clock clock) {
         this.packs = packs;
         this.themes = themes;
         this.buildings = buildings;
@@ -100,49 +101,84 @@ public class ContentService {
         List<Building> allBuildings = buildings.findAllByOrderBySortOrderAsc();
         Map<Long, String> buildingCode = allBuildings.stream()
                 .collect(Collectors.toMap(Building::getId, Building::getCode));
+
+        return new Core(
+                pack.getCode(),
+                pack.getVersion(),
+                themeDtos(),
+                buildingDtos(allBuildings),
+                levelDtos(buildingCode),
+                blueprintDtos(buildingCode),
+                achievementDtos(),
+                cosmetics.catalog());
+    }
+
+    private List<ThemeDto> themeDtos() {
+        return themes.findAll().stream()
+                .sorted(Comparator.comparing(Theme::getId))
+                .map(theme -> new ThemeDto(
+                        theme.getId(), theme.getCode(), theme.getName(), theme.getDescription()))
+                .toList();
+    }
+
+    /** Công trình kèm danh sách chủ đề (n-n, đã sắp theo tên). */
+    private List<BuildingDto> buildingDtos(List<Building> allBuildings) {
         Map<Long, String> themeCode = themes.findAll().stream()
                 .collect(Collectors.toMap(Theme::getId, Theme::getCode));
         Map<Long, List<String>> themesOfBuilding = buildingThemes.findAll().stream()
-                .collect(Collectors.groupingBy(bt -> bt.getId().getBuildingId(), TreeMap::new,
+                .collect(Collectors.groupingBy(
+                        link -> link.getId().getBuildingId(),
+                        TreeMap::new,
                         Collectors.mapping(
-                                bt -> themeCode.get(bt.getId().getThemeId()),
+                                link -> themeCode.get(link.getId().getThemeId()),
                                 Collectors.toList())));
+        return allBuildings.stream()
+                .map(building -> new BuildingDto(
+                        building.getId(),
+                        building.getCode(),
+                        building.getName(),
+                        building.getMaxLevel(),
+                        building.getSortOrder(),
+                        themesOfBuilding.getOrDefault(building.getId(), List.of())
+                                .stream().sorted().toList()))
+                .toList();
+    }
 
-        List<ThemeDto> themeDtos = themes.findAll().stream()
-                .sorted(Comparator.comparing(Theme::getId))
-                .map(t -> new ThemeDto(t.getId(), t.getCode(), t.getName(), t.getDescription()))
+    private List<BuildingLevelDto> levelDtos(Map<Long, String> buildingCode) {
+        return buildingLevels.findAll().stream()
+                .sorted(Comparator.comparing((BuildingLevel level) -> level.getId().getBuildingId())
+                        .thenComparing(level -> level.getId().getLevel()))
+                .map(level -> new BuildingLevelDto(
+                        buildingCode.get(level.getId().getBuildingId()),
+                        level.getId().getLevel(),
+                        level.getKnowledgeCost(),
+                        level.getConstructionTime(),
+                        level.getRequiredCollected()))
                 .toList();
-        List<BuildingDto> buildingDtos = allBuildings.stream()
-                .map(b -> new BuildingDto(b.getId(), b.getCode(), b.getName(), b.getMaxLevel(),
-                        b.getSortOrder(),
-                        themesOfBuilding.getOrDefault(
-                                b.getId(), List.of()).stream().sorted().toList()))
-                .toList();
-        List<BuildingLevelDto> levelDtos = buildingLevels.findAll().stream()
-                .sorted(Comparator.comparing((BuildingLevel l) -> l.getId().getBuildingId())
-                        .thenComparing(l -> l.getId().getLevel()))
-                .map(l -> new BuildingLevelDto(buildingCode.get(l.getId().getBuildingId()),
-                        l.getId().getLevel(),
-                        l.getKnowledgeCost(), l.getConstructionTime(), l.getRequiredCollected()))
-                .toList();
-        List<BlueprintDto> blueprintDtos = blueprints.findAll().stream()
+    }
+
+    private List<BlueprintDto> blueprintDtos(Map<Long, String> buildingCode) {
+        return blueprints.findAll().stream()
                 .sorted(Comparator.comparing(Blueprint::getId))
-                .map(b -> new BlueprintDto(
-                        b.getId(),
-                        b.getCode(),
-                        buildingCode.get(b.getBuildingId()),
-                        b.getTargetLevel()))
+                .map(blueprint -> new BlueprintDto(
+                        blueprint.getId(),
+                        blueprint.getCode(),
+                        buildingCode.get(blueprint.getBuildingId()),
+                        blueprint.getTargetLevel()))
                 .toList();
+    }
 
-        List<AchievementDto> achievementDtos = achievements.findAllByOrderBySortOrderAsc().stream()
-                .map(a -> new AchievementDto(a.getCode(), a.getName(), a.isHidden() ? null
-                        : a.getDescription(),
-                        a.getTier(), a.isHidden(), a.getSortOrder()))
+    /** Danh hiệu ẩn không lộ mô tả (cách đạt) cho tới khi người chơi nhận được. */
+    private List<AchievementDto> achievementDtos() {
+        return achievements.findAllByOrderBySortOrderAsc().stream()
+                .map(achievement -> new AchievementDto(
+                        achievement.getCode(),
+                        achievement.getName(),
+                        achievement.isHidden() ? null : achievement.getDescription(),
+                        achievement.getTier(),
+                        achievement.isHidden(),
+                        achievement.getSortOrder()))
                 .toList();
-
-        return new Core(pack.getCode(), pack.getVersion(), themeDtos, buildingDtos, levelDtos,
-                blueprintDtos,
-                achievementDtos, cosmetics.catalog());
     }
 
     /**

@@ -30,6 +30,7 @@ SCOPES = [
 SKIPPED_PARTS = {"build", "node_modules", "dist", ".gradle", "schemas"}
 
 BRACE_LANGUAGES = {".java", ".ts"}
+INDENT_LANGUAGES = {".java", ".kt", ".kts", ".ts"}
 CONTROL_PATTERN = re.compile(r"^\s*(?:\}\s*)?(if|else if|for|while)\s*\(")
 ELSE_PATTERN = re.compile(r"^\s*(?:\}\s*)?else\s+(?!if\b)(?!\{)\S")
 KOTLIN_IF_PATTERN = re.compile(r"^\s*(?:\}\s*)?(if|else if)\s*\(")
@@ -183,6 +184,11 @@ def check_file(path):
             problems.append((number, "BLANKS", "quá 1 dòng trống liên tiếp"))
 
         was_in_string = state["raw_string"] is not None
+        in_comment = state["block_comment"]
+        indent = len(line) - len(line.lstrip(" "))
+        if (suffix in INDENT_LANGUAGES and not was_in_string and not in_comment
+                and line.strip() and indent % 4 and not line.lstrip().startswith("*")):
+            problems.append((number, "INDENT", f"thụt lề {indent} dấu cách, không phải bội của 4"))
         code = strip_code(line, state)
         codes.append(code)
         if was_in_string or suffix in (".py", ".css"):
@@ -222,16 +228,72 @@ def check_braces(codes, kotlin):
         problems.append((number, "BRACES", f"`{match.group(1)}` không có ngoặc {{}}"))
     return problems
 
+
+FUNCTION_PATTERNS = {
+    ".java": re.compile(r"^\s*(?:(?:public|private|protected|static|final|synchronized)\s+)+"
+                        r"[\w<>\[\], ?]+\s+(\w+)\s*\("),
+    ".kt": re.compile(r"^\s*(?:@\w+\s+)*"
+                      r"(?:(?:private|override|internal|suspend|public|inline)\s+)*"
+                      r"fun\s+(?:[\w.<>, ]+\.)?(\w+)"),
+    ".ts": re.compile(r"^\s*(?:export\s+)?(?:async\s+)?(?:function\s+(\w+)|"
+                      r"(?:(?:private|public|static)\s+)*(\w+)\s*\([^)]*\)\s*"
+                      r"(?::\s*[^{=]+)?\{\s*$)"),
+}
+CONTROL_WORDS = ("if", "for", "while", "switch", "return", "catch", "else", "new ")
+
+
+def long_functions(path):
+    """Hàm dài hơn ~40 dòng (Composable ~60) — chỉ để báo, không tính là lỗi."""
+    pattern = FUNCTION_PATTERNS.get(path.suffix)
+    if pattern is None or "/src/test/" in path.as_posix():
+        return []
+    lines = path.read_text(encoding="utf-8").splitlines()
+    found = []
+    for index, line in enumerate(lines):
+        match = pattern.match(line)
+        if not match or line.strip().startswith(CONTROL_WORDS):
+            continue
+        name = [group for group in match.groups() if group][-1]
+        depth = 0
+        started = False
+        end = index
+        while end < len(lines):
+            depth += lines[end].count("{") - lines[end].count("}")
+            started = started or "{" in lines[end]
+            if started and depth <= 0:
+                break
+            if not started and end > index + 15:
+                break
+            end += 1
+        if not started:
+            continue
+        composable = path.suffix == ".kt" and index > 0 and "@Composable" in lines[index - 1]
+        limit = 60 if composable else 40
+        length = end - index + 1
+        if length > limit:
+            found.append((index + 1, name, length, limit))
+    return found
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--files", nargs="*", help="chỉ kiểm tra các file này")
     parser.add_argument("--summary", action="store_true", help="chỉ in số lỗi")
+    parser.add_argument("--functions", action="store_true",
+                        help="liệt kê hàm quá dài (chỉ báo, không tính là lỗi)")
     args = parser.parse_args()
 
     if args.files:
         files = [Path(name).resolve() for name in args.files]
     else:
         files = collect_files()
+
+    if args.functions:
+        for path in files:
+            for number, name, length, limit in long_functions(path):
+                relative = path.relative_to(ROOT).as_posix()
+                print(f"{relative}:{number}: [FUNC] {name}() dài {length} dòng (> {limit})")
+        return 0
 
     by_kind = Counter()
     by_file = Counter()

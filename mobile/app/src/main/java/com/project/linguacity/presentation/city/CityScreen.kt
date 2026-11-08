@@ -247,65 +247,99 @@ private fun BuildingCard(
                 "${building.code.icon} ${building.code.displayName} · $levelText",
                 style = MaterialTheme.typography.titleMedium
             )
-            when {
-                building.upgrading
-                    && building.progress >= 1f -> Text("Sắp xong — đang chờ máy chủ xác nhận…")
-                building.upgrading -> {
-                    Text("Đang xây… ${(building.progress * 100).toInt()}%")
-                    LinearProgressIndicator(
-                        progress = { building.progress },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-                building.isMaxLevel -> Text("Đã đạt level tối đa")
-                !building.isBuilt -> Text("Lô đất trống: học từ của công trình này để xây")
-            }
-            if (collected.second > 0 && !building.isMaxLevel) {
-                val nextLevel = minOf(3, building.level + 1)
-                Text(
-                    "Bộ sưu tầm Level $nextLevel: ${collected.first}/${collected.second} thẻ",
-                    style = MaterialTheme.typography.bodySmall
-                )
-            }
-            // Điều kiện Level kế tiếp, đọc từ Room (building_levels, gói CORE).
-            if (next != null && !building.upgrading) {
-                val wordsNeeded = if (next.requiredCollected > 0) {
-                    " · cần ${next.requiredCollected} từ"
-                } else {
-                    ""
-                }
-                Text(
-                    "Lên Lv ${next.level}: ${next.knowledgeCost} KP · " +
-                        formatDuration(next.constructionTimeSeconds) + wordsNeeded,
-                    style = MaterialTheme.typography.bodySmall
-                )
-            }
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                verticalAlignment = Alignment.CenterVertically
+            BuildingStatus(building)
+            NextLevelInfo(building, next, collected)
+            BuildingActions(building, busy, onBuild, onEnter, onLearn, onVocabulary, onClose)
+        }
+    }
+}
+
+/** Trạng thái hiện tại: đang xây (kèm %), đã tối đa, hay còn là lô đất trống. */
+@Composable
+private fun BuildingStatus(building: BuildingView) {
+    when {
+        building.upgrading && building.progress >= 1f -> {
+            Text("Sắp xong — đang chờ máy chủ xác nhận…")
+        }
+        building.upgrading -> {
+            Text("Đang xây… ${(building.progress * 100).toInt()}%")
+            LinearProgressIndicator(
+                progress = { building.progress },
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+        building.isMaxLevel -> Text("Đã đạt level tối đa")
+        !building.isBuilt -> Text("Lô đất trống: học từ của công trình này để xây")
+    }
+}
+
+/** Bộ sưu tầm của level kế và điều kiện lên level (đọc từ Room: building_levels, gói CORE). */
+@Composable
+private fun NextLevelInfo(
+    building: BuildingView,
+    next: BuildingLevelInfo?,
+    collected: Pair<Int, Int>
+) {
+    if (collected.second > 0 && !building.isMaxLevel) {
+        val nextLevel = minOf(3, building.level + 1)
+        Text(
+            "Bộ sưu tầm Level $nextLevel: ${collected.first}/${collected.second} thẻ",
+            style = MaterialTheme.typography.bodySmall
+        )
+    }
+    if (next == null || building.upgrading) {
+        return
+    }
+    val wordsNeeded = if (next.requiredCollected > 0) {
+        " · cần ${next.requiredCollected} từ"
+    } else {
+        ""
+    }
+    Text(
+        "Lên Lv ${next.level}: ${next.knowledgeCost} KP · " +
+            formatDuration(next.constructionTimeSeconds) + wordsNeeded,
+        style = MaterialTheme.typography.bodySmall
+    )
+}
+
+@Composable
+private fun BuildingActions(
+    building: BuildingView,
+    busy: Boolean,
+    onBuild: () -> Unit,
+    onEnter: () -> Unit,
+    onLearn: () -> Unit,
+    onVocabulary: () -> Unit,
+    onClose: () -> Unit
+) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // M7: Housing đã xây thì vào được bên trong (nội thất 3D)
+        if (building.code == BuildingCode.HOUSING && building.isBuilt) {
+            Button(onClick = onEnter) { Text("Vào nhà") }
+        }
+        Button(
+            onClick = onLearn,
+            enabled = !building.isMaxLevel,
+            modifier = Modifier.spotlightTarget(SpotKeys.LEARN)
+        ) {
+            Text("Học")
+        }
+        if (!building.isBuilt) {
+            FilledTonalButton(
+                onClick = onBuild,
+                enabled = !building.upgrading && !busy,
+                modifier = Modifier.spotlightTarget(SpotKeys.BUILD)
             ) {
-                // M7: Housing đã xây thì vào được bên trong (nội thất 3D)
-                if (building.code == BuildingCode.HOUSING && building.isBuilt) {
-                    Button(onClick = onEnter) { Text("Vào nhà") }
-                }
-                Button(
-                    onClick = onLearn,
-                    enabled = !building.isMaxLevel,
-                    modifier = Modifier.spotlightTarget(SpotKeys.LEARN)
-                ) {
-                    Text("Học")
-                }
-                if (!building.isBuilt) {
-                    FilledTonalButton(onClick = onBuild, enabled = !building.upgrading && !busy,
-                        modifier = Modifier.spotlightTarget(SpotKeys.BUILD)) { Text("Xây") }
-                }
-                TextButton(
-                    onClick = onVocabulary,
-                    modifier = Modifier.spotlightTarget(SpotKeys.VOCAB)
-                ) { Text("Thẻ từ") }
-                TextButton(onClick = onClose) { Text("Đóng") }
+                Text("Xây")
             }
         }
+        TextButton(onClick = onVocabulary, modifier = Modifier.spotlightTarget(SpotKeys.VOCAB)) {
+            Text("Thẻ từ")
+        }
+        TextButton(onClick = onClose) { Text("Đóng") }
     }
 }
 

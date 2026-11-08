@@ -8,13 +8,24 @@ public final class CosmeticDtos {
     }
 
     /** Một món trong danh mục (gói CORE). */
-    public record CosmeticItemDto(String code, String category, String name, String unlockType,
+    public record CosmeticItemDto(
+            String code,
+            String category,
+            String name,
+            String unlockType,
             int priceKp,
-                                  String achievementCode, String assetKey, int sortOrder) {}
+            String achievementCode,
+            String assetKey,
+            int sortOrder) {}
 
     /** avatar_config — mỗi trường là MÃ cosmetic (không phải asset_key). */
-    public record AvatarConfig(String skin, String hairStyle, String hairColor, String shirtColor,
-                               String pantsColor, String accessory) {
+    public record AvatarConfig(
+            String skin,
+            String hairStyle,
+            String hairColor,
+            String shirtColor,
+            String pantsColor,
+            String accessory) {
         public static final AvatarConfig DEFAULT =
                 new AvatarConfig(
                         "SKIN_2",
@@ -32,7 +43,9 @@ public final class CosmeticDtos {
     }
 
     /** GET /users/me/cosmetics và kết quả các lệnh đổi / mở khoá. */
-    public record CosmeticsDto(List<String> unlocked, AvatarConfig avatar,
+    public record CosmeticsDto(
+            List<String> unlocked,
+            AvatarConfig avatar,
             HouseStyleConfig houseStyle,
-                               int knowledgePoints) {}
+            int knowledgePoints) {}
 }

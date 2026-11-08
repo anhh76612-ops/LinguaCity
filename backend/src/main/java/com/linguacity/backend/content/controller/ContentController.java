@@ -33,9 +33,10 @@ public class ContentController {
     }
 
     @GetMapping("/packs/{buildingCode}/{level}")
-    public Pack pack(@RequestHeader("X-Guest-UUID") UUID guestUuid,
-                     @PathVariable String buildingCode,
-                     @PathVariable int level) {
+    public Pack pack(
+            @RequestHeader("X-Guest-UUID") UUID guestUuid,
+            @PathVariable String buildingCode,
+            @PathVariable int level) {
         return content.pack(buildingCode.toUpperCase(), level);
     }
 }

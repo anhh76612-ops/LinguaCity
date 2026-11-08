@@ -30,6 +30,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
 import java.security.SecureRandom;
@@ -112,9 +113,7 @@ public class LearningService {
 
     public Started start(UUID userId, String buildingCode) {
         requireUser(userId);
-        Building building = buildings.findByCode(buildingCode.toUpperCase(Locale.ROOT))
-                .orElseThrow(() -> ApiException.notFound(
-                        "BUILDING_NOT_FOUND", "Unknown building " + buildingCode));
+        Building building = findBuilding(buildingCode);
         LocalDateTime now = Times.nowUtc(clock);
 
         Optional<LearningSession> active = activeSession(
@@ -125,60 +124,22 @@ public class LearningService {
 
         int level = Math.min(
                 building.getMaxLevel(), city.currentLevel(userId, building.getId()) + 1);
-        List<Long> primary = content.vocabularyIdsOf(building.getId(), level);
-        List<Long> review = new ArrayList<>();
-        for (int l = 1; l < level; l++) {
-            review.addAll(content.vocabularyIdsOf(building.getId(), l));
-        }
-        Map<Long, UserVocabProgress> known = progressOf(userId, union(primary, review));
-        // chỉ ôn từ đã sưu tầm
-        review.removeIf(id -> !known.containsKey(id) || !known.get(id).isCollected());
-        if (primary.isEmpty() && review.isEmpty()) {
-            throw ApiException.conflict("NO_CONTENT", "This building has no lessons yet");
-        }
-
-        List<WordSelector.Candidate> pool = new ArrayList<>();
-        primary.forEach(id -> pool.add(candidate(id, false, known.get(id))));
-        review.forEach(id -> pool.add(candidate(id, true, known.get(id))));
-        List<Long> chosen = WordSelector.select(pool, balance.getWordsPerSession(), now,
-                Duration.ofMinutes(balance.getReviewCooldownMinutes()), random);
-
-        Map<Long, List<Question>> byVocab = targetQuestions(chosen);
-        List<long[]> readingItems = new ArrayList<>();
-        List<long[]> writingItems = new ArrayList<>();
-        for (Long vocabId : chosen) {
-            List<Question> qs = byVocab.getOrDefault(vocabId, List.of());
-            pick(
-                    qs,
-                    q -> "READING".equals(q.getSkill())).ifPresent(q -> readingItems.add(new long[]{
-                        q.getId(),
-                        vocabId
-                    }));
-            pick(
-                    qs,
-                    q -> "WRITING".equals(q.getSkill())).ifPresent(q -> writingItems.add(new long[]{
-                        q.getId(),
-                        vocabId
-                    }));
-        }
-        // câu 1–10 trắc nghiệm, 11–20 điền từ theo thứ tự khác (§10.3.2)
-        Collections.shuffle(writingItems, random);
-        List<long[]> all = new ArrayList<>(readingItems);
-        all.addAll(writingItems);
+        List<Long> chosen = chooseLessonWords(userId, building, level, now);
+        List<long[]> all = lessonItems(chosen);
         if (all.isEmpty()) {
             throw ApiException.conflict("NO_CONTENT", "This building has no questions yet");
         }
 
-        LearningSession session = newSession(userId, building.getId(), level, SessionType.LEARNING,
-                all.size(), now,
+        LearningSession session = newSession(
+                userId, building.getId(), level, SessionType.LEARNING, all.size(), now,
                 Duration.ofMinutes(balance.getSessionTtlMinutes()));
         saveItems(session, all);
         return new Started(toDto(session, now), true);
     }
 
     /**
-     * POST /tutorial/placement — chỉ ở bước PLACEMENT (ADR-014): 30 câu từ 20 từ House Lv1, tier 1
-     * → 2 → 3.
+     * POST /tutorial/placement — chỉ ở bước PLACEMENT (ADR-014): 30 câu từ 20 từ House Lv1,
+     * tier 1 → 2 → 3.
      */
     public Started startPlacement(UUID userId) {
         UserProfile profile = requireUser(userId);
@@ -204,21 +165,10 @@ public class LearningService {
         Collections.shuffle(words, random);
         words = new ArrayList<>(words.subList(
                 0, Math.min(balance.getPlacementWords(), words.size())));
-        Map<Long, List<Question>> byVocab = targetQuestions(words);
+        List<long[]> all = placementItems(words);
 
-        int half = (words.size() + 1) / 2;
-        int hardCount = Math.max(0, balance.getPlacementQuestions() - words.size());
-        List<long[]> all = new ArrayList<>();
-        for (int i = 0; i < words.size(); i++) {
-            int tier = i < half ? 1 : 2;
-            addTier(all, byVocab, words.get(i), tier);
-        }
-        List<Long> hard = new ArrayList<>(words);
-        Collections.shuffle(hard, random);
-        hard.stream().limit(hardCount).forEach(v -> addTier(all, byVocab, v, 3));
-
-        LearningSession session = newSession(userId, housing.getId(), 1, SessionType.PLACEMENT,
-                all.size(), now,
+        LearningSession session = newSession(
+                userId, housing.getId(), 1, SessionType.PLACEMENT, all.size(), now,
                 Duration.ofHours(balance.getPlacementTtlHours()));
         saveItems(session, all);
         return new Started(toDto(session, now), true);
@@ -253,42 +203,24 @@ public class LearningService {
         item.setIsCorrect(correct);
         item.setAnsweredAt(now);
         items.save(item);
-
-        if (correct) {
-            session.setCorrectCount(session.getCorrectCount() + 1);
-            session.setCurrentStreak(session.getCurrentStreak() + 1);
-            session.setBestStreak(Math.max(session.getBestStreak(), session.getCurrentStreak()));
-        } else {
-            session.setCurrentStreak(0);
-        }
-        sessions.save(session);
+        updateStreak(session, correct);
 
         // Mastery Engine — chỉ cho từ TARGET của câu (item.vocabularyId) (BR-LEARN-03)
         Vocabulary vocabulary = vocabularies.findById(item.getVocabularyId()).orElseThrow();
         int max = balance.maxMastery(vocabulary.getDifficultyRank());
-        UserVocabProgress vocabProgress = progress.findByUserIdAndVocabularyId(
-                userId, vocabulary.getId()).orElseGet(() -> {
-            UserVocabProgress fresh = new UserVocabProgress();
-            fresh.setUserId(userId);
-            fresh.setVocabularyId(vocabulary.getId());
-            return fresh;
-        });
-        vocabProgress.setMasteryScore(MasteryEngine.apply(
-                vocabProgress.getMasteryScore(), correct, max));
-        if (vocabProgress.getFirstSeenAt() == null) {
-            vocabProgress.setFirstSeenAt(now);
-        }
-        vocabProgress.setLastReviewedAt(now);
-        boolean collectedNow = correct && vocabProgress.getCollectedAt() == null;
-        if (collectedNow) {
-            vocabProgress.setCollectedAt(now); // BR-LEARN-04: sưu tầm = lần đầu trả lời đúng
-        }
-        vocabProgress.setUpdatedAt(now);
-        progress.save(vocabProgress);
+        UserVocabProgress vocabProgress = progressRow(userId, vocabulary.getId());
+        boolean collectedNow = applyMastery(vocabProgress, correct, max, now);
 
-        return new AnswerResultDto(itemNo, correct, question.getAnswer(), question.getExplanation(),
+        return new AnswerResultDto(
+                itemNo,
+                correct,
+                question.getAnswer(),
+                question.getExplanation(),
                 vocabulary.getId(),
-                vocabProgress.getMasteryScore(), max, collectedNow, session.getCurrentStreak());
+                vocabProgress.getMasteryScore(),
+                max,
+                collectedNow,
+                session.getCurrentStreak());
     }
 
     public CompleteResultDto complete(UUID userId, UUID sessionId) {
@@ -299,22 +231,7 @@ public class LearningService {
 
         // idempotent: trả lại kết quả cũ, không cộng KP lần nữa
         if (session.getStatus() == SessionStatus.COMPLETED) {
-            CollectionDto collection = collection(
-                    userId, session.getBuildingId(), buildingCode, session.getVocabLevel());
-            return new CompleteResultDto(
-                    session.getId(),
-                    session.getType().name(),
-                    session.getCorrectCount(),
-                    session.getTotalCount(),
-                    Optional.ofNullable(session.getKpAwarded()).orElse(0),
-                    null,
-                    null,
-                    null,
-                    null,
-                    collection,
-                    List.of(),
-                    ResourcesDto.of(profile),
-                    profile.getTutorialStep());
+            return previousResult(session, profile, buildingCode);
         }
         if (expireIfNeeded(session, now)) {
             throw new ApiException(HttpStatus.GONE, "SESSION_EXPIRED", "Session expired");
@@ -323,56 +240,26 @@ public class LearningService {
             throw ApiException.conflict("INCOMPLETE", "Some items are not answered yet");
         }
 
-        int correct = session.getCorrectCount();
-        int total = session.getTotalCount();
-        int base;
-        int bonus;
-        int dailyIndex = 0;
-        double multiplier = 1.0;
-        if (session.getType() == SessionType.PLACEMENT) {
-            base = correct * balance.getPlacementKpPerCorrect();
-            bonus = balance.getPlacementWelcomeKp();
-        } else {
-            base = correct * balance.getKpPerCorrect();
-            boolean bonusEarned = total > 0
-                    && (double) correct / total >= balance.getKpBonusRatio();
-            bonus = bonusEarned ? balance.getKpBonus() : 0;
-            LocalDateTime[] day = Times.dayRangeUtc(now, balance.zone());
-            long completedToday = sessions.countCompletedBetween(
-                    userId, SessionType.LEARNING, SessionStatus.COMPLETED, day[0], day[1]);
-            dailyIndex = (int) completedToday + 1;
-            multiplier = dailyIndex <= balance.getKpFullSessionsPerDay() ? 1.0
-                    : balance.getKpReducedMultiplier();
-        }
-        int kp = (int) Math.round((base + bonus) * multiplier);
-
+        KpBreakdown kp = kpFor(session, userId, now);
         session.setStatus(SessionStatus.COMPLETED);
         session.setCompletedAt(now);
-        session.setKpAwarded(kp);
+        session.setKpAwarded(kp.total());
         // @Version: complete song song thì lệnh sau thất bại tại đây → không cộng KP đôi
         sessions.saveAndFlush(session);
 
-        profile.setKnowledgePoints(profile.getKnowledgePoints() + kp);
-        if (session.getType() == SessionType.PLACEMENT
-                && profile.getTutorialStep() == TutorialStep.PLACEMENT) {
-            profile.setTutorialStep(TutorialStep.LEARN_HOUSE);
-        } else if (session.getType() == SessionType.LEARNING && HOUSING.equals(buildingCode)
-                && profile.getTutorialStep() == TutorialStep.LEARN_HOUSE) {
-            profile.setTutorialStep(TutorialStep.BUILD_HOUSE);
-        }
+        profile.setKnowledgePoints(profile.getKnowledgePoints() + kp.total());
+        advanceTutorial(profile, session.getType(), buildingCode);
         users.save(profile);
 
         CollectionDto collection = collection(
                 userId, session.getBuildingId(), buildingCode, session.getVocabLevel());
         List<LearningSessionItem> answered = items.findByIdSessionIdOrderByIdItemNoAsc(sessionId);
-        List<String> granted = achievements.evaluateAfterSession(session, answered,
-                collection.total() > 0 && collection.collected() >= collection.total(), now);
+        boolean levelFullyCollected = collection.total() > 0
+                && collection.collected() >= collection.total();
+        List<String> granted = achievements.evaluateAfterSession(
+                session, answered, levelFullyCollected, now);
 
-        return new CompleteResultDto(session.getId(), session.getType().name(), correct, total, kp,
-                base, bonus,
-                session.getType() == SessionType.LEARNING ? dailyIndex : null,
-                session.getType() == SessionType.LEARNING ? multiplier : null,
-                collection, granted, ResourcesDto.of(profile), profile.getTutorialStep());
+        return resultOf(session, kp, collection, granted, profile);
     }
 
     /** GET /users/me/vocab-progress?since= — để app xem Mastery/sưu tầm khi offline (ADR-004). */
@@ -443,9 +330,202 @@ public class LearningService {
         }
     }
 
-    private LearningSession newSession(UUID userId, Long buildingId, int level, SessionType type,
+    /** KP của một phiên: phần cơ bản, thưởng, và hệ số giảm theo số phiên trong ngày (§10.6). */
+    private record KpBreakdown(int base, int bonus, int dailyIndex, double multiplier) {
+
+        int total() {
+            return (int) Math.round((base + bonus) * multiplier);
+        }
+    }
+
+    private Building findBuilding(String buildingCode) {
+        return buildings.findByCode(buildingCode.toUpperCase(Locale.ROOT))
+                .orElseThrow(() -> ApiException.notFound(
+                        "BUILDING_NOT_FOUND", "Unknown building " + buildingCode));
+    }
+
+    /** Từ mới của level đang học + từ đã sưu tầm ở các level dưới để ôn (BR-LEARN-08). */
+    private List<Long> chooseLessonWords(
+            UUID userId, Building building, int level, LocalDateTime now) {
+        List<Long> primary = content.vocabularyIdsOf(building.getId(), level);
+        List<Long> review = new ArrayList<>();
+        for (int lower = 1; lower < level; lower++) {
+            review.addAll(content.vocabularyIdsOf(building.getId(), lower));
+        }
+        Map<Long, UserVocabProgress> known = progressOf(userId, union(primary, review));
+        // chỉ ôn từ đã sưu tầm
+        review.removeIf(id -> !known.containsKey(id) || !known.get(id).isCollected());
+        if (primary.isEmpty() && review.isEmpty()) {
+            throw ApiException.conflict("NO_CONTENT", "This building has no lessons yet");
+        }
+
+        List<WordSelector.Candidate> pool = new ArrayList<>();
+        primary.forEach(id -> pool.add(candidate(id, false, known.get(id))));
+        review.forEach(id -> pool.add(candidate(id, true, known.get(id))));
+        return WordSelector.select(pool, balance.getWordsPerSession(), now,
+                Duration.ofMinutes(balance.getReviewCooldownMinutes()), random);
+    }
+
+    /** Mỗi từ một câu đọc + một câu viết: câu trắc nghiệm trước, câu điền từ xáo sau (§10.3.2). */
+    private List<long[]> lessonItems(List<Long> chosen) {
+        Map<Long, List<Question>> byVocab = targetQuestions(chosen);
+        List<long[]> readingItems = new ArrayList<>();
+        List<long[]> writingItems = new ArrayList<>();
+        for (Long vocabId : chosen) {
+            List<Question> candidates = byVocab.getOrDefault(vocabId, List.of());
+            pick(candidates, question -> "READING".equals(question.getSkill()))
+                    .ifPresent(question -> readingItems.add(itemOf(question, vocabId)));
+            pick(candidates, question -> "WRITING".equals(question.getSkill()))
+                    .ifPresent(question -> writingItems.add(itemOf(question, vocabId)));
+        }
+        Collections.shuffle(writingItems, random);
+        List<long[]> all = new ArrayList<>(readingItems);
+        all.addAll(writingItems);
+        return all;
+    }
+
+    /** Nửa đầu số từ ở tier 1, nửa sau tier 2, rồi thêm câu tier 3 cho đủ số câu (ADR-014). */
+    private List<long[]> placementItems(List<Long> words) {
+        Map<Long, List<Question>> byVocab = targetQuestions(words);
+        int half = (words.size() + 1) / 2;
+        int hardCount = Math.max(0, balance.getPlacementQuestions() - words.size());
+        List<long[]> all = new ArrayList<>();
+        for (int i = 0; i < words.size(); i++) {
+            int tier = i < half ? 1 : 2;
+            addTier(all, byVocab, words.get(i), tier);
+        }
+        List<Long> hard = new ArrayList<>(words);
+        Collections.shuffle(hard, random);
+        hard.stream().limit(hardCount).forEach(vocabId -> addTier(all, byVocab, vocabId, 3));
+        return all;
+    }
+
+    private static long[] itemOf(Question question, Long vocabId) {
+        return new long[]{question.getId(), vocabId};
+    }
+
+    private void updateStreak(LearningSession session, boolean correct) {
+        if (correct) {
+            session.setCorrectCount(session.getCorrectCount() + 1);
+            session.setCurrentStreak(session.getCurrentStreak() + 1);
+            session.setBestStreak(Math.max(session.getBestStreak(), session.getCurrentStreak()));
+        } else {
+            session.setCurrentStreak(0);
+        }
+        sessions.save(session);
+    }
+
+    private UserVocabProgress progressRow(UUID userId, Long vocabularyId) {
+        return progress.findByUserIdAndVocabularyId(userId, vocabularyId).orElseGet(() -> {
+            UserVocabProgress fresh = new UserVocabProgress();
+            fresh.setUserId(userId);
+            fresh.setVocabularyId(vocabularyId);
+            return fresh;
+        });
+    }
+
+    /** Cập nhật Mastery ±1 và mốc thời gian; trả true nếu từ vừa được sưu tầm lần đầu. */
+    private boolean applyMastery(
+            UserVocabProgress vocabProgress, boolean correct, int max, LocalDateTime now) {
+        vocabProgress.setMasteryScore(MasteryEngine.apply(
+                vocabProgress.getMasteryScore(), correct, max));
+        if (vocabProgress.getFirstSeenAt() == null) {
+            vocabProgress.setFirstSeenAt(now);
+        }
+        vocabProgress.setLastReviewedAt(now);
+        boolean collectedNow = correct && vocabProgress.getCollectedAt() == null;
+        if (collectedNow) {
+            vocabProgress.setCollectedAt(now); // BR-LEARN-04: sưu tầm = lần đầu trả lời đúng
+        }
+        vocabProgress.setUpdatedAt(now);
+        progress.save(vocabProgress);
+        return collectedNow;
+    }
+
+    private static CompleteResultDto resultOf(LearningSession session, KpBreakdown kp,
+            CollectionDto collection, List<String> granted, UserProfile profile) {
+        // Hệ số trong ngày chỉ có nghĩa với phiên học thường, không áp cho bài kiểm tra trình độ
+        boolean learning = session.getType() == SessionType.LEARNING;
+        return new CompleteResultDto(
+                session.getId(),
+                session.getType().name(),
+                session.getCorrectCount(),
+                session.getTotalCount(),
+                kp.total(),
+                kp.base(),
+                kp.bonus(),
+                learning ? kp.dailyIndex() : null,
+                learning ? kp.multiplier() : null,
+                collection,
+                granted,
+                ResourcesDto.of(profile),
+                profile.getTutorialStep());
+    }
+
+    /** Kết quả của phiên đã hoàn thành trước đó (gọi complete lần hai không cộng KP lần nữa). */
+    private CompleteResultDto previousResult(
+            LearningSession session, UserProfile profile, String buildingCode) {
+        CollectionDto collection = collection(session.getUserId(), session.getBuildingId(),
+                buildingCode, session.getVocabLevel());
+        return new CompleteResultDto(
+                session.getId(),
+                session.getType().name(),
+                session.getCorrectCount(),
+                session.getTotalCount(),
+                Optional.ofNullable(session.getKpAwarded()).orElse(0),
+                null,
+                null,
+                null,
+                null,
+                collection,
+                List.of(),
+                ResourcesDto.of(profile),
+                profile.getTutorialStep());
+    }
+
+    private KpBreakdown kpFor(LearningSession session, UUID userId, LocalDateTime now) {
+        int correct = session.getCorrectCount();
+        int total = session.getTotalCount();
+        if (session.getType() == SessionType.PLACEMENT) {
+            return new KpBreakdown(
+                    correct * balance.getPlacementKpPerCorrect(),
+                    balance.getPlacementWelcomeKp(),
+                    0,
+                    1.0);
+        }
+        int base = correct * balance.getKpPerCorrect();
+        boolean bonusEarned = total > 0 && (double) correct / total >= balance.getKpBonusRatio();
+        int bonus = bonusEarned ? balance.getKpBonus() : 0;
+        LocalDateTime[] day = Times.dayRangeUtc(now, balance.zone());
+        long completedToday = sessions.countCompletedBetween(
+                userId, SessionType.LEARNING, SessionStatus.COMPLETED, day[0], day[1]);
+        int dailyIndex = (int) completedToday + 1;
+        double multiplier = dailyIndex <= balance.getKpFullSessionsPerDay()
+                ? 1.0
+                : balance.getKpReducedMultiplier();
+        return new KpBreakdown(base, bonus, dailyIndex, multiplier);
+    }
+
+    /** Bước tutorial do server chuyển khi xong phiên (ADR-014). */
+    private static void advanceTutorial(
+            UserProfile profile, SessionType type, String buildingCode) {
+        TutorialStep step = profile.getTutorialStep();
+        if (type == SessionType.PLACEMENT && step == TutorialStep.PLACEMENT) {
+            profile.setTutorialStep(TutorialStep.LEARN_HOUSE);
+        } else if (type == SessionType.LEARNING && HOUSING.equals(buildingCode)
+                && step == TutorialStep.LEARN_HOUSE) {
+            profile.setTutorialStep(TutorialStep.BUILD_HOUSE);
+        }
+    }
+
+    private LearningSession newSession(
+            UUID userId,
+            Long buildingId,
+            int level,
+            SessionType type,
             int total,
-                                       LocalDateTime now, Duration ttl) {
+            LocalDateTime now,
+            Duration ttl) {
         LearningSession session = new LearningSession();
         session.setId(UUID.randomUUID());
         session.setUserId(userId);
@@ -473,16 +553,19 @@ public class LearningService {
 
     private void addTier(
             List<long[]> out, Map<Long, List<Question>> byVocab, Long vocabId, int tier) {
-        List<Question> qs = byVocab.getOrDefault(vocabId, List.of());
-        pick(qs, q -> q.getTier() == tier).or(() -> pick(qs, q -> true))
-                .ifPresent(q -> out.add(new long[]{q.getId(), vocabId}));
+        List<Question> candidates = byVocab.getOrDefault(vocabId, List.of());
+        pick(candidates, question -> question.getTier() == tier)
+                .or(() -> pick(candidates, question -> true))
+                .ifPresent(question -> out.add(itemOf(question, vocabId)));
     }
 
     private Optional<Question> pick(
-            List<Question> qs, java.util.function.Predicate<Question> filter) {
-        List<Question> match = qs.stream().filter(filter).toList();
-        return match.isEmpty() ? Optional.empty()
-                : Optional.of(match.get(random.nextInt(match.size())));
+            List<Question> candidates, java.util.function.Predicate<Question> filter) {
+        List<Question> match = candidates.stream().filter(filter).toList();
+        if (match.isEmpty()) {
+            return Optional.empty();
+        }
+        return Optional.of(match.get(random.nextInt(match.size())));
     }
 
     private Map<Long, List<Question>> targetQuestions(Collection<Long> vocabIds) {
@@ -510,10 +593,15 @@ public class LearningService {
 
     private static WordSelector.Candidate candidate(
             Long id, boolean review, UserVocabProgress vocabProgress) {
-        return new WordSelector.Candidate(id, review, vocabProgress != null
-                && vocabProgress.isCollected(),
-                vocabProgress == null ? 0 : vocabProgress.getMasteryScore(), vocabProgress == null
-                        ? null : vocabProgress.getLastReviewedAt());
+        if (vocabProgress == null) {
+            return new WordSelector.Candidate(id, review, false, 0, null);
+        }
+        return new WordSelector.Candidate(
+                id,
+                review,
+                vocabProgress.isCollected(),
+                vocabProgress.getMasteryScore(),
+                vocabProgress.getLastReviewedAt());
     }
 
     private static List<Long> union(List<Long> a, List<Long> b) {
@@ -535,24 +623,17 @@ public class LearningService {
 
     private SessionDto toDto(LearningSession session, LocalDateTime now) {
         List<LearningSessionItem> list = items.findByIdSessionIdOrderByIdItemNoAsc(session.getId());
-        Map<Long, Question> qs = questions.findAllById(list.stream()
+        Map<Long, Question> byId = questions.findAllById(list.stream()
                 .map(LearningSessionItem::getQuestionId).toList())
                 .stream().collect(Collectors.toMap(Question::getId, Function.identity()));
-        List<ItemDto> dtos = list.stream().map(i -> {
-            Question question = qs.get(i.getQuestionId());
-            // Cố ý KHÔNG đưa answer / acceptedAnswers / explanation vào (NFR-01)
-            QuestionView view = new QuestionView(question.getId(), question.getSkill(),
-                    question.getQuestionType(),
-                    question.getTier(),
-                    question.getQuestionText(), question.getMetadata() == null ? null
-                            : json.readTree(question.getMetadata()));
-            return new ItemDto(
-                    i.getId().getItemNo(),
-                    i.getVocabularyId(),
-                    i.isAnswered(),
-                    i.getIsCorrect(),
-                    view);
-        }).toList();
+        List<ItemDto> dtos = list.stream()
+                .map(item -> new ItemDto(
+                        item.getId().getItemNo(),
+                        item.getVocabularyId(),
+                        item.isAnswered(),
+                        item.getIsCorrect(),
+                        viewOf(byId.get(item.getQuestionId()))))
+                .toList();
         return new SessionDto(
                 session.getId(),
                 session.getType().name(),
@@ -565,6 +646,20 @@ public class LearningService {
                 session.getTotalCount(),
                 session.getCorrectCount(),
                 dtos);
+    }
+
+    /** Câu hỏi gửi cho app: cố ý KHÔNG có answer / acceptedAnswers / explanation (NFR-01). */
+    private QuestionView viewOf(Question question) {
+        JsonNode metadata = question.getMetadata() == null
+                ? null
+                : json.readTree(question.getMetadata());
+        return new QuestionView(
+                question.getId(),
+                question.getSkill(),
+                question.getQuestionType(),
+                question.getTier(),
+                question.getQuestionText(),
+                metadata);
     }
 
     private List<String> stringList(String raw) {

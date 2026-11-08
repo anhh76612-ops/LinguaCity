@@ -46,9 +46,12 @@ public class AchievementService {
     private final UserProfileRepository users;
     private final BalanceProperties balance;
 
-    public AchievementService(AchievementRepository catalog, UserAchievementRepository earned,
-                              LearningSessionRepository sessions, UserProfileRepository users,
-                              BalanceProperties balance) {
+    public AchievementService(
+            AchievementRepository catalog,
+            UserAchievementRepository earned,
+            LearningSessionRepository sessions,
+            UserProfileRepository users,
+            BalanceProperties balance) {
         this.catalog = catalog;
         this.earned = earned;
         this.sessions = sessions;
@@ -76,9 +79,11 @@ public class AchievementService {
      * (công trình, Level) của phiên chưa — tính sẵn ở LearningService.
      */
     @Transactional
-    public List<String> evaluateAfterSession(LearningSession session,
+    public List<String> evaluateAfterSession(
+            LearningSession session,
             List<LearningSessionItem> items,
-                                             boolean levelFullyCollected, LocalDateTime nowUtc) {
+            boolean levelFullyCollected,
+            LocalDateTime nowUtc) {
         UUID user = session.getUserId();
         List<String> granted = new ArrayList<>();
         Map<String, Integer> threshold = catalog.findAll().stream()

@@ -177,3 +177,20 @@ startConstruction(userBuilding, levelOne, now);
 3. Tên mới rõ nghĩa; không đổi tên trường hợp đồng (mục 2).
 4. Comment chỉ giải thích *vì sao*; không còn code bị comment-out.
 5. Không hàm mới nào dài quá ~40 dòng hoặc lồng quá 3 cấp.
+
+## 8. Hàm còn dài (nợ kỹ thuật, xử lý dần)
+
+`python tools/check_style.py --functions` liệt kê các hàm vượt giới hạn ở mục 5 (chỉ báo, không tính là lỗi).
+
+Khi áp quy ước (M11, 08/11/2026), các hàm nghiệp vụ đã được tách:
+- `LearningService`: `start`, `startPlacement`, `answer`, `complete`;
+- `CityService.build`, `ContentService.core`;
+- `LessonScreen` (`QuestionView`, `ResultView`), `CityScreen.BuildingCard`.
+
+Còn lại khoảng 30 hàm, chủ yếu thuộc ba nhóm sau. Hàm nào nằm trong file sắp sửa thì tách luôn lúc sửa, không cần đợi riêng.
+
+| Nhóm | Ví dụ | Cách tách dự kiến |
+| --- | --- | --- |
+| Dựng hình 3D (city-web) | `buildSchool`, `buildHousing`, `buildPark`, `buildStreets`, `makeChibi` | một hàm cho mỗi level / mỗi bộ phận |
+| Khởi động & điều khiển (city-web) | `bootCity`, `bootPreview`, `setupControls`, `setupDebug` | tách theo từng việc: dựng cảnh, gắn sự kiện, gắn API |
+| Màn Compose / dữ liệu Kotlin | `AppNavHost`, `CustomizeScreen`, `TutorialGuide.script`, `ContentMapper.toRows` | tách composable con / mỗi bước tutorial một hàm |

@@ -48,9 +48,13 @@ public class CosmeticService {
     private final ObjectMapper json;
     private final Clock clock;
 
-    public CosmeticService(CosmeticItemRepository items, UserCosmeticRepository owned,
-                           UserAchievementRepository achievements, UserProfileRepository users,
-                           ObjectMapper json, Clock clock) {
+    public CosmeticService(
+            CosmeticItemRepository items,
+            UserCosmeticRepository owned,
+            UserAchievementRepository achievements,
+            UserProfileRepository users,
+            ObjectMapper json,
+            Clock clock) {
         this.items = items;
         this.owned = owned;
         this.achievements = achievements;
