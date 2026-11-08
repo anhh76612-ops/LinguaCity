@@ -39,9 +39,7 @@ public class TutorialService {
     /**
      * BR-USER-06: hoàn thành tutorial là thao tác idempotent —
      * gọi nhiều lần vẫn trả về true và chỉ ghi DB ở lần đầu.
-     * <p>
-     * ⚠️ Tạm thời (M4→M6) chưa bắt buộc bước TOUR (BR-TUT-05) vì app vẫn dùng tutorial 3 trang cũ;
-     * bật kiểm tra này ở M6 cùng lúc với tutorial thư ký.
+     * BR-TUT-05 (bật từ M6): chỉ hoàn thành được ở bước cuối TOUR của tutorial thư ký.
      */
     @Transactional
     public UserProfile completeTutorial(UUID userId) {
@@ -50,6 +48,11 @@ public class TutorialService {
 
         if (userProfile.isTutorialCompleted()) {
             return userProfile;
+        }
+        if (userProfile.getTutorialStep() != TutorialStep.TOUR) {
+            throw new ApiException(HttpStatus.CONFLICT, "INVALID_STEP",
+                    "Tutorial can only be completed at step TOUR",
+                    Map.of("current", userProfile.getTutorialStep().name()));
         }
 
         userProfile.setTutorialCompleted(true);

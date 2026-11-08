@@ -20,6 +20,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.project.linguacity.ui.loading.DestinationLoading
+import com.project.linguacity.ui.loading.LoadingKind
 
 /**
  * SCR-03: tải CORE + các gói cần (UC_03). Bản cơ bản; hiệu ứng Loading theo điểm đến làm ở mốc giao diện (M9).
@@ -44,7 +46,7 @@ fun SyncScreen(
             }
         } else {
             Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text("Đang chuẩn bị thành phố…", style = MaterialTheme.typography.titleMedium)
+                DestinationLoading(LoadingKind.SYNC, Modifier.weight(1f, fill = false))
                 if (state.total > 0) {
                     LinearProgressIndicator(
                         progress = { state.done.toFloat() / state.total },
@@ -54,8 +56,6 @@ fun SyncScreen(
                         state.currentPack?.let { "Gói $it (${state.done + 1}/${state.total})" } ?: "Xong!",
                         style = MaterialTheme.typography.bodySmall
                     )
-                } else {
-                    CircularProgressIndicator()
                 }
             }
         }

@@ -1181,7 +1181,7 @@ Mọi API đều cần `X-Guest-UUID`. Lỗi trả `ErrorResponse {code, message
 > **Đã cài (M4, 08/11/2026):** toàn bộ §10.4.2, §10.4.3 và danh hiệu ở §10.4.4. Khác bản thiết kế:
 > - `GET /city` trả thêm `tutorialStep`.
 > - `POST /users/onboard` trả thêm `tutorialStep`.
-> - `POST /users/me/tutorial/complete` **tạm** chưa bắt buộc bước `TOUR` (BR-TUT-05) cho tới M6, để tutorial 3 trang của app hiện tại vẫn chạy.
+> - `POST /users/me/tutorial/complete` bắt buộc bước `TOUR` (BR-TUT-05) — bật ở M6 cùng tutorial thư ký.
 > - Thời gian lưu dạng UTC trong cột `TIMESTAMP`; API trả ISO-8601 có `Z`.
 
 #### 10.4.1. Nội dung (VS2)

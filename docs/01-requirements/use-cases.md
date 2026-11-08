@@ -22,7 +22,7 @@
 | Mã UC | Tên | Tác nhân | Yêu cầu | Slice | Trạng thái |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | UC_01 | Onboard User (Khởi tạo người chơi khách) | Guest | FR-USER-01, 02 | VS1 | ✅ Implemented |
-| UC_02 | Complete Tutorial (Hoàn thành hướng dẫn) | Guest | FR-USER-04 | VS1 | ✅ Verified (bản 3 bước) · 🟡 sẽ thay bằng tutorial thư ký (ADR-014) |
+| UC_02 | Complete Tutorial (Hoàn thành hướng dẫn) | Guest | FR-USER-04, FR-TUT-01..05 | VS1 / Tutorial | ✅ Tutorial thư ký (TC-TUT-01..09); vào nhà 3D + tuỳ biến ở M7/M8 |
 | UC_03 | Sync Static Content (Tải nội dung học theo gói) | Guest, System | FR-SYS-02 | VS2 | 🟡 Specified (ADR-012) |
 | UC_04 | View Vocabulary & Flashcard | Guest | FR-LEARN-01, 02 | VS2 | 🟡 Specified |
 | UC_05 | Take Learning Session (Làm bài học) | Guest | FR-LEARN-03, 04, 05 | VS3 | 🟡 Specified (ADR-013) |
@@ -112,7 +112,7 @@ Mẫu bảng đặc tả dùng chung (giống báo cáo mẫu):
 | **API / Dữ liệu** | `POST /api/v1/users/me/tutorial/complete` · cột `tutorial_completed` (`database/migration/V002`) · Room v2 `UserProfileEntity.tutorialCompleted` (`MIGRATION_1_2`) |
 | **Code** | `TutorialService.java` · `CompleteTutorialUseCase.kt` · `presentation/tutorial/*` · `presentation/navigation/AppNavHost.kt` |
 
-### 4.2b. UC_02 — Complete Tutorial (bản thư ký, ADR-014) 🟡
+### 4.2b. UC_02 — Complete Tutorial (bản thư ký, ADR-014) ✅ (M6, 08/11/2026)
 
 | Mục | Nội dung |
 | :--- | :--- |

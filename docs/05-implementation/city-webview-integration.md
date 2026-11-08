@@ -7,7 +7,7 @@
 ## 1. Bức tranh toàn cảnh
 
 ```text
-FakeCityRepository ──StateFlow<CityState>──▶ CityViewModel ──CityUiState──▶ CityScreen (Compose)
+CityRepositoryImpl (GET /city → Room, từ M5) ──StateFlow<CityState>──▶ CityViewModel ──CityUiState──▶ CityScreen (Compose)
         ▲                                         ▲                               │
         │ startUpgrade / resolveEvent             │ CityIntent.Map(...)           │ renderer.Render(state, onIntent)
         │                                         │                               ▼
@@ -29,7 +29,7 @@ FakeCityRepository ──StateFlow<CityState>──▶ CityViewModel ──CityU
 | 4 | `presentation/city/web/WebCityRenderer.kt` | A | WebView, WebViewAssetLoader, cầu nối 2 chiều, vòng đời |
 | 5 | `presentation/city/CityViewModel.kt`, `CityContract.kt` | A | MVI: Intent → State |
 | 6 | `presentation/city/CityScreen.kt` | B | UI Compose chồng lên bản đồ |
-| 7 | `data/repository/FakeCityRepository.kt`, `di/RepositoryModule.kt` | B | Dữ liệu giả lập; Hilt `@Binds` để sau này thay bằng bản thật |
+| 7 | `data/repository/CityRepositoryImpl.kt`, `di/RepositoryModule.kt` | B | Từ M5 dùng dữ liệu thật (`GET /city`, cache Room); trước đó là `FakeCityRepository` — đúng như câu 12 dự đoán: chỉ đổi một dòng `@Binds` |
 | 8 | `presentation/city/compose/ComposeCityRenderer.kt` | B | Đường lui khi không dùng được WebView |
 | 9 | `app/build.gradle.kts` (task `syncCityWeb`) | C | Gradle chép `city-web/dist` vào assets |
 

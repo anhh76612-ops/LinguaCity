@@ -2,4 +2,11 @@
 <resources>
 
     <style name="Theme.LinguaCity" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <!-- M9 / FR-UI-01 (SCR-14): màn splash hệ thống, rồi chuyển sang Theme.LinguaCity khi app sẵn sàng -->
+    <style name="Theme.LinguaCity.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">#CFE8F3</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash</item>
+        <item name="postSplashScreenTheme">@style/Theme.LinguaCity</item>
+    </style>
 </resources>
