@@ -107,4 +107,11 @@ class CityBridgeJsonTest {
         val intent = CityBridgeJson.decodeIntent("""{"type":"Ready","version":2}""")
         assertTrue(intent is CityMapIntent.Ready)
     }
+
+    @Test
+    fun decodeIntent_playerArrived_S2() {
+        val intent = CityBridgeJson.decodeIntent("""{"type":"PlayerArrived","buildingCode":"SCHOOL"}""")
+        assertEquals(CityMapIntent.PlayerArrived(BuildingCode.SCHOOL), intent)
+        assertNull(CityBridgeJson.decodeIntent("""{"type":"PlayerArrived","buildingCode":"MOON"}"""))
+    }
 }

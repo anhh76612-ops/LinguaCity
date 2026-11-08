@@ -25,6 +25,12 @@ function groundAt(x: number, y: number, out: THREE.Vector3): THREE.Vector3 | nul
     return ray.ray.intersectPlane(ground, out);
 }
 
+/** S2: điểm trên mặt đất ngoài phố dưới điểm chạm (để nhân vật đi tới đó). */
+export function groundPoint(x: number, y: number): { x: number; z: number } | null {
+    const p = groundAt(x, y, new THREE.Vector3());
+    return p ? { x: p.x, z: p.z } : null;
+}
+
 /** Bắn tia từ điểm chạm vào danh sách vật thể, trả về vật gần nhất. */
 export function pick(x: number, y: number, objects: THREE.Object3D[]): THREE.Intersection | null {
     // camera của cảnh đang hiện (thành phố hoặc trong nhà)

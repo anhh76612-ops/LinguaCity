@@ -45,6 +45,9 @@ export class Director {
     private saved = { target: new THREE.Vector3(), zoom: 1 };
     private goal: CamGoal | null = null;
     private follow = false;
+    /** S2: đang đi bộ ngoài phố theo lệnh walkTo: camera trượt theo, không phóng to. */
+    private stroll = false;
+    private strollSeq = 0;
     private interiorShown = false;
 
     constructor(
@@ -72,6 +75,8 @@ export class Director {
         }
         this.mode = 'entering';
         this.building = code;
+        this.stroll = false;
+        this.strollSeq++;
         this.saved.target.copy(target);
         this.saved.zoom = camera.zoom;
         this.player.busy = true;
@@ -89,19 +94,7 @@ export class Director {
         } else {
             path.push({ x: gate[0], z: gate[1] });
         }
-        let len = 0;
-        for (
-            let i = 0,
-            px = this.player.x,
-            pz = this.player.z;
-            i < path.length;
-            px = path[i].x,
-            pz = path[i].z,
-            i++
-        ) {
-            len += Math.hypot(path[i].x - px, path[i].z - pz);
-        }
-        await this.player.walkTo(path, Math.max(WALK_SPEED, len / MAX_WALK_S));
+        await this.player.walkTo(path, this.speedFor(path));
         this.follow = false;
 
         const indoor = code === 'HOUSING' && this.city.levelOf('HOUSING') >= 1;
@@ -130,6 +123,45 @@ export class Director {
         this.mode = 'inside';
         this.emit({ type: 'BuildingEntered', buildingCode: code });
         return true;
+    }
+
+    /**
+     * S2: người chơi đi bộ ngoài phố tới cổng một công trình (nút "Đi tới") hoặc tới một điểm
+     * (chạm mặt đất). Camera trượt theo nhưng giữ độ phóng to. Lệnh mới thay lệnh đang chạy.
+     * Tới cổng công trình thì báo PlayerArrived để app mở thông tin công trình đó.
+     */
+    async walkTo(dest: BuildingCode | { x: number; z: number }): Promise<boolean> {
+        if (this.mode !== 'city') {
+            return false;
+        }
+        const seq = ++this.strollSeq;
+        const toNode = typeof dest === 'string' ? GATE[dest] : nearestNode(dest.x, dest.z);
+        const path = route(nearestNode(this.player.x, this.player.z), toNode)
+            .map((id) => ({ x: NODES[id][0], z: NODES[id][1] }));
+        this.player.busy = true;
+        this.stroll = true;
+        await this.player.walkTo(path, this.speedFor(path));
+        if (seq !== this.strollSeq || this.mode !== 'city') {
+            return false; // đã có lệnh khác thay thế
+        }
+        this.stroll = false;
+        this.player.busy = false;
+        if (typeof dest === 'string') {
+            this.player.act('wave', 1.2);
+            this.emit({ type: 'PlayerArrived', buildingCode: dest });
+        }
+        return true;
+    }
+
+    /** Tốc độ đi bộ: tối thiểu WALK_SPEED, đường xa thì nhanh hơn để không quá MAX_WALK_S giây. */
+    private speedFor(path: { x: number; z: number }[]): number {
+        let len = 0, px = this.player.x, pz = this.player.z;
+        for (const p of path) {
+            len += Math.hypot(p.x - px, p.z - pz);
+            px = p.x;
+            pz = p.z;
+        }
+        return Math.max(WALK_SPEED, len / MAX_WALK_S);
     }
 
     async exit(): Promise<boolean> {
@@ -180,6 +212,10 @@ export class Director {
     private update(dt: number): void {
         if (this.follow) {
             this.goal = { x: this.player.x, y: 0.8, z: this.player.z, zoom: FOLLOW_ZOOM, rate: 3 };
+        } else if (this.stroll) {
+            this.goal = {
+                x: this.player.x, y: target.y, z: this.player.z, zoom: camera.zoom, rate: 2.2
+            };
         }
         const g = this.goal;
         if (!g) {

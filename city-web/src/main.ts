@@ -5,13 +5,13 @@ CityState (dữ liệu) ──setState──▶ City (công trình) + Citizens (
      └──────────── ứng dụng chủ ◀──emit(intent)── chạm vào bản đồ ◀───────────────────┘
 
    Lệnh hoạt cảnh (M7): enterBuilding(code) / exitBuilding() → Director → BuildingEntered /
-   BuildingExited.
+   BuildingExited. S2: walkTo(code) → nhân vật đi bộ tới cổng → PlayerArrived.
    ?mode=avatar-preview: chỉ dựng nhân vật trên bệ xoay (preview.ts), không dựng thành phố. */
 import './style.css';
 import * as THREE from 'three';
 import { mount, renderer, scene } from './core/renderer';
 import { onUpdate, start } from './core/loop';
-import { pick, setupControls } from './core/controls';
+import { groundPoint, pick, setupControls } from './core/controls';
 import { City } from './world/city';
 import { Citizen, Citizens } from './people/citizens';
 import { Player } from './people/player';
@@ -109,6 +109,13 @@ function bootCity(): void {
             void director.exit();
             return true;
         },
+        walkTo(code: unknown): boolean {
+            if (!BUILDING_CODES.includes(code as BuildingCode) || director.mode !== 'city') {
+                return false;
+            }
+            void director.walkTo(code as BuildingCode);
+            return true;
+        },
     });
 
     /* ---------- Chạm ----------
@@ -146,6 +153,14 @@ function bootCity(): void {
         if (code) {
             city.poke(code);
             emit({ type: 'BuildingTapped', buildingCode: code });
+            // S2: nhân vật đi tới cổng công trình vừa chạm (thông tin đã mở ngay, không chờ)
+            void director.walkTo(code);
+            return;
+        }
+        // S2: chạm mặt đất → nhân vật đi tới chỗ đó
+        const spot = groundPoint(x, y);
+        if (spot) {
+            void director.walkTo(spot);
         }
     }, () => director.canPan());
 

@@ -1,33 +1,29 @@
 package com.project.linguacity.presentation.city
 
-import com.project.linguacity.domain.model.city.CityEvent
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -36,16 +32,17 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.project.linguacity.domain.model.city.BuildingCode
-import com.project.linguacity.domain.model.content.BuildingLevelInfo
+import com.project.linguacity.presentation.city.home.BuildingSheet
+import com.project.linguacity.presentation.city.home.DockAction
+import com.project.linguacity.presentation.city.home.DockTray
+import com.project.linguacity.presentation.city.home.EventLetter
+import com.project.linguacity.presentation.city.home.HomeDock
+import com.project.linguacity.presentation.city.home.HomeHud
+import com.project.linguacity.presentation.city.home.InteriorPanel
+import com.project.linguacity.presentation.city.home.QuestPanel
+import com.project.linguacity.presentation.city.home.QuestTarget
 import com.project.linguacity.presentation.city.web.WebCityRenderer
-import com.project.linguacity.presentation.menu.FloatingMenu
-import com.project.linguacity.presentation.menu.MenuEntry
-import com.project.linguacity.ui.loading.DestinationLoading
-import com.project.linguacity.ui.loading.LoadingKind
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.size
+import com.project.linguacity.presentation.quest.QuestsViewModel
 import com.project.linguacity.presentation.tutorial.LocalSpotlight
 import com.project.linguacity.presentation.tutorial.SecretaryOverlay
 import com.project.linguacity.presentation.tutorial.SpotKeys
@@ -53,14 +50,23 @@ import com.project.linguacity.presentation.tutorial.TutorialNav
 import com.project.linguacity.presentation.tutorial.TutorialViewModel
 import com.project.linguacity.presentation.tutorial.rememberSpotlightRegistry
 import com.project.linguacity.presentation.tutorial.spotlightTarget
-import androidx.compose.runtime.CompositionLocalProvider
+import com.project.linguacity.ui.icons.LinguaIcons
+import com.project.linguacity.ui.loading.DestinationLoading
+import com.project.linguacity.ui.loading.LoadingKind
+import kotlinx.coroutines.launch
 
 /**
- * SCR-04 City View. Bản đồ chiếm toàn màn hình; UI Compose (HUD, menu nổi, thẻ công trình, bảng
- * trong nhà, snackbar)
- * nằm đè lên trên. Muốn dùng bản dự phòng: truyền renderer = ComposeCityRenderer.
+ * SCR-04 City View (S2: Home "Cozy Toy Town"). Bản đồ chiếm toàn màn hình; UI Compose nằm đè lên:
+ *
+ *   ┌ HUD: avatar + sao cấp + chuỗi ngày ─────────── ví (KP, ⏳, mảnh) + ⚙ ┐
+ *   │ Bảng "Việc hôm nay" (trái, thu gọn được)                               │
+ *   │                         bản đồ + nhân vật                              │
+ *   │ [thẻ công trình 3 nấc / lá thư sự kiện / bảng trong nhà]               │
+ *   └ 📬 Bưu điện ─────────────────────────────────────── 🧰 Xưởng  🏗 Xây ┘
+ *
+ * Chạm công trình hoặc bấm "Đi tới": nhân vật đi bộ tới cổng (city-web), thẻ công trình mở.
+ * Muốn dùng bản dự phòng: truyền renderer = ComposeCityRenderer.
  */
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun CityScreen(
     onOpenVocabulary: (BuildingCode, Int) -> Unit = { _, _ -> },
@@ -78,12 +84,16 @@ fun CityScreen(
     onOpenCustomize: (houseTab: Boolean) -> Unit = {},
     renderer: CityRenderer = WebCityRenderer,
     viewModel: CityViewModel = hiltViewModel(),
-    tutorial: TutorialViewModel = hiltViewModel()
+    tutorial: TutorialViewModel = hiltViewModel(),
+    quests: QuestsViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
     val guide by tutorial.state.collectAsState()
+    val questState by quests.state.collectAsState()
     val snackbar = remember { SnackbarHostState() }
     val spotlight = rememberSpotlightRegistry()
+    val scope = rememberCoroutineScope()
+    var tray by rememberSaveable { mutableStateOf<DockTray?>(null) }
 
     // Tutorial thư ký (ADR-014): điều hướng theo nút của Mai; tự mở thẻ House khi Mai cần chỉ vào
     // nút Học/Xây.
@@ -107,13 +117,14 @@ fun CityScreen(
         }
     }
 
-    // Mỗi lần màn City quay lại foreground: tải lại thành phố + kiểm tra gói nội dung mới (ADR-012,
-    // kiểu pull).
+    // Mỗi lần màn City quay lại foreground: tải lại thành phố, nhiệm vụ + kiểm tra gói nội dung mới
+    // (ADR-012, kiểu pull).
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_START) {
                 viewModel.onIntent(CityIntent.AppForeground)
+                quests.load()
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -126,8 +137,25 @@ fun CityScreen(
             viewModel.onIntent(CityIntent.MessageShown)
         }
     }
+    LaunchedEffect(questState.message) {
+        questState.message?.let {
+            snackbar.showSnackbar(it)
+            quests.messageShown()
+        }
+    }
 
     val render = state.render // dữ liệu để vẽ (hợp đồng B), tính lại mỗi lần state đổi
+    val outside = state.focus == null && state.inside == null
+    val soon: () -> Unit = { scope.launch { snackbar.showSnackbar("Tính năng này sắp ra mắt.") } }
+    val goTo: (QuestTarget) -> Unit = { target ->
+        tray = null
+        when (target) {
+            is QuestTarget.Building -> viewModel.onIntent(CityIntent.WalkTo(target.code))
+            is QuestTarget.Event ->
+                viewModel.onIntent(CityIntent.Map(CityMapIntent.CityEventTapped(target.eventId)))
+            QuestTarget.Practice -> onOpenPractice()
+        }
+    }
 
     CompositionLocalProvider(LocalSpotlight provides spotlight) {
     Box(Modifier.fillMaxSize()) {
@@ -137,8 +165,7 @@ fun CityScreen(
             modifier = Modifier.fillMaxSize()
         )
 
-        // SCR-15: bản đồ cần vài giây cho khung hình đầu → loading "Mai đang dựng thành phố" thay
-        // vòng xoay
+        // SCR-15: bản đồ cần vài giây cho khung hình đầu → loading "Mai đang dựng thành phố"
         if (!state.mapReady) {
             DestinationLoading(
                 LoadingKind.CITY,
@@ -146,68 +173,51 @@ fun CityScreen(
             )
         }
 
-        // M7: phím Back khi đang ở trong công trình = "Ra ngoài" (chưa vào xong thì nuốt phím, chờ
-        // hoạt cảnh)
+        // M7: phím Back khi đang ở trong công trình = "Ra ngoài" (chưa vào xong thì nuốt phím)
         BackHandler(enabled = state.focus != null || state.inside != null) {
             viewModel.onIntent(CityIntent.ExitBuilding)
         }
+        // Back khi đang mở ngăn dock: đóng ngăn trước
+        BackHandler(enabled = tray != null && outside) { tray = null }
 
-        // SCR-13 HUD: tài nguyên + danh hiệu đang đeo (chạm danh hiệu để mở bộ sưu tập).
-        FlowRow(
-            Modifier.align(Alignment.TopStart).statusBarsPadding().padding(12.dp).fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        Column(
+            Modifier.align(Alignment.TopStart).fillMaxWidth().statusBarsPadding().padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            val profile = state.profile
-            AssistChip(onClick = onOpenQuests, label = { Text("🔥 ${state.city.streakDays}") })
-            AssistChip(onClick = onOpenProfile, label = {
-                Text("💡 ${profile?.knowledgePoints ?: 0} KP")
-            },
-                modifier = Modifier.spotlightTarget(SpotKeys.KP))
-            AssistChip(
-                onClick = onOpenProfile,
-                label = { Text("⏳ ${profile?.hourglassCount ?: 0}") }
+            HomeHud(
+                profile = state.profile,
+                avatar = state.avatar,
+                // tạm: tổng level công trình, thay bằng Town Level thật ở ADR-017
+                townLevel = state.city.buildings.sumOf { it.level }.coerceAtLeast(1),
+                streakDays = state.city.streakDays,
+                titleName = state.equippedTitleName,
+                onOpenProfile = onOpenProfile,
+                onOpenQuests = onOpenQuests,
+                onOpenAchievements = onOpenAchievements,
+                onOpenSettings = onOpenSettings
             )
-            AssistChip(
-                onClick = onOpenProfile,
-                label = { Text("🧩 ${profile?.blueprintShards ?: 0}") }
-            )
-            state.equippedTitleName?.let {
-                AssistChip(onClick = onOpenAchievements, label = { Text("🏅 $it") })
+            if (outside) {
+                QuestPanel(
+                    quests = questState,
+                    city = state.city,
+                    onGo = goTo,
+                    onClaim = quests::claim,
+                    onOpenAll = onOpenQuests
+                )
             }
         }
 
         Column(
             modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().navigationBarsPadding()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+                .padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            // SCR-22 Menu nổi: Thẻ từ / Danh hiệu / Tuỳ biến (M8) / Hồ sơ / Cài đặt. Ẩn khi đang
-            // vào/ở trong nhà (M7).
-            if (state.focus == null) {
-                FloatingMenu(
-                    entries = listOf(
-                        MenuEntry("vocab", "📖", "Thẻ từ") {
-                            val house = state.city.building(BuildingCode.HOUSING)
-                            onOpenVocabulary(BuildingCode.HOUSING, maxOf(1, house?.level ?: 1))
-                        },
-                        MenuEntry("titles", "🏅", "Danh hiệu", onOpenAchievements),
-                        MenuEntry("customize", "🎨", "Tuỳ biến") { onOpenCustomize(false) },
-                        MenuEntry("profile", "👤", "Hồ sơ", onOpenProfile),
-                        MenuEntry("quests", "📜", "Nhiệm vụ", onOpenQuests),
-                        MenuEntry("practice", "🎯", "Luyện tập", onOpenPractice),
-                        MenuEntry("settings", "⚙️", "Cài đặt", onOpenSettings)
-                    ),
-                    modifier = Modifier.align(Alignment.End).size(width = 250.dp, height = 240.dp),
-                    fabModifier = Modifier.spotlightTarget(SpotKeys.MENU)
-                )
-            }
             SnackbarHost(snackbar)
-            // M7: đang ở trong nhà → bảng nhiệm vụ trong nhà thay cho thẻ công trình
+            // M7: đang ở trong nhà → bảng trong nhà thay cho thẻ công trình
             state.inside?.let { code ->
                 if (state.focus == code) {
                     val vocabularyLevel = maxOf(1, render.building(code)?.level ?: 1)
                     InteriorPanel(
-                        code = code,
                         onLearn = { onStartLesson(code) },
                         onVocabulary = { onOpenVocabulary(code, vocabularyLevel) },
                         onDecorate = { onOpenCustomize(true) },
@@ -215,25 +225,26 @@ fun CityScreen(
                     )
                 }
             }
-            state.selected?.takeIf { state.focus == null }?.let { code -> render.building(code) }
-                ?.let { building ->
-                val learnLevel = minOf(3, building.level + 1)
-                BuildingCard(
-                    building = building,
-                    next = state.nextLevelInfo(building.code, building.level),
-                    collected = state.collectionOf(building.code, learnLevel),
-                    busy = state.building,
-                    onBuild = { viewModel.onIntent(CityIntent.BuildSelected) },
-                    onEnter = { viewModel.onIntent(CityIntent.EnterSelected) },
-                    onLearn = { onStartLesson(building.code) },
-                    onVocabulary = { onOpenVocabulary(building.code, maxOf(1, building.level)) },
-                    onClose = { viewModel.onIntent(CityIntent.DismissSelection) },
-                    hasBlueprint = state.city.hasBlueprintFor(building.code, building.level + 1),
-                    onExam = { onOpenExam(building.code) }
-                )
-            }
-            state.selectedEvent?.takeIf { state.focus == null }?.let { event ->
-                EventCard(
+            val selected = state.selected?.takeIf { state.focus == null }?.let { render.building(it) }
+            val event = state.selectedEvent?.takeIf { state.focus == null }
+            when {
+                selected != null -> {
+                    val learnLevel = minOf(3, selected.level + 1)
+                    BuildingSheet(
+                        building = selected,
+                        next = state.nextLevelInfo(selected.code, selected.level),
+                        collected = state.collectionOf(selected.code, learnLevel),
+                        busy = state.building,
+                        hasBlueprint = state.city.hasBlueprintFor(selected.code, selected.level + 1),
+                        onBuild = { viewModel.onIntent(CityIntent.BuildSelected) },
+                        onEnter = { viewModel.onIntent(CityIntent.EnterSelected) },
+                        onLearn = { onStartLesson(selected.code) },
+                        onVocabulary = { onOpenVocabulary(selected.code, maxOf(1, selected.level)) },
+                        onExam = { onOpenExam(selected.code) },
+                        onClose = { viewModel.onIntent(CityIntent.DismissSelection) }
+                    )
+                }
+                event != null -> EventLetter(
                     event = event,
                     onHelp = {
                         viewModel.onIntent(CityIntent.DismissEvent)
@@ -241,205 +252,41 @@ fun CityScreen(
                     },
                     onClose = { viewModel.onIntent(CityIntent.DismissEvent) }
                 )
+                outside -> HomeDock(
+                    open = tray,
+                    onToggle = { t -> tray = if (tray == t) null else t },
+                    mailActions = listOf(
+                        DockAction("Nhiệm vụ", LinguaIcons.Quest) { tray = null; onOpenQuests() },
+                        DockAction("Danh hiệu", LinguaIcons.Star) { tray = null; onOpenAchievements() },
+                        DockAction("Hồ sơ", LinguaIcons.Ledger) { tray = null; onOpenProfile() },
+                        DockAction("Bạn bè", LinguaIcons.Mail, enabled = false, onClick = soon)
+                    ),
+                    workshopActions = listOf(
+                        DockAction("Thẻ từ", LinguaIcons.BookOpen) {
+                            tray = null
+                            val house = state.city.building(BuildingCode.HOUSING)
+                            onOpenVocabulary(BuildingCode.HOUSING, maxOf(1, house?.level ?: 1))
+                        },
+                        DockAction("Luyện tập", LinguaIcons.Target) { tray = null; onOpenPractice() },
+                        DockAction("Tuỳ biến", LinguaIcons.Settings) {
+                            tray = null
+                            onOpenCustomize(false)
+                        }
+                    ),
+                    buildings = render.buildings,
+                    onGoBuilding = { code ->
+                        tray = null
+                        viewModel.onIntent(CityIntent.WalkTo(code))
+                    },
+                    mailBadge = questState.overview?.let { o ->
+                        (o.daily + o.main + listOfNotNull(o.dailyBonus)).count { it.claimable }
+                    } ?: 0,
+                    dockModifier = Modifier.spotlightTarget(SpotKeys.MENU)
+                )
             }
         }
 
         SecretaryOverlay(guide, onNext = tutorial::next, onAct = tutorial::act)
     }
     }
-}
-
-@Composable
-private fun BuildingCard(
-    building: BuildingView,
-    next: BuildingLevelInfo?,
-    collected: Pair<Int, Int>,
-    busy: Boolean,
-    onBuild: () -> Unit,
-    onEnter: () -> Unit,
-    onLearn: () -> Unit,
-    onVocabulary: () -> Unit,
-    onClose: () -> Unit,
-    hasBlueprint: Boolean = false,
-    onExam: () -> Unit = {}
-) {
-    Card(Modifier.fillMaxWidth().spotlightTarget(SpotKeys.CARD)) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            val levelText = if (building.isBuilt) "Lv ${building.level}" else "Chưa xây"
-            Text(
-                "${building.code.icon} ${building.code.displayName} · $levelText",
-                style = MaterialTheme.typography.titleMedium
-            )
-            BuildingStatus(building)
-            NextLevelInfo(building, next, collected)
-            BuildingActions(building, busy, onBuild, onEnter, onLearn, onVocabulary, onClose)
-            UpgradeActions(building, busy, hasBlueprint, onBuild, onExam)
-        }
-    }
-}
-
-/** Trạng thái hiện tại: đang xây (kèm %), đã tối đa, hay còn là lô đất trống. */
-@Composable
-private fun BuildingStatus(building: BuildingView) {
-    when {
-        building.upgrading && building.progress >= 1f -> {
-            Text("Sắp xong — đang chờ máy chủ xác nhận…")
-        }
-        building.upgrading -> {
-            Text("Đang xây… ${(building.progress * 100).toInt()}%")
-            LinearProgressIndicator(
-                progress = { building.progress },
-                modifier = Modifier.fillMaxWidth()
-            )
-        }
-        building.isMaxLevel -> Text("Đã đạt level tối đa")
-        !building.isBuilt -> Text("Lô đất trống: học từ của công trình này để xây")
-    }
-}
-
-/** Bộ sưu tầm của level kế và điều kiện lên level (đọc từ Room: building_levels, gói CORE). */
-@Composable
-private fun NextLevelInfo(
-    building: BuildingView,
-    next: BuildingLevelInfo?,
-    collected: Pair<Int, Int>
-) {
-    if (collected.second > 0 && !building.isMaxLevel) {
-        val nextLevel = minOf(3, building.level + 1)
-        Text(
-            "Bộ sưu tầm Level $nextLevel: ${collected.first}/${collected.second} thẻ",
-            style = MaterialTheme.typography.bodySmall
-        )
-    }
-    if (next == null || building.upgrading) {
-        return
-    }
-    val wordsNeeded = if (next.requiredCollected > 0) {
-        " · cần ${next.requiredCollected} từ"
-    } else {
-        ""
-    }
-    Text(
-        "Lên Lv ${next.level}: ${next.knowledgeCost} KP · " +
-            formatDuration(next.constructionTimeSeconds) + wordsNeeded,
-        style = MaterialTheme.typography.bodySmall
-    )
-}
-
-/**
- * Lv ≥ 1: có bản vẽ thì "Nâng cấp" (tốn bản vẽ + mảnh + KP), chưa có thì "Thi lên Lv…"
- * (SCR-10, ADR-015 §2–3).
- */
-@Composable
-private fun UpgradeActions(
-    building: BuildingView,
-    busy: Boolean,
-    hasBlueprint: Boolean,
-    onUpgrade: () -> Unit,
-    onExam: () -> Unit
-) {
-    if (!building.isBuilt || building.isMaxLevel || building.upgrading) {
-        return
-    }
-    val nextLevel = building.level + 1
-    if (hasBlueprint) {
-        FilledTonalButton(onClick = onUpgrade, enabled = !busy) {
-            Text("📐 Nâng cấp lên Lv $nextLevel")
-        }
-    } else {
-        TextButton(onClick = onExam) { Text("📝 Thi lên Lv $nextLevel") }
-    }
-}
-
-/** SCR-25: cư dân nhờ việc — "Giúp" mở phiên đố 5 câu (ADR-015 §5). */
-@Composable
-private fun EventCard(event: CityEvent, onHelp: () -> Unit, onClose: () -> Unit) {
-    Card(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text("❗ ${event.residentName}", style = MaterialTheme.typography.titleMedium)
-            Text(event.situation, style = MaterialTheme.typography.bodyMedium)
-            Text("Thưởng: +1 🧩 mảnh bản vẽ, +15 KP", style = MaterialTheme.typography.bodySmall)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(onClick = onHelp) { Text("Giúp") }
-                TextButton(onClick = onClose) { Text("Để sau") }
-            }
-        }
-    }
-}
-
-@Composable
-private fun BuildingActions(
-    building: BuildingView,
-    busy: Boolean,
-    onBuild: () -> Unit,
-    onEnter: () -> Unit,
-    onLearn: () -> Unit,
-    onVocabulary: () -> Unit,
-    onClose: () -> Unit
-) {
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        // M7: Housing đã xây thì vào được bên trong (nội thất 3D)
-        if (building.code == BuildingCode.HOUSING && building.isBuilt) {
-            Button(onClick = onEnter) { Text("Vào nhà") }
-        }
-        Button(
-            onClick = onLearn,
-            enabled = !building.isMaxLevel,
-            modifier = Modifier.spotlightTarget(SpotKeys.LEARN)
-        ) {
-            Text("Học")
-        }
-        if (!building.isBuilt) {
-            FilledTonalButton(
-                onClick = onBuild,
-                enabled = !building.upgrading && !busy,
-                modifier = Modifier.spotlightTarget(SpotKeys.BUILD)
-            ) {
-                Text("Xây")
-            }
-        }
-        TextButton(onClick = onVocabulary, modifier = Modifier.spotlightTarget(SpotKeys.VOCAB)) {
-            Text("Thẻ từ")
-        }
-        TextButton(onClick = onClose) { Text("Đóng") }
-    }
-}
-
-/**
- * M7: bảng nhiệm vụ khi đang ở trong nhà (UC_15 bước 2). Nút Trang trí (M8) mở tab Nhà của màn Tuỳ
- * biến.
- */
-@Composable
-private fun InteriorPanel(
-    code: BuildingCode,
-    onLearn: () -> Unit,
-    onVocabulary: () -> Unit,
-    onDecorate: () -> Unit,
-    onExit: () -> Unit
-) {
-    Card(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text("${code.icon} Nhà của bạn", style = MaterialTheme.typography.titleMedium)
-            Text("Chạm sàn để đi lại trong nhà.", style = MaterialTheme.typography.bodySmall)
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Button(onClick = onLearn) { Text("Học") }
-                TextButton(onClick = onVocabulary) { Text("Thẻ từ") }
-                TextButton(onClick = onDecorate) { Text("Trang trí") }
-                Box(Modifier.weight(1f))
-                FilledTonalButton(onClick = onExit) { Text("Ra ngoài") }
-            }
-        }
-    }
-}
-
-private fun formatDuration(seconds: Long): String = when {
-    seconds < 60 -> "$seconds giây"
-    seconds < 3600 -> "${seconds / 60} phút"
-    else -> "${seconds / 3600} giờ"
 }

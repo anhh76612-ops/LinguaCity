@@ -70,13 +70,15 @@ export interface CityState {
 
 /** Ý định của người chơi gửi ngược về ứng dụng chủ. Bản đồ không tự xử lý nghiệp vụ.
  *  BuildingEntered / BuildingExited (M7): phát khi hoạt cảnh enterBuilding() /
- *  exitBuilding() chạy xong. */
+ *  exitBuilding() chạy xong. PlayerArrived (S2): phát khi lệnh walkTo(code) đi tới nơi. */
 export type CityIntent =
     | { type: 'Ready' }
     | { type: 'BuildingTapped'; buildingCode: BuildingCode }
     | { type: 'CityEventTapped'; eventId: string }
     | { type: 'BuildingEntered'; buildingCode: BuildingCode }
-    | { type: 'BuildingExited'; buildingCode: BuildingCode };
+    | { type: 'BuildingExited'; buildingCode: BuildingCode }
+    /** S2: nhân vật đã đi bộ tới cổng công trình sau lệnh walkTo(code). */
+    | { type: 'PlayerArrived'; buildingCode: BuildingCode };
 
 /** Dữ liệu giả lập để chạy riêng trên trình duyệt. */
 export const MOCK_STATE: CityState = {

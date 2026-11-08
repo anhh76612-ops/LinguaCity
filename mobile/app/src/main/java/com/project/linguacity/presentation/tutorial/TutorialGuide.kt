@@ -129,8 +129,8 @@ object TutorialGuide {
                     SpotKeys.KP
                 ),
                 GuideLine(
-                    "Còn đây là menu: Thẻ từ, Danh hiệu, Hồ sơ và Cài đặt. Danh hiệu có loại dễ, " +
-                    "loại khó, và cả… loại ẩn nữa đó!",
+                    "Dưới cùng là Bưu điện (nhiệm vụ, danh hiệu, hồ sơ) và Xưởng (thẻ từ, luyện " +
+                    "tập). Bảng bên trái ghi việc hôm nay, bấm Đi tới là mình dẫn bạn tới nơi!",
                     MaiMood.SURPRISED,
                     SpotKeys.MENU
                 ),

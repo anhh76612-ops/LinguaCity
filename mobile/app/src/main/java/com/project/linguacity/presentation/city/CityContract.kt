@@ -35,7 +35,9 @@ data class CityUiState(
     val avatar: AvatarLook = AvatarLook.DEFAULT,
     val house: HouseLook = HouseLook.DEFAULT,
     /** Sự kiện "!" người chơi vừa chạm: hiện thẻ cư dân (SCR-25, ADR-015 §5). */
-    val selectedEvent: CityEvent? = null
+    val selectedEvent: CityEvent? = null,
+    /** S2: lệnh "Đi tới" đang chờ nhân vật tới nơi; tới nơi thì mở thông tin công trình đó. */
+    val walk: WalkRequest? = null
 ) {
     /** Đang chạy hoạt cảnh vào/ra: khoá các nút để không gửi lệnh chồng lên nhau. */
     val transitioning: Boolean get() = focus != inside
@@ -50,7 +52,7 @@ data class CityUiState(
 
     /** Dữ liệu để vẽ (hợp đồng B), tính từ [city] theo giờ server ước lượng. */
     val render: CityRenderState
-        get() = city.toRenderState(city.serverNow(deviceNowMillis), avatar, house, focus)
+        get() = city.toRenderState(city.serverNow(deviceNowMillis), avatar, house, focus, walk)
 }
 
 /** Mọi hành động đi vào ViewModel: từ bản đồ hoặc từ UI Compose. */
@@ -70,4 +72,6 @@ sealed interface CityIntent {
     data object ExitBuilding : CityIntent
     /** Đóng thẻ sự kiện mà không giải. */
     data object DismissEvent : CityIntent
+    /** S2: nhân vật đi bộ tới [code] (nút "Đi tới" của bảng nhiệm vụ / danh mục 🏗). */
+    data class WalkTo(val code: BuildingCode) : CityIntent
 }

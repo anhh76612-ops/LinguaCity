@@ -112,6 +112,15 @@ class CityViewModel @Inject constructor(
             is CityIntent.Map -> onMapIntent(intent.intent)
             CityIntent.DismissSelection -> _state.update { it.copy(selected = null) }
             CityIntent.DismissEvent -> _state.update { it.copy(selectedEvent = null) }
+            is CityIntent.WalkTo -> _state.update {
+                // đang ở trong nhà / đang hoạt cảnh thì không đi; đóng thẻ cũ, tới nơi mới mở thẻ
+                if (it.focus != null || it.inside != null) it
+                else it.copy(
+                    walk = WalkRequest(intent.code, (it.walk?.id ?: 0L) + 1),
+                    selected = null,
+                    selectedEvent = null
+                )
+            }
             CityIntent.BuildSelected -> buildSelected()
             CityIntent.MessageShown -> _state.update { it.copy(message = null) }
             CityIntent.EnterSelected -> _state.update {
@@ -139,7 +148,15 @@ class CityViewModel @Inject constructor(
                 it.copy(mapReady = true, focus = null, inside = null)
             }
             is CityMapIntent.BuildingTapped -> _state.update {
-                if (it.focus != null) it else it.copy(selected = intent.code)
+                // chạm công trình: bản đồ tự cho nhân vật đi tới, thẻ mở ngay; huỷ lệnh "Đi tới" cũ
+                if (it.focus != null) it else it.copy(selected = intent.code, walk = null)
+            }
+            is CityMapIntent.PlayerArrived -> _state.update {
+                if (it.focus == null && it.walk?.code == intent.code) {
+                    it.copy(selected = intent.code, walk = null)
+                } else {
+                    it
+                }
             }
             is CityMapIntent.BuildingEntered -> _state.update {
                 if (it.focus == intent.code) it.copy(inside = intent.code, selected = null) else it

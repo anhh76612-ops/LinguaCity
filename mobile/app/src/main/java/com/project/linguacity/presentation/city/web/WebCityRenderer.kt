@@ -59,6 +59,8 @@ object WebCityRenderer : CityRenderer {
         var mapReady by remember { mutableStateOf(false) }
         // Lệnh vào/ra công trình đã gửi gần nhất (M7). Bản đồ tải lại (Ready lần nữa) thì về null.
         val sentFocus = remember { arrayOfNulls<BuildingCode>(1) }
+        // S2: id của lệnh "Đi tới" đã gửi gần nhất.
+        val sentWalk = remember { longArrayOf(0L) }
         val stateJson = remember(state) { CityBridgeJson.encodeState(state) }
 
         AndroidView(
@@ -83,6 +85,13 @@ object WebCityRenderer : CityRenderer {
                     if (state.focus != sentFocus[0]) {
                         webView.sendFocus(state.focus)
                         sentFocus[0] = state.focus
+                    }
+                    state.walk?.takeIf { it.id != sentWalk[0] }?.let { walk ->
+                        webView.evaluateJavascript(
+                            "window.LinguaCity && LinguaCity.walkTo(${JSONObject.quote(walk.code.name)})",
+                            null
+                        )
+                        sentWalk[0] = walk.id
                     }
                 }
             },

@@ -21,10 +21,18 @@ data class CityRenderState(
      * renderer so với lần trước rồi gọi lệnh enterBuilding(code) / exitBuilding() của bản đồ,
      * bản đồ chạy hoạt cảnh xong thì báo lại BuildingEntered / BuildingExited.
      */
-    val focus: BuildingCode? = null
+    val focus: BuildingCode? = null,
+    /**
+     * S2: lệnh "đi bộ tới công trình" mới nhất (nút "Đi tới"). Như [focus], KHÔNG nằm trong JSON:
+     * renderer thấy [WalkRequest.id] đổi thì gọi walkTo(code) của bản đồ một lần.
+     */
+    val walk: WalkRequest? = null
 ) {
     fun building(code: BuildingCode): BuildingView? = buildings.firstOrNull { it.code == code }
 }
+
+/** Lệnh đi bộ; [id] tăng mỗi lần bấm để bấm lại cùng công trình vẫn gửi lệnh mới. */
+data class WalkRequest(val code: BuildingCode, val id: Long)
 
 data class BuildingView(
     val code: BuildingCode,
@@ -41,7 +49,8 @@ fun CityState.toRenderState(
     serverNowMillis: Long,
     avatar: AvatarLook = AvatarLook.DEFAULT,
     house: HouseLook = HouseLook.DEFAULT,
-    focus: BuildingCode? = null
+    focus: BuildingCode? = null,
+    walk: WalkRequest? = null
 ): CityRenderState = CityRenderState(
     buildings = buildings.map {
         BuildingView(
@@ -54,5 +63,6 @@ fun CityState.toRenderState(
     events = events,
     avatar = avatar,
     house = house,
-    focus = focus
+    focus = focus,
+    walk = walk
 )
