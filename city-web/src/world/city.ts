@@ -17,7 +17,7 @@ import { buildStreets, buildTransport, type PedestrianProvider } from './buildin
 import { buildConstruction } from './construction';
 import { buildEmptyLot } from './buildings/emptyLot';
 
-const BUILDERS: Record<BuildingCode, (level: number) => Built> = {
+const BUILDERS: Record<BuildingCode, (level: number, wall?: string) => Built> = {
   HOUSING: buildHousing,
   SCHOOL: buildSchool,
   PARK: buildPark,
@@ -42,6 +42,7 @@ export class City {
   readonly pickables: THREE.Object3D[] = [];
   private streets?: Built;
   private streetLevel = -1; // -1 = chưa dựng (level 0 là giá trị hợp lệ: đường đất)
+  private houseWall?: string; // màu tường nhà người chơi (houseStyle.wall)
 
   constructor(private pedestrians: PedestrianProvider) {
     scene.add(buildGround(), buildTrees(), buildLamps());
@@ -65,11 +66,15 @@ export class City {
   /** Áp trạng thái mới. Chỉ dựng lại lô nào có level/upgrading thay đổi. */
   apply(state: CityState): void {
     let changed = false;
+    const wall = state.houseStyle?.wall;
+    const wallChanged = wall !== this.houseWall;
+    this.houseWall = wall;
     for (const b of state.buildings) {
       const lot = this.lots.get(b.code);
       if (!lot) continue;
       const prev = lot.state;
-      if (!prev || prev.level !== b.level) { this.rebuild(lot, b.level); changed = true; }
+      const restyle = b.code === 'HOUSING' && wallChanged && !!prev;
+      if (!prev || prev.level !== b.level || restyle) { this.rebuild(lot, b.level); changed = true; }
       if (!prev || !!prev.upgrading !== !!b.upgrading || (b.upgrading && prev.level !== b.level)) { this.setSite(lot, b); changed = true; }
       if (b.code === 'ROAD' && b.level !== this.streetLevel) { this.rebuildStreets(b.level); changed = true; }
       lot.state = { ...b };
@@ -85,6 +90,11 @@ export class City {
     return { x: lot.holder.position.x + d.x, z: lot.holder.position.z + d.z };
   }
 
+  /** Level hiện tại của công trình (0 = chưa xây). */
+  levelOf(code: BuildingCode): number {
+    return this.lots.get(code)?.state?.level ?? 1;
+  }
+
   /** Hiệu ứng khi người chơi chạm vào công trình. */
   poke(code: BuildingCode): void {
     const lot = this.lots.get(code);
@@ -93,7 +103,7 @@ export class City {
 
   private rebuild(lot: Lot, level: number): void {
     if (lot.built) disposeGroup(lot.built.group);
-    lot.built = level === 0 ? buildEmptyLot() : BUILDERS[lot.code](level);
+    lot.built = level === 0 ? buildEmptyLot() : BUILDERS[lot.code](level, lot.code === 'HOUSING' ? this.houseWall : undefined);
     lot.holder.add(lot.built.group);
     // đặt nhãn cao hơn đỉnh mô hình một chút
     const top = new THREE.Box3().setFromObject(lot.built.group).max.y - lot.holder.position.y;

@@ -11,7 +11,16 @@ import com.project.linguacity.domain.model.city.CityState
  */
 data class CityRenderState(
     val buildings: List<BuildingView>,
-    val events: List<CityEvent>
+    val events: List<CityEvent>,
+    /** M7: ngoại hình nhân vật + kiểu nhà (trường tuỳ chọn của v1). */
+    val avatar: AvatarLook = AvatarLook.DEFAULT,
+    val house: HouseLook = HouseLook.DEFAULT,
+    /**
+     * M7: công trình app muốn "đang ở trong" (null = ngoài phố). KHÔNG nằm trong JSON state:
+     * renderer so với lần trước rồi gọi lệnh enterBuilding(code) / exitBuilding() của bản đồ,
+     * bản đồ chạy hoạt cảnh xong thì báo lại BuildingEntered / BuildingExited.
+     */
+    val focus: BuildingCode? = null
 ) {
     fun building(code: BuildingCode): BuildingView? = buildings.firstOrNull { it.code == code }
 }
@@ -27,7 +36,12 @@ data class BuildingView(
 }
 
 /** Lớp dịch (A) → (B): nơi DUY NHẤT tính tiến độ từ startedAt/finishAt. */
-fun CityState.toRenderState(serverNowMillis: Long): CityRenderState = CityRenderState(
+fun CityState.toRenderState(
+    serverNowMillis: Long,
+    avatar: AvatarLook = AvatarLook.DEFAULT,
+    house: HouseLook = HouseLook.DEFAULT,
+    focus: BuildingCode? = null
+): CityRenderState = CityRenderState(
     buildings = buildings.map {
         BuildingView(
             code = it.code,
@@ -36,5 +50,8 @@ fun CityState.toRenderState(serverNowMillis: Long): CityRenderState = CityRender
             progress = it.progressAt(serverNowMillis)
         )
     },
-    events = events
+    events = events,
+    avatar = avatar,
+    house = house,
+    focus = focus
 )

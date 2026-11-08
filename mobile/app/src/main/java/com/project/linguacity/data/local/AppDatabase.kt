@@ -20,6 +20,8 @@ import com.project.linguacity.data.local.content.QuestionVocabularyEntity
 import com.project.linguacity.data.local.content.ThemeEntity
 import com.project.linguacity.data.local.content.VocabularyEntity
 import com.project.linguacity.data.local.player.AchievementEntity
+import com.project.linguacity.data.local.player.CosmeticItemEntity
+import com.project.linguacity.data.local.player.UnlockedCosmeticEntity
 import com.project.linguacity.data.local.player.PlayerDao
 import com.project.linguacity.data.local.player.UserAchievementEntity
 import com.project.linguacity.data.local.player.UserBuildingEntity
@@ -32,6 +34,7 @@ import com.project.linguacity.data.local.user.UserProfileEntity
  * v2 → v3: thêm 12 bảng nội dung tĩnh (VS2). Chỉ thêm bảng mới nên dùng AutoMigration:
  *          Room so sánh schemas/…/2.json với 3.json và tự sinh các câu CREATE TABLE.
  * v3 → v4: Player State (VS3): tiến độ từ, công trình, danh hiệu + 2 cột hồ sơ (có DEFAULT) → vẫn AutoMigration.
+ * v4 → v5: Tuỳ biến (M8): 2 bảng mới + 2 cột hồ sơ cho phép NULL → AutoMigration.
  */
 @Database(
     entities = [
@@ -51,11 +54,13 @@ import com.project.linguacity.data.local.user.UserProfileEntity
         UserVocabProgressEntity::class,
         UserBuildingEntity::class,
         AchievementEntity::class,
-        UserAchievementEntity::class
+        UserAchievementEntity::class,
+        CosmeticItemEntity::class,
+        UnlockedCosmeticEntity::class
     ],
-    version = 4,
+    version = 5,
     exportSchema = true,
-    autoMigrations = [AutoMigration(from = 2, to = 3), AutoMigration(from = 3, to = 4)]
+    autoMigrations = [AutoMigration(from = 2, to = 3), AutoMigration(from = 3, to = 4), AutoMigration(from = 4, to = 5)]
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {

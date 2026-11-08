@@ -14,7 +14,7 @@
 | SCR-02 | Tutorial | Compose overlay trên City (thư ký Mai, ADR-014) | UC_02 | Tutorial | ✅ thay bản 3 trang (M6); bước ENTER_HOUSE/CUSTOMIZE giữ chỗ cho M7/M8 |
 | SCR-03 | Đồng bộ nội dung (Content Sync) | Compose (tiến trình theo gói, Thử lại) | UC_03 | VS2 | 🟡 bản cơ bản (Loading đẹp ở M9) |
 | SCR-04 | City View (màn hình chính) | **WebView + city-web (Three.js)**, đường lui Compose (ADR-010) | UC_09 | VS5 | 🟡 (bản đồ + nhúng xong, dữ liệu giả lập) |
-| SCR-05 | Chi tiết công trình | Compose (thẻ đè lên bản đồ: Học / Xây / Thẻ từ, tiến độ sưu tầm, điều kiện Level kế) | UC_09, UC_10 | VS5 | 🟡 dữ liệu thật từ `GET /city` (`4.13`); thay bằng "vào công trình" ở M7 |
+| SCR-05 | Chi tiết công trình | Compose (thẻ đè lên bản đồ: Học / Xây / Thẻ từ, tiến độ sưu tầm, điều kiện Level kế) | UC_09, UC_10 | VS5 | 🟡 dữ liệu thật từ `GET /city` (`4.13`); Housing đã xây có nút "Vào nhà" (M7) |
 | SCR-06 | Danh sách từ vựng | Compose | UC_04 | VS2 | 🟡 bản cơ bản (`4.6-scr06-vocabulary-list.png`; ✓ sưu tầm ở M5, skeleton ở M9) · M9: skeleton + stagger + shared element |
 | SCR-07 | Flashcard | Compose (HorizontalPager + lật thẻ 3D) | UC_04 | VS2 | 🟡 bản cơ bản (`4.7`, `4.8`; shared element ở M9) · M9: shared element từ danh sách |
 | SCR-08 | Bài học (Learning Session / Mini-game) | Compose (trắc nghiệm + điền từ, phản hồi của Mai sau mỗi câu) | UC_05 | VS3 | 🟡 bản chức năng (`4.10`; chân dung Mai ở M6, hiệu ứng ở M9) |
@@ -26,10 +26,10 @@
 | SCR-14 | Splash | `core-splashscreen` + Compose | — | UI | ✅ `core-splashscreen` (icon nhà vector) + `BrandedSplash` khi onboarding (`4.18`) |
 | SCR-15 | Loading theo điểm đến | Compose (mỗi điểm đến một kiểu) | — | UI | ✅ 6 kiểu (CITY, SYNC, CARDS, MEDAL, PROFILE, LESSON) + mẹo của Mai, chỉ hiện sau 150 ms |
 | SCR-16 | Overlay thư ký (Mai) | Compose overlay (chân dung 2D vẽ bằng Canvas, 4 biểu cảm, chữ chạy, spotlight) | UC_02, UC_05 | Tutorial | ✅ (`4.14`, `4.15`, `4.17`) |
-| SCR-17 | Bên trong công trình | city-web nội thất 3D (House) / Compose (khác) + bảng nhiệm vụ | UC_15 | VS3+ | ⬜ |
+| SCR-17 | Bên trong công trình | city-web nội thất 3D (House) / Compose (khác) + bảng nhiệm vụ | UC_15 | VS3+ | 🟡 M7: nội thất 3D House + bảng nhiệm vụ Compose (Học / Thẻ từ / Trang trí / Ra ngoài), phím Back = ra; chờ E2E emulator |
 | SCR-18 | Bộ sưu tập danh hiệu | Compose | UC_13 | VS3+ | 🟡 bản cơ bản (`4.12`; skeleton, hiệu ứng nhận ở M9) · M9: skeleton + stagger |
-| SCR-19 | Hồ sơ | Compose + xem trước avatar (city-web) | UC_13, UC_14 | VS3+ | ✅ bản đầu: danh hiệu, tài nguyên, số từ, chuỗi ngày; ngoại hình chờ M8 (`4.20`) |
-| SCR-20 | Tuỳ biến nhân vật / nhà | Compose + city-web `avatar-preview` / nội thất | UC_14 | VS3+ | ⬜ |
+| SCR-19 | Hồ sơ | Compose + xem trước avatar (city-web) | UC_13, UC_14 | VS3+ | ✅ bản đầu: danh hiệu, tài nguyên, số từ, chuỗi ngày (`4.20`). M8 đã có ngoại hình (API + màn SCR-20) nhưng Hồ sơ chưa hiện xem trước avatar và chưa có lối vào Tuỳ biến |
+| SCR-20 | Tuỳ biến nhân vật / nhà | Compose + city-web `avatar-preview` / nội thất | UC_14 | VS3+ | 🟡 M8: tab Nhân vật (xem trước 3D) + tab Nhà (mảng màu tường + tên sàn), mua món KP có hộp xác nhận; mở từ nút 🎨 và "Trang trí" trong nhà. Chưa gắn vào bước tutorial `CUSTOMIZE` của Mai (M6) |
 | SCR-21 | Cài đặt | Compose (xoay màn hình, hiệu ứng, xem lại hướng dẫn) | — | UI | ✅ xoay màn hình, giảm hiệu ứng, xem lại hướng dẫn (`4.21`) |
 | SCR-22 | Menu nổi | Compose FAB bung hình cung trên bản đồ | — | UI | ✅ 4 mục trên cung 1/4, xoay 45°, trễ 40 ms/mục, rung nhẹ (`4.19`) |
 

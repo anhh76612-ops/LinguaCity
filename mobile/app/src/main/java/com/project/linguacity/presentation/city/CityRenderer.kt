@@ -26,4 +26,8 @@ sealed interface CityMapIntent {
     data object Ready : CityMapIntent
     data class BuildingTapped(val code: BuildingCode) : CityMapIntent
     data class CityEventTapped(val eventId: String) : CityMapIntent
+    /** M7: hoạt cảnh vào công trình đã xong (sau lệnh enterBuilding). */
+    data class BuildingEntered(val code: BuildingCode) : CityMapIntent
+    /** M7: đã ra lại ngoài phố (sau lệnh exitBuilding). */
+    data class BuildingExited(val code: BuildingCode) : CityMapIntent
 }

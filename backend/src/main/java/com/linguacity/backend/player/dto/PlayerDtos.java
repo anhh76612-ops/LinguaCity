@@ -1,5 +1,7 @@
 package com.linguacity.backend.player.dto;
 
+import com.linguacity.backend.cosmetic.dto.CosmeticDtos.AvatarConfig;
+import com.linguacity.backend.cosmetic.dto.CosmeticDtos.HouseStyleConfig;
 import com.linguacity.backend.identity.entity.TutorialStep;
 
 import java.time.Instant;
@@ -16,7 +18,7 @@ public final class PlayerDtos {
     /** GET /users/me (§10.4.3). */
     public record PlayerDto(UUID userId, int knowledgePoints, int hourglassCount, int blueprintShards,
                             TutorialStep tutorialStep, boolean tutorialCompleted, String equippedTitle,
-                            StatsDto stats) {}
+                            AvatarConfig avatar, HouseStyleConfig houseStyle, StatsDto stats) {}
 
     public record StepRequest(TutorialStep step) {}
 

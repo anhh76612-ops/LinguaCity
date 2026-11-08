@@ -25,8 +25,18 @@ data class CityUiState(
     val collection: Map<String, Pair<Int, Int>> = emptyMap(),
     val building: Boolean = false,
     /** Tên hiển thị của danh hiệu đang đeo (lấy từ danh mục CORE). */
-    val equippedTitleName: String? = null
+    val equippedTitleName: String? = null,
+    /** M7: công trình người chơi muốn vào (đã gửi lệnh, chờ hoạt cảnh). null = ngoài phố. */
+    val focus: BuildingCode? = null,
+    /** M7: bản đồ đã báo BuildingEntered — đang ở trong công trình này. */
+    val inside: BuildingCode? = null,
+    /** M7: ngoại hình + kiểu nhà để vẽ. M8 lấy từ hồ sơ (avatar_config, house_style). */
+    val avatar: AvatarLook = AvatarLook.DEFAULT,
+    val house: HouseLook = HouseLook.DEFAULT
 ) {
+    /** Đang chạy hoạt cảnh vào/ra: khoá các nút để không gửi lệnh chồng lên nhau. */
+    val transitioning: Boolean get() = focus != inside
+
     /** Điều kiện để lên level kế tiếp của [code], hoặc null nếu đã tối đa / chưa có dữ liệu. */
     fun nextLevelInfo(code: BuildingCode, currentLevel: Int): BuildingLevelInfo? =
         levels.firstOrNull { it.buildingCode == code.name && it.level == currentLevel + 1 }
@@ -37,7 +47,7 @@ data class CityUiState(
 
     /** Dữ liệu để vẽ (hợp đồng B), tính từ [city] theo giờ server ước lượng. */
     val render: CityRenderState
-        get() = city.toRenderState(city.serverNow(deviceNowMillis))
+        get() = city.toRenderState(city.serverNow(deviceNowMillis), avatar, house, focus)
 }
 
 /** Mọi hành động đi vào ViewModel: từ bản đồ hoặc từ UI Compose. */
@@ -49,4 +59,8 @@ sealed interface CityIntent {
     data object MessageShown : CityIntent
     /** App quay lại foreground: kiểm tra gói nội dung mới + tải lại thành phố (ADR-012, kiểu pull). */
     data object AppForeground : CityIntent
+    /** M7: "Vào nhà" trên thẻ công trình (Housing đã xây). */
+    data object EnterSelected : CityIntent
+    /** M7: "Ra ngoài" hoặc phím Back khi đang ở trong công trình. */
+    data object ExitBuilding : CityIntent
 }

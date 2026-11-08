@@ -3,6 +3,7 @@ package com.project.linguacity.data.repository
 import com.project.linguacity.data.local.player.PlayerDao
 import com.project.linguacity.data.local.player.UserAchievementEntity
 import com.project.linguacity.data.local.preferences.GuestIdStore
+import com.project.linguacity.data.mapper.CosmeticJson
 import com.project.linguacity.data.local.user.UserProfileDao
 import com.project.linguacity.data.remote.IsoTime
 import com.project.linguacity.data.remote.player.EquipRequestDto
@@ -78,7 +79,9 @@ class PlayerRepositoryImpl @Inject constructor(
                 blueprintShards = me.blueprintShards,
                 tutorialCompleted = me.tutorialCompleted,
                 tutorialStep = me.tutorialStep,
-                equippedTitle = me.equippedTitle
+                equippedTitle = me.equippedTitle,
+                avatarJson = me.avatar?.let { CosmeticJson.encodeAvatar(it) } ?: base.avatarJson,
+                houseStyleJson = me.houseStyle?.let { CosmeticJson.encodeHouse(it) } ?: base.houseStyleJson
             )
         )
     }

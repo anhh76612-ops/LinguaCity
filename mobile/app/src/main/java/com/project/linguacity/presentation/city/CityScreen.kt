@@ -1,5 +1,6 @@
 package com.project.linguacity.presentation.city
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -54,8 +55,8 @@ import com.project.linguacity.presentation.tutorial.spotlightTarget
 import androidx.compose.runtime.CompositionLocalProvider
 
 /**
- * SCR-04 City View. Bản đồ chiếm toàn màn hình; UI Compose (HUD tạm, thẻ công trình, snackbar) nằm đè lên trên.
- * HUD đầy đủ + menu nổi ở M9. Muốn dùng bản dự phòng: truyền renderer = ComposeCityRenderer.
+ * SCR-04 City View. Bản đồ chiếm toàn màn hình; UI Compose (HUD, menu nổi, thẻ công trình, bảng trong nhà, snackbar)
+ * nằm đè lên trên. Muốn dùng bản dự phòng: truyền renderer = ComposeCityRenderer.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -66,6 +67,8 @@ fun CityScreen(
     onStartPlacement: () -> Unit = {},
     onOpenProfile: () -> Unit = {},
     onOpenSettings: () -> Unit = {},
+    /** M8: màn Tuỳ biến; houseTab = mở thẳng tab Nhà (từ nút Trang trí trong nhà). */
+    onOpenCustomize: (houseTab: Boolean) -> Unit = {},
     renderer: CityRenderer = WebCityRenderer,
     viewModel: CityViewModel = hiltViewModel(),
     tutorial: TutorialViewModel = hiltViewModel()
@@ -125,6 +128,11 @@ fun CityScreen(
             DestinationLoading(LoadingKind.CITY, Modifier.background(MaterialTheme.colorScheme.background))
         }
 
+        // M7: phím Back khi đang ở trong công trình = "Ra ngoài" (chưa vào xong thì nuốt phím, chờ hoạt cảnh)
+        BackHandler(enabled = state.focus != null || state.inside != null) {
+            viewModel.onIntent(CityIntent.ExitBuilding)
+        }
+
         // SCR-13 HUD: tài nguyên + danh hiệu đang đeo (chạm danh hiệu để mở bộ sưu tập).
         FlowRow(
             Modifier.align(Alignment.TopStart).statusBarsPadding().padding(12.dp).fillMaxWidth(),
@@ -142,14 +150,15 @@ fun CityScreen(
             modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().navigationBarsPadding().padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // SCR-22 Menu nổi: Thẻ từ / Danh hiệu / Hồ sơ / Cài đặt
-            FloatingMenu(
+            // SCR-22 Menu nổi: Thẻ từ / Danh hiệu / Tuỳ biến (M8) / Hồ sơ / Cài đặt. Ẩn khi đang vào/ở trong nhà (M7).
+            if (state.focus == null) FloatingMenu(
                 entries = listOf(
                     MenuEntry("vocab", "📖", "Thẻ từ") {
                         val house = state.city.building(BuildingCode.HOUSING)
                         onOpenVocabulary(BuildingCode.HOUSING, maxOf(1, house?.level ?: 1))
                     },
                     MenuEntry("titles", "🏅", "Danh hiệu", onOpenAchievements),
+                    MenuEntry("customize", "🎨", "Tuỳ biến") { onOpenCustomize(false) },
                     MenuEntry("profile", "👤", "Hồ sơ", onOpenProfile),
                     MenuEntry("settings", "⚙️", "Cài đặt", onOpenSettings)
                 ),
@@ -157,7 +166,17 @@ fun CityScreen(
                 fabModifier = Modifier.spotlightTarget(SpotKeys.MENU)
             )
             SnackbarHost(snackbar)
-            state.selected?.let { code -> render.building(code) }?.let { building ->
+            // M7: đang ở trong nhà → bảng nhiệm vụ trong nhà thay cho thẻ công trình
+            state.inside?.let { code ->
+                if (state.focus == code) InteriorPanel(
+                    code = code,
+                    onLearn = { onStartLesson(code) },
+                    onVocabulary = { onOpenVocabulary(code, maxOf(1, render.building(code)?.level ?: 1)) },
+                    onDecorate = { onOpenCustomize(true) },
+                    onExit = { viewModel.onIntent(CityIntent.ExitBuilding) }
+                )
+            }
+            state.selected?.takeIf { state.focus == null }?.let { code -> render.building(code) }?.let { building ->
                 val learnLevel = minOf(3, building.level + 1)
                 BuildingCard(
                     building = building,
@@ -165,6 +184,7 @@ fun CityScreen(
                     collected = state.collectionOf(building.code, learnLevel),
                     busy = state.building,
                     onBuild = { viewModel.onIntent(CityIntent.BuildSelected) },
+                    onEnter = { viewModel.onIntent(CityIntent.EnterSelected) },
                     onLearn = { onStartLesson(building.code) },
                     onVocabulary = { onOpenVocabulary(building.code, maxOf(1, building.level)) },
                     onClose = { viewModel.onIntent(CityIntent.DismissSelection) }
@@ -184,6 +204,7 @@ private fun BuildingCard(
     collected: Pair<Int, Int>,
     busy: Boolean,
     onBuild: () -> Unit,
+    onEnter: () -> Unit,
     onLearn: () -> Unit,
     onVocabulary: () -> Unit,
     onClose: () -> Unit
@@ -217,6 +238,10 @@ private fun BuildingCard(
                 )
             }
             Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
+                // M7: Housing đã xây thì vào được bên trong (nội thất 3D)
+                if (building.code == BuildingCode.HOUSING && building.isBuilt) {
+                    Button(onClick = onEnter) { Text("Vào nhà") }
+                }
                 Button(onClick = onLearn, enabled = !building.isMaxLevel, modifier = Modifier.spotlightTarget(SpotKeys.LEARN)) {
                     Text("Học")
                 }
@@ -226,6 +251,30 @@ private fun BuildingCard(
                 }
                 TextButton(onClick = onVocabulary, modifier = Modifier.spotlightTarget(SpotKeys.VOCAB)) { Text("Thẻ từ") }
                 TextButton(onClick = onClose) { Text("Đóng") }
+            }
+        }
+    }
+}
+
+/** M7: bảng nhiệm vụ khi đang ở trong nhà (UC_15 bước 2). Nút Trang trí (M8) mở tab Nhà của màn Tuỳ biến. */
+@Composable
+private fun InteriorPanel(
+    code: BuildingCode,
+    onLearn: () -> Unit,
+    onVocabulary: () -> Unit,
+    onDecorate: () -> Unit,
+    onExit: () -> Unit
+) {
+    Card(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text("${code.icon} Nhà của bạn", style = MaterialTheme.typography.titleMedium)
+            Text("Chạm sàn để đi lại trong nhà.", style = MaterialTheme.typography.bodySmall)
+            Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
+                Button(onClick = onLearn) { Text("Học") }
+                TextButton(onClick = onVocabulary) { Text("Thẻ từ") }
+                TextButton(onClick = onDecorate) { Text("Trang trí") }
+                Box(Modifier.weight(1f))
+                FilledTonalButton(onClick = onExit) { Text("Ra ngoài") }
             }
         }
     }

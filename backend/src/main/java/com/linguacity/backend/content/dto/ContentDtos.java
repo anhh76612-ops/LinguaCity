@@ -1,5 +1,6 @@
 package com.linguacity.backend.content.dto;
 
+import com.linguacity.backend.cosmetic.dto.CosmeticDtos.CosmeticItemDto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import tools.jackson.databind.JsonNode;
 
@@ -33,10 +34,10 @@ public final class ContentDtos {
     public record AchievementDto(String code, String name, String description, String tier, boolean hidden,
                                  int sortOrder) {}
 
-    /** cosmetics: danh mục có từ V005 (M8) — tạm là danh sách rỗng. */
+    /** cosmetics: danh mục món tuỳ biến (V005, M8). */
     public record Core(String code, int version, List<ThemeDto> themes, List<BuildingDto> buildings,
                        List<BuildingLevelDto> buildingLevels, List<BlueprintDto> blueprints,
-                       List<AchievementDto> achievements, List<JsonNode> cosmetics) {}
+                       List<AchievementDto> achievements, List<CosmeticItemDto> cosmetics) {}
 
     public record VocabularyDto(Long id, String word, String meaning, String wordType, String ipa,
                                 List<String> examples, String imageUrl, String themeCode, int level,

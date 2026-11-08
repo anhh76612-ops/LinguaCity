@@ -1,6 +1,7 @@
 /* Cầu nối giữa bản đồ (JavaScript) và ứng dụng chủ.
 
    Chiều vào  (ứng dụng → bản đồ):  window.LinguaCity.setState(json)
+                                   window.LinguaCity.enterBuilding(code) / exitBuilding()   (M7: hoạt cảnh vào/ra công trình)
      - Android: webView.evaluateJavascript("LinguaCity.setState('...')", null)
      - Web:     gọi trực tiếp hàm này
 
@@ -40,9 +41,16 @@ export function isEmbedded(): boolean {
   return !!(host.AndroidBridge || host.webkit?.messageHandlers?.linguaCity);
 }
 
+/** Lệnh hoạt cảnh (M7). Trả về false nếu không chạy được lúc này (đang có hoạt cảnh khác, mã lạ…). */
+export interface CityCommands {
+  enterBuilding?(code: unknown): boolean;
+  exitBuilding?(): boolean;
+}
+
 /** Gắn API công khai lên window. apply: hàm vẽ lại thành phố khi có trạng thái mới. */
-export function exposeApi(apply: (s: CityState) => void, current: () => CityState): void {
+export function exposeApi(apply: (s: CityState) => void, current: () => CityState, commands: CityCommands = {}): void {
   const api = {
+    ...commands,
     /** Nhận CityState (chuỗi JSON hoặc object). Trả về true nếu hợp lệ. */
     setState(input: unknown): boolean {
       try {

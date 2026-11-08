@@ -2,6 +2,7 @@
 // Dùng Pointer Events: một bộ mã cho cả chuột, bút và ngón tay.
 import * as THREE from 'three';
 import { camera, placeCamera, renderer, target } from './renderer';
+import { activeCamera } from './loop';
 import { MAP_HALF } from '../world/grid';
 
 const MIN_ZOOM = 0.8, MAX_ZOOM = 4;
@@ -25,11 +26,12 @@ function groundAt(x: number, y: number, out: THREE.Vector3): THREE.Vector3 | nul
 
 /** Bắn tia từ điểm chạm vào danh sách vật thể, trả về vật gần nhất. */
 export function pick(x: number, y: number, objects: THREE.Object3D[]): THREE.Intersection | null {
-  ray.setFromCamera(toNdc(x, y), camera);
+  ray.setFromCamera(toNdc(x, y), activeCamera()); // camera của cảnh đang hiện (thành phố hoặc trong nhà)
   return ray.intersectObjects(objects, true)[0] ?? null;
 }
 
-export function setupControls(onTap: (x: number, y: number) => void): void {
+/** canPan: khi trả về false (đang chạy hoạt cảnh, đang ở trong nhà) thì bỏ qua kéo/zoom, chỉ còn chạm. */
+export function setupControls(onTap: (x: number, y: number) => void, canPan: () => boolean = () => true): void {
   const el = renderer.domElement;
   const pointers = new Map<number, { x: number; y: number }>();
   let downAt = { x: 0, y: 0, time: 0 }, moved = 0, pinchDist = 0;
@@ -77,7 +79,7 @@ export function setupControls(onTap: (x: number, y: number) => void): void {
     p.y = e.clientY;
     if (pointers.size === 1) {
       moved = Math.max(moved, Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y));
-      if (moved < TAP_MOVE) return;
+      if (moved < TAP_MOVE || !canPan()) return;
       /* Kéo bản đồ: giữ cho điểm mặt đất lúc bắt đầu kéo luôn nằm dưới ngón tay.
          Lấy điểm mặt đất hiện tại, dời camera một đoạn bằng chênh lệch. */
       if (groundAt(e.clientX, e.clientY, now)) {
@@ -87,7 +89,7 @@ export function setupControls(onTap: (x: number, y: number) => void): void {
     } else if (pointers.size === 2) {
       const [a, b] = [...pointers.values()];
       const d = Math.hypot(a.x - b.x, a.y - b.y);
-      if (pinchDist > 0) setZoom(camera.zoom * (d / pinchDist), (a.x + b.x) / 2, (a.y + b.y) / 2);
+      if (pinchDist > 0 && canPan()) setZoom(camera.zoom * (d / pinchDist), (a.x + b.x) / 2, (a.y + b.y) / 2);
       pinchDist = d;
     }
   });
@@ -108,6 +110,6 @@ export function setupControls(onTap: (x: number, y: number) => void): void {
 
   el.addEventListener('wheel', (e) => {
     e.preventDefault();
-    setZoom(camera.zoom * Math.exp(-e.deltaY * 0.0015), e.clientX, e.clientY);
+    if (canPan()) setZoom(camera.zoom * Math.exp(-e.deltaY * 0.0015), e.clientX, e.clientY);
   }, { passive: false });
 }

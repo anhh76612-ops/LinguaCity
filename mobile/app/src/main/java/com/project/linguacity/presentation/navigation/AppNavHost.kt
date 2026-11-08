@@ -21,6 +21,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.project.linguacity.presentation.achievements.AchievementsScreen
 import com.project.linguacity.presentation.city.CityScreen
+import com.project.linguacity.presentation.customize.CustomizeScreen
 import com.project.linguacity.presentation.lesson.LessonScreen
 import com.project.linguacity.presentation.onboarding.OnboardingScreen
 import com.project.linguacity.presentation.sync.SyncScreen
@@ -58,6 +59,10 @@ object ProfileRoute
 /** SCR-21 Cài đặt. */
 @Serializable
 object SettingsRoute
+
+/** SCR-20 Tuỳ biến nhân vật / nhà (M8). CustomizeViewModel đọc `houseTab` theo tên. */
+@Serializable
+data class CustomizeRoute(val houseTab: Boolean = false)
 
 /** SCR-07. */
 @Serializable
@@ -109,7 +114,8 @@ fun AppNavHost(
                         onOpenAchievements = { navController.navigate(AchievementsRoute) },
                         onStartPlacement = { navController.navigate(LessonRoute("HOUSING", placement = true)) },
                         onOpenProfile = { navController.navigate(ProfileRoute) },
-                        onOpenSettings = { navController.navigate(SettingsRoute) }
+                        onOpenSettings = { navController.navigate(SettingsRoute) },
+                        onOpenCustomize = { house -> navController.navigate(CustomizeRoute(house)) }
                     )
                 }
 
@@ -119,6 +125,10 @@ fun AppNavHost(
 
                 composable<AchievementsRoute> {
                     AchievementsScreen(onBack = { navController.popBackStack() })
+                }
+
+                composable<CustomizeRoute> {
+                    CustomizeScreen(onBack = { navController.popBackStack() })
                 }
 
                 composable<ProfileRoute> {

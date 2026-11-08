@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.project.linguacity.domain.model.player.BuildOutcome
 import com.project.linguacity.domain.repository.CityRepository
 import com.project.linguacity.domain.repository.ContentRepository
+import com.project.linguacity.domain.repository.CosmeticRepository
 import com.project.linguacity.domain.repository.LearningRepository
 import com.project.linguacity.domain.repository.PlayerRepository
 import com.project.linguacity.domain.usecase.SyncContentUseCase
@@ -30,6 +31,7 @@ class CityViewModel @Inject constructor(
     contentRepository: ContentRepository,
     private val learning: LearningRepository,
     private val player: PlayerRepository,
+    private val cosmetics: CosmeticRepository,
     private val syncContent: SyncContentUseCase
 ) : ViewModel() {
 
@@ -59,6 +61,14 @@ class CityViewModel @Inject constructor(
                 _state.update { it.copy(equippedTitleName = list.firstOrNull { a -> a.equipped }?.name) }
             }
         }
+        // M8: ngoại hình + kiểu nhà (mã cosmetic trong Room) → giá trị để vẽ cho bản đồ
+        viewModelScope.launch {
+            cosmetics.observe().collect { c ->
+                _state.update {
+                    it.copy(avatar = LookResolver.avatar(c.avatar, c.items), house = LookResolver.house(c.house, c.items))
+                }
+            }
+        }
         // Số từ đã sưu tầm theo từng gói — để thẻ công trình nói rõ còn thiếu bao nhiêu từ.
         viewModelScope.launch {
             combine(contentRepository.observePackWordIds(), learning.observeProgress()) { packs, progress ->
@@ -85,6 +95,15 @@ class CityViewModel @Inject constructor(
             CityIntent.DismissSelection -> _state.update { it.copy(selected = null) }
             CityIntent.BuildSelected -> buildSelected()
             CityIntent.MessageShown -> _state.update { it.copy(message = null) }
+            CityIntent.EnterSelected -> _state.update {
+                val code = it.selected
+                if (code == null || it.focus != null || it.render.building(code)?.isBuilt != true) it
+                else it.copy(focus = code, selected = null)
+            }
+            CityIntent.ExitBuilding -> _state.update {
+                // chỉ ra khi đã vào xong; đang hoạt cảnh thì bỏ qua (bản đồ cũng từ chối)
+                if (it.inside != null && it.focus == it.inside) it.copy(focus = null) else it
+            }
             CityIntent.AppForeground -> {
                 refreshQuietly()
                 syncQuietly()
@@ -94,8 +113,13 @@ class CityViewModel @Inject constructor(
 
     private fun onMapIntent(intent: CityMapIntent) {
         when (intent) {
-            CityMapIntent.Ready -> _state.update { it.copy(mapReady = true) }
-            is CityMapIntent.BuildingTapped -> _state.update { it.copy(selected = intent.code) }
+            // Ready lần nữa = bản đồ vừa tải lại: nó đang ở ngoài phố.
+            CityMapIntent.Ready -> _state.update { it.copy(mapReady = true, focus = null, inside = null) }
+            is CityMapIntent.BuildingTapped -> _state.update { if (it.focus != null) it else it.copy(selected = intent.code) }
+            is CityMapIntent.BuildingEntered -> _state.update {
+                if (it.focus == intent.code) it.copy(inside = intent.code, selected = null) else it
+            }
+            is CityMapIntent.BuildingExited -> _state.update { it.copy(inside = null, focus = null) }
             is CityMapIntent.CityEventTapped -> {
                 cityRepository.resolveEvent(intent.eventId)
                 _state.update { it.copy(message = "Sự kiện thành phố: bài ngữ pháp sẽ có ở bản sau") }
@@ -130,6 +154,7 @@ class CityViewModel @Inject constructor(
             runCatching { cityRepository.refresh() }.onFailure { Log.w(TAG, "Bỏ qua tải thành phố: ${it.message}") }
             runCatching { player.refresh() }
             runCatching { learning.refreshProgress() }
+            runCatching { cosmetics.refresh() }
         }
     }
 

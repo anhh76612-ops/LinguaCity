@@ -1,12 +1,14 @@
 package com.project.linguacity.di
 
 import com.project.linguacity.data.repository.ContentRepositoryImpl
+import com.project.linguacity.data.repository.CosmeticRepositoryImpl
 import com.project.linguacity.data.repository.CityRepositoryImpl
 import com.project.linguacity.data.repository.LearningRepositoryImpl
 import com.project.linguacity.data.repository.PlayerRepositoryImpl
 import com.project.linguacity.data.repository.UserRepositoryImpl
 import com.project.linguacity.domain.repository.CityRepository
 import com.project.linguacity.domain.repository.ContentRepository
+import com.project.linguacity.domain.repository.CosmeticRepository
 import com.project.linguacity.domain.repository.LearningRepository
 import com.project.linguacity.domain.repository.PlayerRepository
 import com.project.linguacity.domain.repository.UserRepository
@@ -46,4 +48,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindPlayerRepository(implementation: PlayerRepositoryImpl): PlayerRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindCosmeticRepository(implementation: CosmeticRepositoryImpl): CosmeticRepository
 }
