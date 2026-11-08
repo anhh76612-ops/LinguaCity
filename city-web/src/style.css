@@ -92,3 +92,20 @@ html, body {
 @media (max-width: 480px) {
   .lil-gui.root { --width: 190px; font-size: 11px; }
 }
+
+/* ---------- M7: màn mờ khi đổi cảnh (vào/ra nhà) ---------- */
+#fade {
+  position: fixed;
+  inset: 0;
+  background: #fff8ec;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+#fade.on { opacity: 1; }
+
+/* Trong nhà: nền ấm thay cho bầu trời */
+body.indoor { background: radial-gradient(circle at 50% 40%, #fbf3e4, #e9dcc6); }
+
+/* Xem trước nhân vật: nền trong suốt để màn Compose phía sau lộ ra */
+html:has(body.preview), body.preview { background: transparent; }

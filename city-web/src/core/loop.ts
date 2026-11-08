@@ -11,6 +11,21 @@ export function onUpdate(fn: Updatable): () => void {
   return () => systems.delete(fn);
 }
 
+/* ---------- Cảnh đang hiển thị ----------
+   Mặc định là thành phố. Vào nhà (M7) hoặc chế độ xem trước nhân vật đổi sang cảnh + camera khác.
+   Nhãn HTML (CSS2D) chỉ thuộc về thành phố nên chỉ vẽ khi đang ở cảnh thành phố. */
+let view: { scene: THREE.Scene; camera: THREE.Camera } = { scene, camera };
+
+export function setView(s: THREE.Scene, c: THREE.Camera): void {
+  view = { scene: s, camera: c };
+  labelRenderer.domElement.style.display = s === scene ? '' : 'none';
+  renderer.shadowMap.needsUpdate = true;
+}
+
+export function activeCamera(): THREE.Camera {
+  return view.camera;
+}
+
 /** Số liệu hiệu năng để hiển thị trong bảng debug. */
 export const perf = { fps: 0, calls: 0, triangles: 0 };
 
@@ -22,8 +37,8 @@ function frame(): void {
   const dt = Math.min(clock.getDelta(), 0.05);
   t += dt;
   for (const fn of systems) fn(dt, t);
-  renderer.render(scene, camera);
-  labelRenderer.render(scene, camera);
+  renderer.render(view.scene, view.camera);
+  if (view.scene === scene) labelRenderer.render(scene, camera);
 
   frames++;
   acc += dt;

@@ -6,13 +6,14 @@ import { C } from '../../core/palette';
 import { bake, box, cyl, gableRoof, rbox, windows } from '../../core/shapes';
 import { type Built, bush, fence, flowerBed, tree } from './common';
 
-export function buildHousing(level: number): Built {
+/** wall: màu tường người chơi chọn (houseStyle.wall, M7). Bỏ trống thì dùng màu mặc định của từng level. */
+export function buildHousing(level: number, wall?: string): Built {
   const g = new THREE.Group();
   let doorZ = 1.85;
 
   if (level <= 1) {
     // Nhà cấp 4: thân, mái dốc, ống khói, cửa, hai cửa sổ
-    rbox(g, 3, 1.6, 2.4, C.wallCream, 0, 0, 0.6, 0.06);
+    rbox(g, 3, 1.6, 2.4, wall ?? C.wallCream, 0, 0, 0.6, 0.06);
     gableRoof(g, 3.4, 1.1, 2.9, C.roofRed, 0, 1.6, 0.6);
     box(g, 0.32, 0.7, 0.32, C.wallBrick, 0.9, 1.9, 0.2);
     box(g, 0.55, 0.95, 0.06, C.door, 0, 0, 1.82);
@@ -25,7 +26,7 @@ export function buildHousing(level: number): Built {
     bush(g, 2.5, -1.8);
   } else if (level === 2) {
     // Hai nhà phố cạnh nhau, khác màu, có ban công
-    rbox(g, 2.3, 2.9, 2.6, C.wallPeach, -1.25, 0, 0.3, 0.06);
+    rbox(g, 2.3, 2.9, 2.6, wall ?? C.wallPeach, -1.25, 0, 0.3, 0.06);
     box(g, 2.45, 0.16, 2.75, C.trim, -1.25, 2.9, 0.3); // gờ mái bằng
     box(g, 0.5, 0.9, 0.06, C.door, -1.0, 0, 1.63);
     windows(g, { face: '+z', wallW: 2.3, wallD: 2.6, cols: 2, rows: 2, y0: 0.5, floorH: 1.3, cx: -1.25, cz: 0.3 });
@@ -46,7 +47,7 @@ export function buildHousing(level: number): Built {
   } else {
     // Chung cư 5 tầng: lưới cửa sổ, sảnh có mái che, bể nước trên nóc
     const W = 5.2, H = 7.2, D = 3.4, cz = -0.4;
-    rbox(g, W, H, D, C.wallSky, 0, 0, cz, 0.08);
+    rbox(g, W, H, D, wall ?? C.wallSky, 0, 0, cz, 0.08);
     box(g, W + 0.2, 0.2, D + 0.2, C.trim, 0, H, cz);
     // tầng trệt: mảng tường đậm + mái hiên cửa hàng
     box(g, W + 0.04, 1.1, D + 0.04, C.wallCream, 0, 0, cz);

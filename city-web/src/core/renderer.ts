@@ -65,7 +65,14 @@ scene.add(sun, sun.target);
 
 /* ---------- Khung nhìn ----------
    Camera trực giao cần biết "nhìn rộng bao nhiêu đơn vị". Ta chọn đủ để thấy trọn bản đồ
-   theo chiều ngang (màn dọc của điện thoại) hoặc chiều dọc (màn ngang). */
+   theo chiều ngang (màn dọc của điện thoại) hoặc chiều dọc (màn ngang).
+   Cảnh khác (trong nhà, xem trước nhân vật) đăng ký onResize để cập nhật camera riêng. */
+const resizeHooks = new Set<(w: number, h: number) => void>();
+export function onResize(fn: (w: number, h: number) => void): void {
+  resizeHooks.add(fn);
+  fn(innerWidth, innerHeight);
+}
+
 export function resize(): void {
   const w = innerWidth, h = innerHeight, aspect = w / h;
   const mapSpan = MAP_HALF * 2 * Math.SQRT2 + 2; // bề ngang bản đồ khi nhìn chéo
@@ -77,6 +84,7 @@ export function resize(): void {
   camera.updateProjectionMatrix();
   renderer.setSize(w, h);
   labelRenderer.setSize(w, h);
+  resizeHooks.forEach((fn) => fn(w, h));
 }
 
 export function mount(el: HTMLElement): void {

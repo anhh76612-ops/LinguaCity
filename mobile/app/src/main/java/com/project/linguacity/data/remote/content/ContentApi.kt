@@ -55,8 +55,15 @@ data class CoreDto(
     val buildings: List<BuildingDto> = emptyList(),
     val buildingLevels: List<BuildingLevelDto> = emptyList(),
     val blueprints: List<BlueprintDto> = emptyList(),
-    val achievements: List<AchievementDto> = emptyList()
-    // cosmetics: lưu vào Room ở v5 (M8) — tạm bỏ qua nhờ ignoreUnknownKeys.
+    val achievements: List<AchievementDto> = emptyList(),
+    val cosmetics: List<CosmeticItemDto> = emptyList()
+)
+
+/** Món tuỳ biến (V005, M8). */
+@Serializable
+data class CosmeticItemDto(
+    val code: String, val category: String, val name: String, val unlockType: String, val priceKp: Int = 0,
+    val achievementCode: String? = null, val assetKey: String, val sortOrder: Int = 0
 )
 
 /** Danh hiệu Ẩn không có description (BR-ACH-02). */

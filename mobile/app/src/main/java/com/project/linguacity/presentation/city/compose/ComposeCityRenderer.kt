@@ -15,6 +15,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import com.project.linguacity.domain.model.city.BuildingCode
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -33,6 +38,15 @@ object ComposeCityRenderer : CityRenderer {
     override fun Render(state: CityRenderState, onIntent: (CityMapIntent) -> Unit, modifier: Modifier) {
         // Bản Compose sẵn sàng ngay khi được vẽ.
         LaunchedEffect(Unit) { onIntent(CityMapIntent.Ready) }
+        // Không có hoạt cảnh: "vào/ra" công trình xong ngay lập tức (M7).
+        var shownFocus by remember { mutableStateOf<BuildingCode?>(null) }
+        LaunchedEffect(state.focus) {
+            val focus = state.focus
+            if (focus == shownFocus) return@LaunchedEffect
+            shownFocus?.let { onIntent(CityMapIntent.BuildingExited(it)) }
+            focus?.let { onIntent(CityMapIntent.BuildingEntered(it)) }
+            shownFocus = focus
+        }
 
         Column(
             modifier = modifier.statusBarsPadding().padding(16.dp),

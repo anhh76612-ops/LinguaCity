@@ -12,7 +12,7 @@ import { seeded } from '../core/shapes';
 import { heightAt, onBlock, type BuildingCode } from '../world/grid';
 import type { City } from '../world/city';
 import type { CityEvent } from '../bridge/cityState';
-import { makeChibi, randomLook, type Rig } from './chibi';
+import { makeChibi, randomLook, type Look, type Rig } from './chibi';
 import { applyPose, poseFor, restPose, type Anim, type Pose } from './poses';
 import { NODES, SPOTS, STROLL_NODES, nearestNode, route, type NodeId, type Spot } from './nav';
 import { makeMarker } from '../ui/markers';
@@ -38,23 +38,28 @@ export class Citizen {
   eventId: string | null = null;
   marker: THREE.Sprite | null = null;
   private pose: Pose = restPose();
-  private speed = rand(1.0, 1.35);
+  speed = rand(1.0, 1.35);
   private stepPh = rand(0, 6);
   private lookY = 0; private lookT = 0; private blinkT = rand(1, 4);
   private seed = Math.random() * 100;
 
-  constructor(seed: number) {
-    this.rig = makeChibi(randomLook(seeded(seed)));
+  /** Độ cao mặt đất tại (x, z). Trong nhà (M7) nền phẳng nên người chơi thay bằng () => 0. */
+  ground: (x: number, z: number) => number = heightAt;
+
+  /** look: ngoại hình cố định (nhân vật người chơi); bỏ trống thì chọn ngẫu nhiên theo seed. */
+  constructor(seed: number, opts: { look?: Look; parent?: THREE.Object3D; speed?: number } = {}) {
+    this.rig = makeChibi(opts.look ?? randomLook(seeded(seed)));
     this.rig.root.scale.setScalar(SCALE);
     this.rig.root.userData.citizen = this;
-    scene.add(this.rig.root);
+    if (opts.speed) this.speed = opts.speed;
+    (opts.parent ?? scene).add(this.rig.root);
   }
 
   get visible(): boolean { return this.rig.root.visible; }
 
   placeAt(x: number, z: number): void {
     this.x = x; this.z = z;
-    this.rig.root.position.set(x, heightAt(x, z), z);
+    this.rig.root.position.set(x, this.ground(x, z), z);
   }
 
   /** Đi theo danh sách điểm; tới điểm cuối thì gọi then(). */
@@ -91,7 +96,7 @@ export class Citizen {
     r.rotation.y = this.yaw;
     r.position.x = this.x;
     r.position.z = this.z;
-    r.position.y += (heightAt(this.x, this.z) - r.position.y) * Math.min(1, dt * 14);
+    r.position.y += (this.ground(this.x, this.z) - r.position.y) * Math.min(1, dt * 14);
 
     // nhìn quanh và chớp mắt cho "sống"
     if ((this.lookT -= dt) < 0) { this.lookT = rand(1.5, 4); this.lookY = Math.random() < 0.5 ? 0 : rand(-0.6, 0.6); }

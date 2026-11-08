@@ -24,5 +24,9 @@ data class UserProfileEntity(
     val tutorialStep: String = "INTRO",
 
     /** v4: danh hiệu đang đeo (UC_13). */
-    val equippedTitle: String? = null
+    val equippedTitle: String? = null,
+
+    /** v5 (M8): avatar_config / house_style dạng JSON của server (mã cosmetic). null = mặc định. */
+    val avatarJson: String? = null,
+    val houseStyleJson: String? = null
 )

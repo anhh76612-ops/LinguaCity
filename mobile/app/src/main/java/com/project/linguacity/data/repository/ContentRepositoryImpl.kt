@@ -5,6 +5,7 @@ import com.project.linguacity.data.local.AppDatabase
 import com.project.linguacity.data.local.content.ContentDao
 import com.project.linguacity.data.local.content.ContentPackStateEntity
 import com.project.linguacity.data.local.player.AchievementEntity
+import com.project.linguacity.data.local.player.CosmeticItemEntity
 import com.project.linguacity.data.local.player.PlayerDao
 import com.project.linguacity.data.local.preferences.GuestIdStore
 import com.project.linguacity.data.mapper.toDomain
@@ -77,6 +78,11 @@ class ContentRepositoryImpl @Inject constructor(
             playerDao.clearAchievements()
             playerDao.upsertAchievements(core.achievements.map {
                 AchievementEntity(it.code, it.name, it.description, it.tier, it.hidden, it.sortOrder)
+            })
+            playerDao.clearCosmetics()
+            playerDao.upsertCosmetics(core.cosmetics.map {
+                CosmeticItemEntity(it.code, it.category, it.name, it.unlockType, it.priceKp, it.achievementCode,
+                    it.assetKey, it.sortOrder)
             })
             dao.upsertPackState(ContentPackStateEntity(core.code, core.version, System.currentTimeMillis()))
         }

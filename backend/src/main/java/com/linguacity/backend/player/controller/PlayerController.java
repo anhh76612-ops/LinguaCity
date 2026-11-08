@@ -3,6 +3,7 @@ package com.linguacity.backend.player.controller;
 import com.linguacity.backend.achievement.service.AchievementService;
 import com.linguacity.backend.common.exception.ApiException;
 import com.linguacity.backend.common.time.Times;
+import com.linguacity.backend.cosmetic.service.CosmeticService;
 import com.linguacity.backend.identity.entity.UserProfile;
 import com.linguacity.backend.identity.exception.UserProfileNotFoundException;
 import com.linguacity.backend.identity.repository.UserProfileRepository;
@@ -31,15 +32,18 @@ public class PlayerController {
     private final TutorialService tutorial;
     private final LearningService learning;
     private final AchievementService achievements;
+    private final CosmeticService cosmetics;
     private final Clock clock;
 
     public PlayerController(UserProfileRepository users, UserVocabProgressRepository progress, TutorialService tutorial,
-                            LearningService learning, AchievementService achievements, Clock clock) {
+                            LearningService learning, AchievementService achievements, CosmeticService cosmetics,
+                            Clock clock) {
         this.users = users;
         this.progress = progress;
         this.tutorial = tutorial;
         this.learning = learning;
         this.achievements = achievements;
+        this.cosmetics = cosmetics;
         this.clock = clock;
     }
 
@@ -89,6 +93,7 @@ public class PlayerController {
         int streak = achievements.streakDays(p.getId(), Times.nowUtc(clock));
         return new PlayerDto(p.getId(), p.getKnowledgePoints(), p.getHourglassCount(), p.getBlueprintShards(),
                 p.getTutorialStep(), p.isTutorialCompleted(), p.getEquippedAchievementCode(),
+                cosmetics.avatarOf(p), cosmetics.houseStyleOf(p),
                 new StatsDto(collected, streak));
     }
 }

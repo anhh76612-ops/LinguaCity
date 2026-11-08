@@ -930,12 +930,31 @@ Thành phố đi qua **hai hợp đồng khác nhau**, mỗi cái phục vụ m�
 ```
 Kotlin gửi lại khoảng 1 giây/lần khi có công trình đang xây. Bản đồ tự làm mượt thanh tiến độ giữa các lần gửi.
 
+**Trường tuỳ chọn thêm ở M7 (vẫn `v: 1`):**
+```json
+{
+  "player": { "appearance": { "skin": "#f1c7a5", "hairStyle": "short", "hairColor": "#4a3426",
+                              "shirt": "#4db6ac", "pants": "#3949ab", "accessory": "none" } },
+  "houseStyle": { "wall": "#f3e7d3", "floor": "oak" }
+}
+```
+- Giá trị là **asset_key** của `cosmetic_items` (§10.2.3): màu `#rrggbb`; `hairStyle` ∈ `short|long|bun|spiky`; `accessory` ∈ `none|hat|glasses`; `floor` ∈ `oak|walnut|tile|checker|carpet`. Kotlin dịch mã cosmetic → asset_key; bản đồ không biết mã cosmetic.
+- Thiếu hoặc sai trường nào thì bản đồ dùng mặc định của trường đó (`normalizeAppearance`, `normalizeHouseStyle`).
+- `houseStyle.wall` tô cả tường trong nhà lẫn tường ngoài của Housing trên bản đồ.
+
+**Lệnh hoạt cảnh (M7):** `LinguaCity.enterBuilding(code)` và `LinguaCity.exitBuilding()`, trả `false` nếu không chạy được (mã lạ, đang có hoạt cảnh khác). Phía Kotlin đây **không phải** trường state: `CityRenderState.focus` được `WebCityRenderer` so với lần gửi trước rồi đổi thành lệnh. Bản đồ tải lại (`Ready` lần nữa) thì cả hai bên coi như đang ở ngoài phố.
+
+**Chế độ xem trước nhân vật:** `index.html?mode=avatar-preview` chỉ dựng avatar trên bệ xoay, nhận `setState({"v":1,"player":{"appearance":{…}}})` (`CityBridgeJson.encodePreview`, `WebCityRenderer.AvatarPreview`).
+
 #### 9.2.3. Bản đồ → Kotlin: intent
 ```json
 { "type": "Ready" }
 { "type": "BuildingTapped", "buildingCode": "HOUSING" }
 { "type": "CityEventTapped", "eventId": "evt-12" }
+{ "type": "BuildingEntered", "buildingCode": "HOUSING" }
+{ "type": "BuildingExited",  "buildingCode": "HOUSING" }
 ```
+- `BuildingEntered` / `BuildingExited` (M7): phát khi hoạt cảnh `enterBuilding` / `exitBuilding` chạy xong. Housing Lv ≥ 1 đổi sang cảnh nội thất 3D; công trình khác chỉ dừng ở góc nhìn cận cảnh để app mở màn Compose.
 - `Ready`: chỉ sau khi nhận intent này Kotlin mới gửi `setState` (trước đó `window.LinguaCity` chưa tồn tại).
 - Không có `UpgradeRequested`: nút nâng cấp nằm trong UI Compose (thẻ công trình).
 - Không có `BackPressed`: phím Back do Compose Navigation xử lý.
@@ -1210,10 +1229,12 @@ Mọi API đều cần `X-Guest-UUID`. Lỗi trả `ErrorResponse {code, message
 | :--- | :--- | :--- |
 | GET | `/api/v1/users/me/achievements` | `{"equipped":"GOOD_START","items":[{"code":"GOOD_START","earnedAt":"…"}]}` |
 | PUT | `/api/v1/users/me/equipped-title` body `{"code":"GOOD_START"}` hoặc `null` | 409 `NOT_EARNED` |
-| GET | `/api/v1/users/me/cosmetics` | `{"unlocked":["WALL_BRICK"],"avatar":{…},"houseStyle":{…}}` |
-| POST | `/api/v1/cosmetics/{code}/unlock` | Chỉ món `KP`. Lỗi 409: `INSUFFICIENT_KP`, `NOT_PURCHASABLE`, `ALREADY_UNLOCKED`. |
-| PUT | `/api/v1/users/me/avatar` | Mỗi mã phải đúng category và dùng được. Không hợp lệ thì 400 `INVALID_COSMETIC`. |
-| PUT | `/api/v1/users/me/house-style` | Mã phải đã mở. Chưa mở thì 409 `LOCKED`. |
+| GET | `/api/v1/users/me/cosmetics` | `{"unlocked":["ACC_NONE",…,"WALL_BRICK"],"avatar":{…},"houseStyle":{…},"knowledgePoints":40}`. `unlocked` = FREE + đã mua bằng KP + món ACHIEVEMENT của danh hiệu đã có (server tính sẵn). Chưa chọn thì trả cấu hình mặc định. |
+| POST | `/api/v1/cosmetics/{code}/unlock` | Chỉ món `KP`. Trả cùng dạng `GET /users/me/cosmetics`. 404 `COSMETIC_NOT_FOUND`. Lỗi 409: `INSUFFICIENT_KP` (`details.priceKp`, `details.missingKnowledge`), `NOT_PURCHASABLE`, `ALREADY_UNLOCKED`. Trừ KP dưới `@Version` (FR-SYS-05). |
+| PUT | `/api/v1/users/me/avatar` body `{skin,hairStyle,hairColor,shirtColor,pantsColor,accessory}` | Mỗi mã phải đúng category và dùng được. Không hợp lệ thì 400 `INVALID_COSMETIC` với `details: {field, code, reason: UNKNOWN \| WRONG_CATEGORY \| LOCKED}`. |
+| PUT | `/api/v1/users/me/house-style` body `{wall,floor}` | Cùng quy tắc và cùng lỗi 400 `INVALID_COSMETIC` như avatar (M8 gộp `LOCKED` vào `reason` để app xử lý một kiểu lỗi). |
+
+> **Đã cài (M8, 08/11/2026):** V005 (`cosmetic_items` 39 món, `user_cosmetics`), gói `cosmetic`, danh mục trong `GET /content/core`, `avatar` + `houseStyle` trong `GET /users/me`. Test: `CosmeticFlowTests` (TC-COS-01..05).
 
 ### 10.5. Danh hiệu ban đầu
 | code | tier | condition_type | threshold | Xét khi |
@@ -1244,6 +1265,7 @@ Mọi API đều cần `X-Guest-UUID`. Lỗi trả `ErrorResponse {code, message
 | Phiên bản | Thêm |
 | :--- | :--- |
 | v3 (VS2) | `ThemeEntity`, `BuildingEntity`, `BuildingThemeEntity`, `BuildingLevelEntity`, `BlueprintEntity`, `VocabularyEntity`, `QuestionEntity` (không answer/explanation), `QuestionVocabularyEntity`, `ExamEntity`, `ExamRequirementEntity`, `ExamQuestionEntity`, `ContentPackStateEntity(code, version, downloadedAtMillis)`. ✅ Đã cài (AutoMigration 2→3). Mọi bảng thuộc gói có cột `packCode` để xoá theo gói. `AchievementEntity` dời sang v4, `CosmeticItemEntity` sang v5 (cùng lúc với bảng server tương ứng) |
+| v5 (M8) | `CosmeticItemEntity` (danh mục CORE), `UnlockedCosmeticEntity` (danh sách server trả, thay toàn bộ mỗi lần tải). `UserProfileEntity` thêm `avatarJson`, `houseStyleJson` (NULL = mặc định). ✅ Đã cài (AutoMigration 4→5). Lớp dịch mã cosmetic → asset_key cho bản đồ: `presentation/city/LookResolver.kt` |
 | v4 (VS3) | `UserVocabProgressEntity` (mastery, maxMastery, collected, lastReviewedAt), `UserBuildingEntity`, `AchievementEntity` (danh mục CORE), `UserAchievementEntity`. `UserProfileEntity` thêm `tutorialStep` (DEFAULT 'INTRO'), `equippedTitle`. ✅ Đã cài (AutoMigration 3→4). Một máy = một Guest nên các bảng Player State không có cột userId |
 
 - Static content dùng `@Upsert` trong `withTransaction` (§6.3).

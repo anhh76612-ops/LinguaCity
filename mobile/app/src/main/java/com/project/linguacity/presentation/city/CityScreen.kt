@@ -1,5 +1,6 @@
 package com.project.linguacity.presentation.city
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -46,6 +47,8 @@ fun CityScreen(
     onOpenVocabulary: (BuildingCode, Int) -> Unit = { _, _ -> },
     onStartLesson: (BuildingCode) -> Unit = {},
     onOpenAchievements: () -> Unit = {},
+    /** M8: màn Tuỳ biến; houseTab = mở thẳng tab Nhà (từ nút Trang trí trong nhà). */
+    onOpenCustomize: (houseTab: Boolean) -> Unit = {},
     renderer: CityRenderer = WebCityRenderer,
     viewModel: CityViewModel = hiltViewModel()
 ) {
@@ -80,6 +83,11 @@ fun CityScreen(
 
         if (!state.mapReady) CircularProgressIndicator(Modifier.align(Alignment.Center))
 
+        // M7: phím Back khi đang ở trong công trình = "Ra ngoài" (chưa vào xong thì nuốt phím, chờ hoạt cảnh)
+        BackHandler(enabled = state.focus != null || state.inside != null) {
+            viewModel.onIntent(CityIntent.ExitBuilding)
+        }
+
         // HUD tạm (M5): KP + danh hiệu đang đeo + nút Danh hiệu.
         Row(
             Modifier.align(Alignment.TopCenter).statusBarsPadding().padding(12.dp).fillMaxWidth(),
@@ -89,6 +97,7 @@ fun CityScreen(
             AssistChip(onClick = {}, label = { Text("💡 ${state.profile?.knowledgePoints ?: 0} KP") })
             state.equippedTitleName?.let { AssistChip(onClick = onOpenAchievements, label = { Text("🏅 $it") }) }
             Box(Modifier.weight(1f))
+            FilledTonalButton(onClick = { onOpenCustomize(false) }) { Text("🎨") }
             FilledTonalButton(onClick = onOpenAchievements) { Text("🏅 Danh hiệu") }
         }
 
@@ -97,7 +106,17 @@ fun CityScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             SnackbarHost(snackbar)
-            state.selected?.let { code -> render.building(code) }?.let { building ->
+            // M7: đang ở trong nhà → bảng nhiệm vụ trong nhà thay cho thẻ công trình
+            state.inside?.let { code ->
+                if (state.focus == code) InteriorPanel(
+                    code = code,
+                    onLearn = { onStartLesson(code) },
+                    onVocabulary = { onOpenVocabulary(code, maxOf(1, render.building(code)?.level ?: 1)) },
+                    onDecorate = { onOpenCustomize(true) },
+                    onExit = { viewModel.onIntent(CityIntent.ExitBuilding) }
+                )
+            }
+            state.selected?.takeIf { state.focus == null }?.let { code -> render.building(code) }?.let { building ->
                 val learnLevel = minOf(3, building.level + 1)
                 BuildingCard(
                     building = building,
@@ -105,6 +124,7 @@ fun CityScreen(
                     collected = state.collectionOf(building.code, learnLevel),
                     busy = state.building,
                     onBuild = { viewModel.onIntent(CityIntent.BuildSelected) },
+                    onEnter = { viewModel.onIntent(CityIntent.EnterSelected) },
                     onLearn = { onStartLesson(building.code) },
                     onVocabulary = { onOpenVocabulary(building.code, maxOf(1, building.level)) },
                     onClose = { viewModel.onIntent(CityIntent.DismissSelection) }
@@ -121,6 +141,7 @@ private fun BuildingCard(
     collected: Pair<Int, Int>,
     busy: Boolean,
     onBuild: () -> Unit,
+    onEnter: () -> Unit,
     onLearn: () -> Unit,
     onVocabulary: () -> Unit,
     onClose: () -> Unit
@@ -154,12 +175,40 @@ private fun BuildingCard(
                 )
             }
             Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
+                // M7: Housing đã xây thì vào được bên trong (nội thất 3D)
+                if (building.code == BuildingCode.HOUSING && building.isBuilt) {
+                    Button(onClick = onEnter) { Text("Vào nhà") }
+                }
                 Button(onClick = onLearn, enabled = !building.isMaxLevel) { Text("Học") }
                 if (!building.isBuilt) {
                     FilledTonalButton(onClick = onBuild, enabled = !building.upgrading && !busy) { Text("Xây") }
                 }
                 TextButton(onClick = onVocabulary) { Text("Thẻ từ") }
                 TextButton(onClick = onClose) { Text("Đóng") }
+            }
+        }
+    }
+}
+
+/** M7: bảng nhiệm vụ khi đang ở trong nhà (UC_15 bước 2). Nút Trang trí (M8) mở tab Nhà của màn Tuỳ biến. */
+@Composable
+private fun InteriorPanel(
+    code: BuildingCode,
+    onLearn: () -> Unit,
+    onVocabulary: () -> Unit,
+    onDecorate: () -> Unit,
+    onExit: () -> Unit
+) {
+    Card(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text("${code.icon} Nhà của bạn", style = MaterialTheme.typography.titleMedium)
+            Text("Chạm sàn để đi lại trong nhà.", style = MaterialTheme.typography.bodySmall)
+            Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
+                Button(onClick = onLearn) { Text("Học") }
+                TextButton(onClick = onVocabulary) { Text("Thẻ từ") }
+                TextButton(onClick = onDecorate) { Text("Trang trí") }
+                Box(Modifier.weight(1f))
+                FilledTonalButton(onClick = onExit) { Text("Ra ngoài") }
             }
         }
     }

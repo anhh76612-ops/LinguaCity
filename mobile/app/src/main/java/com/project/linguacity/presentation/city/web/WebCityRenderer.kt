@@ -21,6 +21,8 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.webkit.WebViewAssetLoader
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
+import com.project.linguacity.domain.model.city.BuildingCode
+import com.project.linguacity.presentation.city.AvatarLook
 import com.project.linguacity.presentation.city.CityMapIntent
 import com.project.linguacity.presentation.city.CityRenderState
 import com.project.linguacity.presentation.city.CityRenderer
@@ -55,16 +57,19 @@ object WebCityRenderer : CityRenderer {
         val currentOnIntent by rememberUpdatedState(onIntent)
         // Bản đồ chỉ nhận state sau khi nó báo Ready (trước đó window.LinguaCity chưa có).
         var mapReady by remember { mutableStateOf(false) }
+        // Lệnh vào/ra công trình đã gửi gần nhất (M7). Bản đồ tải lại (Ready lần nữa) thì về null.
+        val sentFocus = remember { arrayOfNulls<BuildingCode>(1) }
         val stateJson = remember(state) { CityBridgeJson.encodeState(state) }
 
         AndroidView(
             modifier = modifier,
             factory = { context ->
-                createWebView(context) { raw ->
+                createWebView(context, START_URL) { raw ->
                     when (val intent = CityBridgeJson.decodeIntent(raw)) {
                         null -> Log.w(TAG, "Bỏ qua intent không hợp lệ: $raw")
                         CityMapIntent.Ready -> {
                             mapReady = true
+                            sentFocus[0] = null
                             currentOnIntent(intent)
                         }
                         else -> currentOnIntent(intent)
@@ -72,7 +77,42 @@ object WebCityRenderer : CityRenderer {
                 }
             },
             // Chạy lại mỗi khi stateJson đổi hoặc mapReady chuyển sang true.
-            update = { webView -> if (mapReady) webView.pushState(stateJson) },
+            update = { webView ->
+                if (mapReady) {
+                    webView.pushState(stateJson)
+                    if (state.focus != sentFocus[0]) {
+                        webView.sendFocus(state.focus)
+                        sentFocus[0] = state.focus
+                    }
+                }
+            },
+            onRelease = { webView -> webView.destroy() }
+        )
+    }
+
+    /** M7: chuyển "đang ở đâu" thành lệnh hoạt cảnh của bản đồ. */
+    private fun WebView.sendFocus(code: BuildingCode?) {
+        val js = if (code == null) "window.LinguaCity && LinguaCity.exitBuilding()"
+        else "window.LinguaCity && LinguaCity.enterBuilding(${JSONObject.quote(code.name)})"
+        evaluateJavascript(js, null)
+    }
+
+    /**
+     * M7: nhân vật 3D xoay trên bệ (city-web `?mode=avatar-preview`) cho màn chọn ngoại hình (UC_14).
+     * Nền trong suốt để thấy UI Compose phía sau.
+     */
+    @Composable
+    fun AvatarPreview(look: AvatarLook, modifier: Modifier = Modifier) {
+        var ready by remember { mutableStateOf(false) }
+        val json = remember(look) { CityBridgeJson.encodePreview(look) }
+        AndroidView(
+            modifier = modifier,
+            factory = { context ->
+                createWebView(context, "$START_URL?mode=avatar-preview", transparent = true) { raw ->
+                    if (CityBridgeJson.decodeIntent(raw) == CityMapIntent.Ready) ready = true
+                }
+            },
+            update = { webView -> if (ready) webView.pushState(json) },
             onRelease = { webView -> webView.destroy() }
         )
     }
@@ -83,7 +123,12 @@ object WebCityRenderer : CityRenderer {
     }
 
     @SuppressLint("SetJavaScriptEnabled")
-    private fun createWebView(context: Context, onMessage: (String) -> Unit): WebView {
+    private fun createWebView(
+        context: Context,
+        url: String,
+        transparent: Boolean = false,
+        onMessage: (String) -> Unit
+    ): WebView {
         val debuggable = context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0
         // Bản debug: mở chrome://inspect trên máy tính để xem console của bản đồ.
         WebView.setWebContentsDebuggingEnabled(debuggable)
@@ -96,7 +141,8 @@ object WebCityRenderer : CityRenderer {
             settings.javaScriptEnabled = true
             settings.allowFileAccess = false   // chỉ đọc file qua assetLoader
             settings.allowContentAccess = false
-            setBackgroundColor(0xFFCFE8F3.toInt()) // màu trời, tránh chớp trắng khi đang tải
+            // màu trời, tránh chớp trắng khi đang tải; xem trước nhân vật thì trong suốt
+            setBackgroundColor(if (transparent) 0 else 0xFFCFE8F3.toInt())
 
             webViewClient = object : WebViewClient() {
                 override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? =
@@ -107,7 +153,7 @@ object WebCityRenderer : CityRenderer {
             }
 
             attachBridge(this, onMessage)
-            loadUrl(START_URL)
+            loadUrl(url)
         }
     }
 

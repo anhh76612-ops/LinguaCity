@@ -34,4 +34,19 @@ interface PlayerDao {
 
     @Query("SELECT * FROM user_achievements")
     fun observeEarned(): Flow<List<UserAchievementEntity>>
+
+    // ---------- v5: tuỳ biến (M8) ----------
+    @Upsert suspend fun upsertCosmetics(items: List<CosmeticItemEntity>)
+
+    @Query("DELETE FROM cosmetic_items") suspend fun clearCosmetics()
+
+    @Query("SELECT * FROM cosmetic_items ORDER BY category, sortOrder")
+    fun observeCosmetics(): Flow<List<CosmeticItemEntity>>
+
+    @Upsert suspend fun upsertUnlocked(items: List<UnlockedCosmeticEntity>)
+
+    @Query("DELETE FROM unlocked_cosmetics") suspend fun clearUnlocked()
+
+    @Query("SELECT * FROM unlocked_cosmetics")
+    fun observeUnlocked(): Flow<List<UnlockedCosmeticEntity>>
 }

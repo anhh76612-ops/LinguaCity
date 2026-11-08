@@ -62,6 +62,14 @@ Intent gửi ra (JSON):
 - `{"type":"Ready"}`
 - `{"type":"BuildingTapped","buildingCode":"SCHOOL"}`
 - `{"type":"CityEventTapped","eventId":"evt-grammar-1"}`
+- `{"type":"BuildingEntered","buildingCode":"HOUSING"}` / `{"type":"BuildingExited",…}` (M7, sau hoạt cảnh vào/ra)
+
+### Nhân vật, vào nhà, xem trước (M7)
+
+- `CityState` có thêm hai trường tuỳ chọn: `player.appearance` (da, kiểu tóc `short|long|bun|spiky`, màu tóc, áo, quần, phụ kiện `none|hat|glasses`) và `houseStyle` (`wall` = màu `#rrggbb`, `floor` = `oak|walnut|tile|checker|carpet`).
+- `LinguaCity.enterBuilding(code)`: avatar đi tới cửa, camera phóng to; Housing Lv ≥ 1 thì đổi sang nội thất 3D (`src/world/interior/`). Trong nhà chạm sàn để đi lại. `LinguaCity.exitBuilding()` làm ngược lại. Điều phối ở `src/world/director.ts`.
+- `?mode=avatar-preview`: chỉ dựng avatar trên bệ xoay (`src/preview.ts`), nền trong suốt.
+- Bảng debug có mục **Người chơi (M7)** để thử tất cả những thứ trên.
 
 Kênh gửi được dò theo thứ tự: `window.AndroidBridge.postMessage` (Android), `webkit.messageHandlers.linguaCity` (iOS), sự kiện DOM `linguacity:intent` (web). Chi tiết ở `src/bridge/bridge.ts`.
 

@@ -174,12 +174,16 @@ Mẫu bảng đặc tả dùng chung (giống báo cáo mẫu):
 - **Business Rules:** BR-ACH-01..04.
 
 ### 4.7. UC_14 — Customize Avatar & House 🟡
+> M8 đã cài: API + màn SCR-20 (vào từ HUD 🎨 hoặc "Trang trí" trong nhà). Chưa có: lối vào từ bước tutorial `CUSTOMIZE` và từ Hồ sơ (M9).
+
 - **Luồng:**
   1. Ở tutorial (bước `CUSTOMIZE`) hoặc trong Hồ sơ: chọn màu da, kiểu tóc, màu tóc, màu áo, màu quần, phụ kiện. Xem trước bằng mô hình 3D xoay → `PUT /users/me/avatar`.
   2. Trong nhà: chọn tường và sàn. Món đang khoá hiện giá KP hoặc danh hiệu cần có → mua bằng `POST /cosmetics/{code}/unlock` → lưu bằng `PUT /users/me/house-style`.
 - **Business Rules:** BR-COS-01..03.
 
 ### 4.8. UC_15 — Enter Building 🟡
+> M7 đã cài: bước 1, 2 (House, trạm nhiệm vụ là bảng Compose đè lên cảnh 3D; trạm chạm được trong cảnh để sau), 5. Bước 3–4 vẫn dùng thẻ công trình (SCR-05).
+
 - **Luồng:**
   1. Chạm công trình → avatar người chơi đi bộ tới cửa → camera bay vào (city-web `enterBuilding`).
   2. House Lv ≥ 1: cảnh nội thất 3D với các "trạm nhiệm vụ" chạm được (Học, Bài học, Thẻ từ, Trang trí).

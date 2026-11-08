@@ -2,6 +2,7 @@ package com.linguacity.backend.content.service;
 
 import com.linguacity.backend.achievement.repository.AchievementRepository;
 import com.linguacity.backend.common.exception.ApiException;
+import com.linguacity.backend.cosmetic.service.CosmeticService;
 import com.linguacity.backend.content.dto.ContentDtos.*;
 import com.linguacity.backend.content.entity.*;
 import com.linguacity.backend.content.repository.*;
@@ -45,6 +46,7 @@ public class ContentService {
     private final ExamRequirementRepository examRequirements;
     private final ExamQuestionRepository examQuestions;
     private final AchievementRepository achievements;
+    private final CosmeticService cosmetics;
     private final ObjectMapper json;
     private final Clock clock;
 
@@ -54,6 +56,7 @@ public class ContentService {
                           QuestionRepository questions, QuestionVocabularyRepository questionVocabularies,
                           ExamRepository exams, ExamRequirementRepository examRequirements,
                           ExamQuestionRepository examQuestions, AchievementRepository achievements,
+                          CosmeticService cosmetics,
                           ObjectMapper json, Clock clock) {
         this.packs = packs;
         this.themes = themes;
@@ -68,6 +71,7 @@ public class ContentService {
         this.examRequirements = examRequirements;
         this.examQuestions = examQuestions;
         this.achievements = achievements;
+        this.cosmetics = cosmetics;
         this.json = json;
         this.clock = clock;
     }
@@ -118,7 +122,7 @@ public class ContentService {
                 .toList();
 
         return new Core(pack.getCode(), pack.getVersion(), themeDtos, buildingDtos, levelDtos, blueprintDtos,
-                achievementDtos, List.of());
+                achievementDtos, cosmetics.catalog());
     }
 
     /**

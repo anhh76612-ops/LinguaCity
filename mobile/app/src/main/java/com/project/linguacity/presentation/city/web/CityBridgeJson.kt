@@ -1,6 +1,7 @@
 package com.project.linguacity.presentation.city.web
 
 import com.project.linguacity.domain.model.city.BuildingCode
+import com.project.linguacity.presentation.city.AvatarLook
 import com.project.linguacity.presentation.city.CityMapIntent
 import com.project.linguacity.presentation.city.CityRenderState
 import kotlinx.serialization.Serializable
@@ -22,7 +23,31 @@ internal object CityBridgeJson {
     }
 
     @Serializable
-    private data class StateDto(val v: Int, val buildings: List<BuildingDto>, val events: List<EventDto>)
+    private data class StateDto(
+        val v: Int,
+        val buildings: List<BuildingDto>,
+        val events: List<EventDto>,
+        val player: PlayerDto,
+        val houseStyle: HouseDto
+    )
+
+    @Serializable
+    private data class PlayerDto(val appearance: AppearanceDto)
+
+    @Serializable
+    private data class AppearanceDto(
+        val skin: String, val hairStyle: String, val hairColor: String,
+        val shirt: String, val pants: String, val accessory: String
+    )
+
+    @Serializable
+    private data class HouseDto(val wall: String, val floor: String)
+
+    /** Chế độ avatar-preview chỉ đọc player.appearance. */
+    @Serializable
+    private data class PreviewDto(val v: Int, val player: PlayerDto)
+
+    private fun AvatarLook.dto() = AppearanceDto(skin, hairStyle, hairColor, shirt, pants, accessory)
 
     @Serializable
     private data class BuildingDto(val code: String, val level: Int, val upgrading: Boolean, val progress: Float)
@@ -38,9 +63,16 @@ internal object CityBridgeJson {
         StateDto(
             v = CONTRACT_VERSION,
             buildings = state.buildings.map { BuildingDto(it.code.name, it.level, it.upgrading, it.progress) },
-            events = state.events.map { EventDto(it.id, it.kind) }
+            events = state.events.map { EventDto(it.id, it.kind) },
+            player = PlayerDto(state.avatar.dto()),
+            houseStyle = HouseDto(state.house.wall, state.house.floor)
         )
     )
+
+    fun encodePreview(look: AvatarLook): String =
+        json.encodeToString(PreviewDto.serializer(), PreviewDto(CONTRACT_VERSION, PlayerDto(look.dto())))
+
+    private fun code(raw: String?): BuildingCode? = BuildingCode.entries.firstOrNull { it.name == raw }
 
     /** Dữ liệu từ WebView là dữ liệu bên ngoài: sai định dạng thì trả null, không làm app crash. */
     fun decodeIntent(raw: String): CityMapIntent? {
@@ -53,6 +85,8 @@ internal object CityBridgeJson {
             "CityEventTapped" -> dto.eventId
                 ?.takeIf { it.isNotBlank() }
                 ?.let { CityMapIntent.CityEventTapped(it) }
+            "BuildingEntered" -> code(dto.buildingCode)?.let { CityMapIntent.BuildingEntered(it) }
+            "BuildingExited" -> code(dto.buildingCode)?.let { CityMapIntent.BuildingExited(it) }
             else -> null
         }
     }
