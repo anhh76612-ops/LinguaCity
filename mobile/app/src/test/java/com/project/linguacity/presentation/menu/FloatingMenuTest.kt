@@ -20,6 +20,21 @@ class FloatingMenuTest {
         assertEquals(-86.6f, y1, 0.05f) // 120°
     }
 
+    // TC-M15-02: menu đợt 2 có 6 mục (thêm 📜 Nhiệm vụ, 🎯 Luyện tập) vẫn nằm trên cung 90°
+    @Test
+    fun `six items keep the same quarter arc with even spacing`() {
+        val points = (0 until 6).map { arcOffset(it, 6, 100f) }
+        assertEquals(0f, points.first().first, 0.01f)
+        assertEquals(-100f, points.first().second, 0.01f)
+        assertEquals(-100f, points.last().first, 0.01f)
+        assertEquals(0f, points.last().second, 0.01f)
+        val gaps = points.zipWithNext { a, b ->
+            kotlin.math.hypot(a.first - b.first, a.second - b.second)
+        }
+        gaps.forEach { assertEquals(gaps.first(), it, 0.01f) }
+        points.forEach { (x, y) -> assertEquals(100f, kotlin.math.hypot(x, y), 0.01f) }
+    }
+
     @Test
     fun `orientation settings map to activity values`() {
         assertEquals(
