@@ -80,13 +80,20 @@ private fun DrawScope.face(mood: MaiMood, cx: Float, w: Float, h: Float) {
     val browLift = when (mood) {
         MaiMood.SURPRISED -> -h * 0.05f
         MaiMood.ENCOURAGE -> -h * 0.02f
+        MaiMood.POUT -> h * 0.02f
+        else -> 0f
+    }
+    // lông mày nghiêng: lo lắng thì rũ chữ bát, giận dỗi thì chau lại
+    val browTilt = when (mood) {
+        MaiMood.WORRIED -> -h * 0.025f
+        MaiMood.POUT -> h * 0.025f
         else -> 0f
     }
     for (side in listOf(-1f, 1f)) {
-        drawLine(ink, Offset(cx + side * dx - w * 0.05f, eyeY - h * 0.07f + browLift),
+        drawLine(ink, Offset(cx + side * dx - w * 0.05f, eyeY - h * 0.07f + browLift - side * browTilt),
             Offset(
                 cx + side * dx + w * 0.05f,
-                eyeY - h * 0.075f + browLift
+                eyeY - h * 0.075f + browLift + side * browTilt
             ), strokeWidth = w * 0.018f, cap = StrokeCap.Round)
     }
     // mắt
@@ -107,7 +114,11 @@ private fun DrawScope.face(mood: MaiMood, cx: Float, w: Float, h: Float) {
             drawCircle(Color.White, radius = w * 0.042f, center = Offset(cx + side * dx, eyeY))
             drawCircle(ink, radius = w * 0.026f, center = Offset(cx + side * dx, eyeY))
         }
-        MaiMood.ENCOURAGE -> for (side in listOf(-1f, 1f)) {
+        MaiMood.SLEEPY, MaiMood.SLY -> for (side in listOf(-1f, 1f)) { // mắt lim dim / híp
+            drawLine(ink, Offset(cx + side * dx - w * 0.04f, eyeY), Offset(cx + side * dx + w * 0.04f, eyeY),
+                strokeWidth = w * 0.022f, cap = StrokeCap.Round)
+        }
+        else -> for (side in listOf(-1f, 1f)) {
             drawCircle(ink, radius = w * 0.04f, center = Offset(cx + side * dx, eyeY))
             drawCircle(
                 Color.White,
@@ -132,6 +143,18 @@ private fun DrawScope.face(mood: MaiMood, cx: Float, w: Float, h: Float) {
             }
             drawPath(path, Color(0xFFB34A4A))
         }
+        MaiMood.POUT -> {
+            // phồng má + miệng chu
+            drawCircle(Color(0x88F4A3A3), radius = w * 0.07f, center = Offset(cx - w * 0.17f, mouthY - h * 0.02f))
+            drawCircle(Color(0x88F4A3A3), radius = w * 0.07f, center = Offset(cx + w * 0.17f, mouthY - h * 0.02f))
+            drawCircle(ink, radius = w * 0.018f, center = Offset(cx, mouthY), style = stroke)
+        }
+        MaiMood.SLY -> drawArc(ink, 10f, 120f, false, topLeft = Offset(cx - w * 0.02f, mouthY - h * 0.05f),
+            size = Size(w * 0.1f, h * 0.06f), style = stroke)
+        MaiMood.WORRIED -> drawArc(ink, 200f, 140f, false, topLeft = Offset(cx - w * 0.06f, mouthY),
+            size = Size(w * 0.12f, h * 0.05f), style = stroke)
+        MaiMood.SLEEPY -> drawOval(Color(0xFFB34A4A), topLeft = Offset(cx - w * 0.02f, mouthY - h * 0.01f),
+            size = Size(w * 0.04f, h * 0.04f))
         else -> drawArc(ink, 20f, 140f, false, topLeft = Offset(cx - w * 0.07f, mouthY - h * 0.05f),
             size = Size(w * 0.14f, h * 0.07f), style = stroke)
     }

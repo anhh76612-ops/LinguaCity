@@ -726,7 +726,7 @@ private fun ProblemView(
         verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        MaiPortrait(MaiMood.ENCOURAGE, Modifier.size(72.dp))
+        MaiPortrait(MaiMood.WORRIED, Modifier.size(72.dp))
         Text(title, style = MaterialTheme.typography.titleLarge, color = c.ink)
         Text(body, textAlign = TextAlign.Center, color = c.ink)
         retry?.let { JellyButton(it, onRetry) }

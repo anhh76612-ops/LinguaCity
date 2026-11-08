@@ -197,6 +197,16 @@ fun BuildingSheet(
 
             // ---- FULL ----
             if (level == SheetLevel.FULL) {
+                // mục 11: Fixy báo tiến độ / nhắc cách lên level
+                val (fixyMood, fixyLine) = com.project.linguacity.presentation.characters.fixyLineFor(building, hasBlueprint)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    com.project.linguacity.presentation.characters.FixyPortrait(fixyMood, Modifier.size(56.dp))
+                    Text(
+                        "Fixy: $fixyLine",
+                        Modifier.padding(start = 10.dp).weight(1f),
+                        style = MaterialTheme.typography.bodySmall, color = c.ink
+                    )
+                }
                 NextLevelBlock(building, next, hasBlueprint, busy, onBuild, onExam)
             }
         }
