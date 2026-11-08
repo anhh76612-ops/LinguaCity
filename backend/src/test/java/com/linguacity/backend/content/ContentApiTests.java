@@ -195,14 +195,14 @@ class ContentApiTests {
                 .andExpect(jsonPath("$.code").value("PACK_NOT_FOUND"));
     }
 
-    // TC-VS2-06
+    // TC-VS2-06 (đổi ở VS6, ADR-016): thiếu hoặc sai danh tính → 401
     @Test
     void headerIsRequired() throws Exception {
         api.perform(get("/api/v1/content/manifest"))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value("MISSING_HEADER"));
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("UNAUTHENTICATED"));
         api.perform(get("/api/v1/content/core").header("X-Guest-UUID", "not-a-uuid"))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isUnauthorized());
     }
 
     // ---------- dữ liệu mẫu ----------
