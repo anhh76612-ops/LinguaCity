@@ -1,5 +1,6 @@
 package com.project.linguacity.di
 
+import com.project.linguacity.BuildConfig
 import com.project.linguacity.data.remote.auth.AuthApi
 import com.project.linguacity.data.remote.auth.AuthInterceptor
 import com.project.linguacity.data.remote.auth.RefreshApi
@@ -25,7 +26,8 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
 
-    private const val BASE_URL = "http://10.0.2.2:8080/"
+    /** Lấy từ `API_BASE_URL` trong mobile/local.properties; mặc định http://10.0.2.2:8080/ (emulator). */
+    private val BASE_URL = BuildConfig.API_BASE_URL
 
     @Provides
     @Singleton

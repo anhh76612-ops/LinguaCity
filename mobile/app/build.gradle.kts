@@ -43,6 +43,13 @@ android {
         buildConfigField("boolean", "FACEBOOK_CONFIGURED", facebookAppId.isNotEmpty().toString())
         resValue("string", "facebook_app_id", facebookAppId.ifEmpty { "0" })
         resValue("string", "facebook_client_token", secret("FACEBOOK_CLIENT_TOKEN").ifEmpty { "0" })
+
+        // Địa chỉ backend. Mặc định 10.0.2.2 = máy tính chạy emulator. Chạy trên điện thoại thật
+        // qua `adb reverse tcp:8080 tcp:8080` thì đặt API_BASE_URL=http://localhost:8080/ trong
+        // mobile/local.properties (hoặc IP LAN của máy tính nếu không dùng adb reverse).
+        val apiBaseUrl = secret("API_BASE_URL").ifEmpty { "http://10.0.2.2:8080/" }
+            .let { if (it.endsWith("/")) it else "$it/" }
+        buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
     }
 
     buildTypes {
