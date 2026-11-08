@@ -252,7 +252,7 @@ public class LearningService {
                 question.getAnswer(),
                 question.getExplanation(),
                 vocabulary.getId(),
-                outcome.row().getMasteryScore(),
+                VocabProgressRecorder.effectiveMastery(outcome.row(), now),
                 max,
                 outcome.collectedNow(),
                 session.getCurrentStreak());
@@ -262,11 +262,14 @@ public class LearningService {
     private VocabProgressRecorder.Outcome recordProgress(LearningSession session, UUID userId,
             Long vocabularyId, boolean correct, int max, LocalDateTime now) {
         boolean rewarded = isRewardable(session, userId, vocabularyId, now);
+        // ADR-017: luyện tập không đổi Mastery; bài học / sự kiện thì có
+        boolean practice = session.getType().isPractice();
         VocabProgressRecorder.Outcome outcome =
-                recorder.record(userId, vocabularyId, correct, max, rewarded, now);
-        if (session.getType().isPractice() && rewarded) {
+                recorder.record(userId, vocabularyId, correct, max, !practice, now);
+        if (practice && rewarded) {
             rewardPracticeAnswer(session, outcome.row(), correct, now);
         }
+        awardMaterials(userId, practice, rewarded, correct, outcome);
         trackAnswer(userId, session, outcome);
         return outcome;
     }
@@ -336,7 +339,7 @@ public class LearningService {
         List<ProgressItemDto> dtos = list.stream()
                 .map(row -> new ProgressItemDto(
                         row.getVocabularyId(),
-                        row.getMasteryScore(),
+                        VocabProgressRecorder.effectiveMastery(row, Times.nowUtc(clock)),
                         balance.maxMastery(rank.get(row.getVocabularyId())),
                         row.isCollected(),
                         Times.toInstant(row.getFirstSeenAt()),
@@ -431,6 +434,23 @@ public class LearningService {
         int kpSoFar = session.getKpAwarded() == null ? 0 : session.getKpAwarded();
         session.setKpAwarded(kpSoFar + balance.getPracticeKpPerCorrect());
         sessions.save(session);
+    }
+
+    /**
+     * ADR-017 kinh tế v2: học từ mới (sưu tầm lần đầu trong bài học/sự kiện) ra 1 Gạch; ôn đúng
+     * trong luyện tập (lần đầu trong ngày của từ) ra 1 Gỗ.
+     */
+    private void awardMaterials(UUID userId, boolean practice, boolean rewarded, boolean correct,
+            VocabProgressRecorder.Outcome outcome) {
+        int bricks = !practice && outcome.collectedNow() ? 1 : 0;
+        int wood = practice && rewarded && correct ? 1 : 0;
+        if (bricks == 0 && wood == 0) {
+            return;
+        }
+        UserProfile profile = requireUser(userId);
+        profile.setBricks(profile.getBricks() + bricks);
+        profile.setWood(profile.getWood() + wood);
+        users.save(profile);
     }
 
     /** Tiến độ nhiệm vụ hằng ngày theo từng câu trả lời (system-design §11.4). */
@@ -623,7 +643,8 @@ public class LearningService {
                 id,
                 review,
                 vocabProgress.isCollected(),
-                vocabProgress.getMasteryScore(),
+                VocabProgressRecorder.effectiveMastery(vocabProgress,
+                        LocalDateTime.now(java.time.ZoneOffset.UTC)),
                 vocabProgress.getLastReviewedAt());
     }
 }

@@ -84,6 +84,9 @@ data class PlayerDto(
     val knowledgePoints: Int,
     val hourglassCount: Int,
     val blueprintShards: Int,
+    /** ADR-017; server cũ không gửi thì 0. */
+    val bricks: Int = 0,
+    val wood: Int = 0,
     val tutorialStep: String,
     val tutorialCompleted: Boolean,
     val equippedTitle: String? = null,

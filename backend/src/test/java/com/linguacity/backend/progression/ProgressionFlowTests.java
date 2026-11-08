@@ -254,7 +254,8 @@ class ProgressionFlowTests extends ProgressionTestBase {
 
         for (int i = 0; i < 10; i++) {
             long vocab = vocabByOrder.get(i);
-            int expected = i < 5 ? before.get(vocab) + 1 : Math.max(0, before.get(vocab) - 1);
+            // ADR-017: đúng +1, sai giữ nguyên
+            int expected = i < 5 ? before.get(vocab) + 1 : before.get(vocab);
             assertEquals(expected, mastery(user, vocab), "câu " + (i + 1));
             if (i < 5 && house2.contains(vocab)) {
                 assertTrue(isCollected(user, vocab), "từ mới đúng trong bài thi được sưu tầm");
@@ -766,8 +767,9 @@ class ProgressionFlowTests extends ProgressionTestBase {
         complete(session.get("sessionId").asString(), user)
                 .andExpect(jsonPath("$.kpAwarded").value(10 * 3));
         for (long vocab : answersPerWord.keySet()) {
-            assertEquals(2, mastery(user, vocab),
-                    "Mastery +1 một lần trong ngày dù trả lời đúng " + answersPerWord.get(vocab)
+            // ADR-017: luyện tập không đổi Mastery (collect() để từ ở mức 1)
+            assertEquals(1, mastery(user, vocab),
+                    "Luyện tập không đổi Mastery dù trả lời đúng " + answersPerWord.get(vocab)
                             + " lần");
         }
         assertEquals(30, profile(user).getKnowledgePoints());

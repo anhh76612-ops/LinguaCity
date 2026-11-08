@@ -126,6 +126,14 @@ fun HomeHud(
             }
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 ResourcePill(
+                    LinguaIcons.Brick, "${profile?.bricks ?: 0}", "Gạch", onClick = onOpenProfile
+                )
+                ResourcePill(
+                    LinguaIcons.Wood, "${profile?.wood ?: 0}", "Gỗ", onClick = onOpenProfile
+                )
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                ResourcePill(
                     LinguaIcons.Hourglass, "${profile?.hourglassCount ?: 0}", "Đồng hồ cát",
                     onClick = onOpenProfile
                 )

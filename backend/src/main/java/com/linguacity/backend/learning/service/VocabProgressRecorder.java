@@ -27,9 +27,13 @@ public class VocabProgressRecorder {
      */
     public record Outcome(UserVocabProgress row, boolean collectedNow, boolean wasCollected) {}
 
+    /** Số ngày không trả lời đúng thì Mastery giảm 1 (ADR-017). */
+    public static final int DECAY_DAYS = 7;
+
     /**
-     * Mastery ±1 chỉ khi {@code applyMastery} (luyện tập: mỗi từ một lần mỗi ngày, BR-PRAC-03).
-     * Sưu tầm luôn được ghi khi trả lời đúng lần đầu, kể cả khi không áp Mastery (BR-PRAC-04).
+     * Mastery v2 (ADR-017) chỉ đổi khi {@code applyMastery} (bài học, sự kiện, bài thi; luyện tập
+     * không đổi Mastery): đúng thì lấy điểm đã giảm theo thời gian +1, sai thì giữ nguyên.
+     * Sưu tầm luôn được ghi khi trả lời đúng lần đầu (BR-PRAC-04).
      */
     public Outcome record(UUID userId, Long vocabularyId, boolean correct, int maxMastery,
             boolean applyMastery, LocalDateTime now) {
@@ -37,8 +41,14 @@ public class VocabProgressRecorder {
                 .orElseGet(() -> fresh(userId, vocabularyId));
         boolean wasCollected = row.isCollected();
 
-        if (applyMastery) {
-            row.setMasteryScore(MasteryEngine.apply(row.getMasteryScore(), correct, maxMastery));
+        if (applyMastery && correct) {
+            int base = effectiveMastery(row, now);
+            int next = MasteryEngine.apply(base, true, maxMastery);
+            row.setMasteryScore(next);
+            row.setLastCorrectAt(now);
+            if (next >= maxMastery && row.getGraduatedAt() == null) {
+                row.setGraduatedAt(now);
+            }
         }
         if (row.getFirstSeenAt() == null) {
             row.setFirstSeenAt(now);
@@ -50,6 +60,12 @@ public class VocabProgressRecorder {
         }
         row.setUpdatedAt(now);
         return new Outcome(progress.save(row), collectedNow, wasCollected);
+    }
+
+    /** Mastery hiển thị: điểm lưu trừ phần quên theo thời gian. */
+    public static int effectiveMastery(UserVocabProgress row, LocalDateTime now) {
+        return MasteryEngine.effective(row.getMasteryScore(), row.getLastCorrectAt(),
+                row.getGraduatedAt(), now, DECAY_DAYS);
     }
 
     private static UserVocabProgress fresh(UUID userId, Long vocabularyId) {

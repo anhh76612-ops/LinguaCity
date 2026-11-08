@@ -46,4 +46,12 @@ public class UserVocabProgress {
     /** Luyện tập: ngày cuối cùng từ này được thưởng KP / Mastery (BR-PRAC-03). */
     @Column(name = "last_rewarded_on")
     private LocalDate lastRewardedOn;
+
+    /** ADR-017: lần trả lời đúng gần nhất (mốc tính giảm Mastery theo thời gian). */
+    @Column(name = "last_correct_at")
+    private LocalDateTime lastCorrectAt;
+
+    /** ADR-017: thời điểm chạm max Mastery; khác null thì không bao giờ giảm nữa. */
+    @Column(name = "graduated_at")
+    private LocalDateTime graduatedAt;
 }

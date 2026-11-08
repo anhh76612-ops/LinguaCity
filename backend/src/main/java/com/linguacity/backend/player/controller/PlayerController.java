@@ -115,6 +115,8 @@ public class PlayerController {
                 profile.getKnowledgePoints(),
                 profile.getHourglassCount(),
                 profile.getBlueprintShards(),
+                profile.getBricks(),
+                profile.getWood(),
                 profile.getTutorialStep(),
                 profile.isTutorialCompleted(),
                 profile.getEquippedAchievementCode(),
