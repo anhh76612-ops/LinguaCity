@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.LinguaCity" parent="android:Theme.Material.Light.NoActionBar" />
+    <!-- Nền cửa sổ trùng nền app (cream) để không loé trắng khi mở màn -->
+    <style name="Theme.LinguaCity" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/lc_cream</item>
+    </style>
 
     <!-- M9 / FR-UI-01 (SCR-14): màn splash hệ thống, rồi chuyển sang Theme.LinguaCity khi app sẵn sàng -->
     <style name="Theme.LinguaCity.Starting" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">#CFE8F3</item>
+        <item name="windowSplashScreenBackground">@color/lc_cream</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash</item>
         <item name="postSplashScreenTheme">@style/Theme.LinguaCity</item>
     </style>

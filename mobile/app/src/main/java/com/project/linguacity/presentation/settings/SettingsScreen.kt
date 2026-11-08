@@ -1,5 +1,7 @@
 package com.project.linguacity.presentation.settings
 
+import android.content.pm.ApplicationInfo
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.material3.*
@@ -42,6 +44,7 @@ class SettingsViewModel @Inject constructor(private val store: SettingsStore) : 
 fun SettingsScreen(
     onBack: () -> Unit,
     onReplayTour: () -> Unit,
+    onOpenDesignGallery: () -> Unit = {},
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val settings by viewModel.settings.collectAsState()
@@ -96,6 +99,23 @@ fun SettingsScreen(
                     }
                 ) {
                     Text("Xem")
+                }
+            }
+        }
+        // S1: màn xem bộ giao diện, chỉ hiện ở bản debug (cờ debuggable của ứng dụng)
+        val context = LocalContext.current
+        val debuggable = (context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
+        if (debuggable) {
+            Card(Modifier.fillMaxWidth().staggeredAppear(3)) {
+                Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text("Bộ giao diện (debug)", style = MaterialTheme.typography.titleMedium)
+                        Text(
+                            "Màu, chữ, nút thạch, icon của Cozy Toy Town.",
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                    FilledTonalButton(onClick = onOpenDesignGallery) { Text("Mở") }
                 }
             }
         }
