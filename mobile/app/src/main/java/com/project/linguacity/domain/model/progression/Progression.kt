@@ -92,7 +92,9 @@ data class QuestsOverview(
     val daily: List<Quest>,
     val dailyBonus: Quest?,
     val streak: StreakStatus,
-    val resetsAtMillis: Long?
+    val resetsAtMillis: Long?,
+    /** 7 ngày gần nhất, cũ trước, hôm nay cuối; rỗng nếu server cũ. */
+    val streakWeek: List<Boolean> = emptyList()
 )
 
 /** Luyện tập (SCR-24, system-design §11.6). */

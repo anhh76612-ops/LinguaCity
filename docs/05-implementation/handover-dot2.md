@@ -2,7 +2,7 @@
 
 Kế hoạch: [plans/2026-11-08-m11-progression.md](plans/2026-11-08-m11-progression.md).
 
-**Chat code (ổ C)**
+**Chat code (ổ C)**ư
 - Viết code, migration, nội dung, tài liệu thiết kế.
 - Chỉ biên dịch và chạy `check_style.py`, không viết hay chạy test.
 
@@ -308,3 +308,10 @@ Lưu ý: **V006 đổi `learning_sessions.building_id` thành cho phép NULL.** 
 3. Chạy backend mới từ bản đã checkout nhánh này.
 
 **Còn mở:** Q10 (pool thi toàn câu tier 3, đậu 8/10) chờ người dùng quyết; các mục "Chưa làm" của M15.
+
+## M15b: Phần còn lại của M15 (08/11/2026)
+
+- **Mai ở Trung tâm thi:** lần đầu mở SCR-10 hiện thẻ giải thích luật; bấm "Mình hiểu rồi" thì lưu cờ `exam_tip_seen` (SettingsStore) và không hiện lại.
+- **SCR-18:** danh hiệu `STREAK_*` có nhãn "🔥 Mất khi đứt chuỗi ngày" (nhận theo tiền tố mã, vì Room v5 chưa có cột revocable).
+- **Lịch chuỗi 7 ngày:** `GET /quests` thêm `streakWeek: boolean[7]` (cũ trước, hôm nay cuối; một ngày = có bài học + nhiệm vụ hằng ngày, BR-STREAK-01). SCR-23 hiện hàng 🔥/⬜. `GET /city` không đổi.
+- **Chat test:** kiểm `streakWeek` bằng `MutableClock` (ngày đủ / thiếu một điều kiện); test `QuestsDto` cũ cần thêm tham số thứ 6.

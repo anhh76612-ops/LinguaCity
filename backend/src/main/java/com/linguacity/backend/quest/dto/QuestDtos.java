@@ -29,7 +29,8 @@ public final class QuestDtos {
             List<QuestDto> daily,
             QuestDto dailyBonus,
             StreakStatus streak,
-            Instant resetsAt) {}
+            Instant resetsAt,
+            List<Boolean> streakWeek) {}
 
     public record ClaimResultDto(
             QuestDto quest, ResourcesDto profile, List<String> newAchievements) {}

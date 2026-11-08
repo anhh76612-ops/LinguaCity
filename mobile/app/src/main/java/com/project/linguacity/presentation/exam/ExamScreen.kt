@@ -83,7 +83,12 @@ fun ExamScreen(
             state.loading -> DelayedLoading(LoadingKind.LESSON)
             attempt != null && state.reviewing -> ReviewView(state, attempt, viewModel)
             attempt != null -> TakeView(state, attempt, viewModel)
-            status != null -> CenterView(status, state.busy, viewModel::start)
+            status != null -> {
+                if (state.showTip) {
+                    MaiTip(viewModel::dismissTip)
+                }
+                CenterView(status, state.busy, viewModel::start)
+            }
             else -> Text("Công trình này chưa có bài thi.")
         }
         SnackbarHost(snackbar)
@@ -151,6 +156,23 @@ private fun ColumnScope.CenterView(status: ExamStatus, busy: Boolean, onStart: (
         modifier = Modifier.fillMaxWidth()
     ) {
         Text(label)
+    }
+}
+
+/** Mai giới thiệu luật thi lần đầu (ADR-015 §2). */
+@Composable
+private fun MaiTip(onDismiss: () -> Unit) {
+    Card(Modifier.fillMaxWidth().padding(bottom = 12.dp)) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text("👩‍🏫 Mai", fontWeight = FontWeight.SemiBold)
+            Text(
+                "Đây là Trung tâm thi! Đủ điều kiện thì đóng phí KP để thi. Đậu sẽ nhận bản vẽ " +
+                    "để nâng cấp công trình. Trượt thì mất phí nhưng thi lại lúc nào cũng được, " +
+                    "và bài đang làm dở vẫn được giữ.",
+                style = MaterialTheme.typography.bodyMedium
+            )
+            TextButton(onClick = onDismiss) { Text("Mình hiểu rồi") }
+        }
     }
 }
 
