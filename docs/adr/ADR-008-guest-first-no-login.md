@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 | :--- | :--- |
-| **Trạng thái** | ✅ Accepted |
+| **Trạng thái** | ✅ Accepted — **được sửa bởi ADR-016 (VS6)** |
 | **Giai đoạn** | VS1 (Guest Onboarding) |
 | **Liên quan** | SRS §5.1 · UC_01 · future-expansion.md (VS6–VS7) · handover §11 |
 
@@ -26,3 +26,8 @@ Không mở rộng VS1 sang Login, Register, Forgot Password, Teacher, Student, 
 
 ## Lesson
 Ưu tiên Core Loop trước Authentication: *Prepare the architecture, not the feature.*
+
+## Cập nhật VS6 (ADR-016)
+Khách giờ chỉ là **tạm thời**: mở app vào màn Đăng nhập / Đăng ký, có nút "Chơi ngay (khách)"; khách
+xong tutorial bắt buộc gắn tài khoản (email, Google, Facebook) để chơi tiếp. Thiết kế tách
+`user_accounts` khỏi `user_profiles` đúng như Consequence ở trên.

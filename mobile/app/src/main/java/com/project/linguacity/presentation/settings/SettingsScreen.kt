@@ -44,6 +44,7 @@ class SettingsViewModel @Inject constructor(private val store: SettingsStore) : 
 fun SettingsScreen(
     onBack: () -> Unit,
     onReplayTour: () -> Unit,
+    onOpenAccount: () -> Unit,
     onOpenDesignGallery: () -> Unit = {},
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
@@ -52,6 +53,20 @@ fun SettingsScreen(
         verticalArrangement = Arrangement.spacedBy(12.dp)) {
         TextButton(onClick = onBack) { Text("‹ Thành phố") }
         Text("Cài đặt", style = MaterialTheme.typography.titleLarge)
+
+        // SCR-26 (VS6): tài khoản, đăng xuất, xoá tài khoản
+        Card(Modifier.fillMaxWidth().staggeredAppear(0)) {
+            Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    Text("Tài khoản", style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        "Email, cách đăng nhập, đăng xuất.",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+                FilledTonalButton(onClick = onOpenAccount) { Text("Mở") }
+            }
+        }
 
         Card(Modifier.fillMaxWidth().staggeredAppear(0)) {
             Column(Modifier.padding(16.dp)) {

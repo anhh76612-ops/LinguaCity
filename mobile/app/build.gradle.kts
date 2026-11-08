@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -7,6 +9,18 @@ plugins {
     id("com.google.dagger.hilt.android")
     id("org.jetbrains.kotlin.plugin.serialization")
 }
+
+// VS6 (ADR-016): khoá đăng nhập Google/Facebook đọc từ mobile/local.properties (không commit) hoặc
+// biến môi trường. Thiếu thì app vẫn build, nút Google/Facebook báo "chưa cấu hình".
+val localProps = Properties().apply {
+    val file = rootProject.file("local.properties")
+    if (file.exists()) {
+        file.inputStream().use { load(it) }
+    }
+}
+
+fun secret(name: String): String =
+    (localProps.getProperty(name) ?: System.getenv(name) ?: "").trim()
 
 android {
     namespace = "com.project.linguacity"
@@ -22,6 +36,13 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        val googleClientId = secret("GOOGLE_WEB_CLIENT_ID")
+        val facebookAppId = secret("FACEBOOK_APP_ID")
+        buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"$googleClientId\"")
+        buildConfigField("boolean", "FACEBOOK_CONFIGURED", facebookAppId.isNotEmpty().toString())
+        resValue("string", "facebook_app_id", facebookAppId.ifEmpty { "0" })
+        resValue("string", "facebook_client_token", secret("FACEBOOK_CLIENT_TOKEN").ifEmpty { "0" })
     }
 
     buildTypes {
@@ -42,6 +63,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -112,4 +134,11 @@ dependencies {
 
     // M9 / FR-UI-01: splash hệ thống Android 12+ (có bản tương thích cho API thấp hơn)
     implementation("androidx.core:core-splashscreen:1.0.1")
+
+    // 7. VS6 (ADR-016): lưu token mã hoá, đăng nhập Google (Credential Manager) và Facebook
+    implementation("androidx.security:security-crypto:1.1.0-alpha06")
+    implementation("androidx.credentials:credentials:1.3.0")
+    implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
+    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
+    implementation("com.facebook.android:facebook-login:17.0.2")
 }

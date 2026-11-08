@@ -1,5 +1,6 @@
 package com.linguacity.backend.content.controller;
 
+import com.linguacity.backend.auth.security.CurrentUser;
 import com.linguacity.backend.content.dto.ContentDtos.Core;
 import com.linguacity.backend.content.dto.ContentDtos.Manifest;
 import com.linguacity.backend.content.dto.ContentDtos.Pack;
@@ -9,8 +10,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 /**
- * UC_03 Sync Static Content (system-design §10.4.1). Header {@code X-Guest-UUID} bắt buộc như mọi
- * API (§7.2).
+ * UC_03 Sync Static Content (system-design §10.4.1). Cần xác thực như mọi API (Bearer JWT, hoặc
+ * header {@code X-Guest-UUID} của app bản cũ — ADR-016).
  */
 @RestController
 @RequestMapping("/api/v1/content")
@@ -23,18 +24,18 @@ public class ContentController {
     }
 
     @GetMapping("/manifest")
-    public Manifest manifest(@RequestHeader("X-Guest-UUID") UUID guestUuid) {
+    public Manifest manifest(@CurrentUser UUID guestUuid) {
         return content.manifest();
     }
 
     @GetMapping("/core")
-    public Core core(@RequestHeader("X-Guest-UUID") UUID guestUuid) {
+    public Core core(@CurrentUser UUID guestUuid) {
         return content.core();
     }
 
     @GetMapping("/packs/{buildingCode}/{level}")
     public Pack pack(
-            @RequestHeader("X-Guest-UUID") UUID guestUuid,
+            @CurrentUser UUID guestUuid,
             @PathVariable String buildingCode,
             @PathVariable int level) {
         return content.pack(buildingCode.toUpperCase(), level);

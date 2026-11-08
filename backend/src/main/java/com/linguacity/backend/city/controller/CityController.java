@@ -1,5 +1,6 @@
 package com.linguacity.backend.city.controller;
 
+import com.linguacity.backend.auth.security.CurrentUser;
 import com.linguacity.backend.city.dto.CityDtos.BuildResultDto;
 import com.linguacity.backend.city.dto.CityDtos.CityDto;
 import com.linguacity.backend.city.service.CityService;
@@ -18,13 +19,13 @@ public class CityController {
     }
 
     @GetMapping("/city")
-    public CityDto city(@RequestHeader("X-Guest-UUID") UUID guest) {
+    public CityDto city(@CurrentUser UUID guest) {
         return city.city(guest);
     }
 
     @PostMapping("/buildings/{code}/build")
     public BuildResultDto build(
-            @RequestHeader("X-Guest-UUID") UUID guest, @PathVariable String code) {
+            @CurrentUser UUID guest, @PathVariable String code) {
         return city.build(guest, code);
     }
 }

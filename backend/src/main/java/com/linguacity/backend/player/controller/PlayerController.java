@@ -1,5 +1,6 @@
 package com.linguacity.backend.player.controller;
 
+import com.linguacity.backend.auth.security.CurrentUser;
 import com.linguacity.backend.achievement.service.AchievementService;
 import com.linguacity.backend.common.exception.ApiException;
 import com.linguacity.backend.common.time.Times;
@@ -60,14 +61,14 @@ public class PlayerController {
     }
 
     @GetMapping
-    public PlayerDto me(@RequestHeader("X-Guest-UUID") UUID guest) {
+    public PlayerDto me(@CurrentUser UUID guest) {
         UserProfile profile = users.findById(guest).orElseThrow(UserProfileNotFoundException::new);
         return toDto(streak.refresh(profile));
     }
 
     @PutMapping("/tutorial/step")
     public PlayerDto step(
-            @RequestHeader("X-Guest-UUID") UUID guest, @RequestBody StepRequest body) {
+            @CurrentUser UUID guest, @RequestBody StepRequest body) {
         if (body.step() == null) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "INVALID_BODY", "step is required");
         }
@@ -76,7 +77,7 @@ public class PlayerController {
 
     @GetMapping("/vocab-progress")
     public ProgressDto vocabProgress(
-            @RequestHeader("X-Guest-UUID") UUID guest,
+            @CurrentUser UUID guest,
             @RequestParam(required = false) String since) {
         LocalDateTime sinceUtc = null;
         if (since != null && !since.isBlank()) {
@@ -91,7 +92,7 @@ public class PlayerController {
     }
 
     @GetMapping("/achievements")
-    public AchievementsDto achievements(@RequestHeader("X-Guest-UUID") UUID guest) {
+    public AchievementsDto achievements(@CurrentUser UUID guest) {
         UserProfile profile = users.findById(guest).orElseThrow(UserProfileNotFoundException::new);
         List<EarnedDto> earned = achievements.earnedBy(guest).stream()
                 .map(a -> new EarnedDto(
@@ -102,7 +103,7 @@ public class PlayerController {
 
     @PutMapping("/equipped-title")
     public PlayerDto equip(
-            @RequestHeader("X-Guest-UUID") UUID guest, @RequestBody EquipRequest body) {
+            @CurrentUser UUID guest, @RequestBody EquipRequest body) {
         return toDto(achievements.equip(guest, body.code()));
     }
 

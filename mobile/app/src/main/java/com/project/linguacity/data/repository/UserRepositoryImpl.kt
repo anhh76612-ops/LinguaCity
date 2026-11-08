@@ -1,6 +1,9 @@
 package com.project.linguacity.data.repository
 
 import com.project.linguacity.data.local.preferences.GuestIdStore
+import com.project.linguacity.data.local.preferences.TokenStore
+import com.project.linguacity.data.remote.auth.SessionEvent
+import com.project.linguacity.data.remote.auth.SessionEvents
 import com.project.linguacity.data.local.user.UserProfileDao
 import com.project.linguacity.data.local.user.UserProfileEntity
 import com.project.linguacity.data.remote.user.OnboardingApi
@@ -12,7 +15,9 @@ import javax.inject.Inject
 class UserRepositoryImpl @Inject constructor(
     private val guestIdStore: GuestIdStore,
     private val onboardingApi: OnboardingApi,
-    private val userProfileDao: UserProfileDao
+    private val userProfileDao: UserProfileDao,
+    private val tokenStore: TokenStore,
+    private val sessionEvents: SessionEvents
 ) : UserRepository {
 
     override suspend fun onboardUser(): UserProfile {
@@ -68,6 +73,11 @@ class UserRepositoryImpl @Inject constructor(
                     tutorialStep = if (response.tutorialCompleted) "DONE" else cached.tutorialStep
                 )
             )
+        }
+
+        // VS6 (ADR-016): khách xong tutorial phải gắn tài khoản để chơi tiếp
+        if (response.tutorialCompleted && tokenStore.session()?.isGuest == true) {
+            sessionEvents.emit(SessionEvent.AccountRequired)
         }
 
         return response.tutorialCompleted

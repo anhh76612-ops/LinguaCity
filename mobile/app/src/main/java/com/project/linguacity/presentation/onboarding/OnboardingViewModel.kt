@@ -2,6 +2,7 @@ package com.project.linguacity.presentation.onboarding
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.project.linguacity.domain.repository.AuthRepository
 import com.project.linguacity.domain.usecase.OnboardUserUseCase
 import com.project.linguacity.presentation.common.friendlyNetworkError
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -13,7 +14,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class OnboardingViewModel @Inject constructor(
-    private val onboardUserUseCase: OnboardUserUseCase
+    private val onboardUserUseCase: OnboardUserUseCase,
+    private val authRepository: AuthRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(OnboardingState())
@@ -37,6 +39,12 @@ class OnboardingViewModel @Inject constructor(
             )
 
             try {
+                // VS6 (ADR-016): gia hạn phiên đã lưu, hoặc đổi Guest UUID bản cũ lấy token
+                if (!authRepository.ensureSession()) {
+                    _state.value = OnboardingState(needsAuth = true)
+                    return@launch
+                }
+
                 val userProfile = onboardUserUseCase()
 
                 _state.value = OnboardingState(
