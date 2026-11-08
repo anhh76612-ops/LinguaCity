@@ -24,7 +24,8 @@ import com.project.linguacity.presentation.splash.BrandedSplash
 @Composable
 fun OnboardingScreen(
     viewModel: OnboardingViewModel = hiltViewModel(),
-    onOnboardingSuccess: (tutorialCompleted: Boolean) -> Unit
+    onOnboardingSuccess: (tutorialCompleted: Boolean) -> Unit,
+    onNeedsAuth: () -> Unit
 ) {
     val state by viewModel.state.collectAsState()
 
@@ -45,6 +46,10 @@ fun OnboardingScreen(
             // SCR-14: thay vòng xoay bằng Splash có thương hiệu (thành phố mọc lên + tên game)
             state.isLoading -> {
                 BrandedSplash()
+            }
+
+            state.needsAuth -> {
+                LaunchedEffect(Unit) { onNeedsAuth() }
             }
 
             state.userProfile != null -> {

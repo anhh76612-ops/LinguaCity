@@ -1,5 +1,9 @@
 package com.project.linguacity.di
 
+import com.project.linguacity.data.remote.auth.AuthApi
+import com.project.linguacity.data.remote.auth.AuthInterceptor
+import com.project.linguacity.data.remote.auth.RefreshApi
+import com.project.linguacity.data.remote.auth.TokenAuthenticator
 import com.project.linguacity.data.remote.progression.ProgressionApi
 import com.project.linguacity.data.remote.city.CityApi
 import com.project.linguacity.data.remote.content.ContentApi
@@ -14,6 +18,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
 import javax.inject.Singleton
 
 @Module
@@ -30,18 +35,46 @@ object NetworkModule {
         }
     }
 
+    /**
+     * Client chính: gắn Bearer token và tự refresh khi gặp 401 (ADR-016).
+     */
     @Provides
     @Singleton
-    fun provideRetrofit(json: Json): Retrofit {
+    fun provideOkHttpClient(
+        authInterceptor: AuthInterceptor,
+        tokenAuthenticator: TokenAuthenticator
+    ): OkHttpClient = OkHttpClient.Builder()
+        .addInterceptor(authInterceptor)
+        .authenticator(tokenAuthenticator)
+        .build()
+
+    @Provides
+    @Singleton
+    fun provideRetrofit(json: Json, client: OkHttpClient): Retrofit {
         val contentType = "application/json".toMediaType()
 
         return Retrofit.Builder()
             .baseUrl(BASE_URL)
+            .client(client)
             .addConverterFactory(
                 json.asConverterFactory(contentType)
             )
             .build()
     }
+
+    /** Refresh token đi bằng client trần (không interceptor/authenticator) để không lặp. */
+    @Provides
+    @Singleton
+    fun provideRefreshApi(json: Json): RefreshApi = Retrofit.Builder()
+        .baseUrl(BASE_URL)
+        .client(OkHttpClient())
+        .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
+        .build()
+        .create(RefreshApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideAuthApi(retrofit: Retrofit): AuthApi = retrofit.create(AuthApi::class.java)
 
     @Provides
     @Singleton
