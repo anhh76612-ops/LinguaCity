@@ -17,7 +17,7 @@
 | :--- | :--- | :--- | :--- | :--- |
 | FR-USER-01 | Vào game không cần đăng nhập | Lần đầu mở app, hệ thống tạo Guest UUID cục bộ và đăng ký với Backend | VS1 | ✅ |
 | FR-USER-02 | Giữ tiến trình khi mở lại app | Cùng thiết bị → cùng UUID → cùng hồ sơ, không tạo trùng | VS1 | ✅ |
-| FR-USER-03 | Xem tài nguyên hiện có | Knowledge Points, Hourglass, Blueprint Shards | VS1/VS5 | 🟡 (HUD tạm hiện KP) |
+| FR-USER-03 | Xem tài nguyên hiện có | Knowledge Points, Hourglass, Blueprint Shards | VS1/VS5 | ✅ (HUD SCR-13) |
 | FR-USER-04 | Hoàn thành Tutorial lần đầu | Đánh dấu đã xem hướng dẫn, không hiện lại | VS1 | ✅ (TC-VS1-09..17) |
 
 ### Bảng 1.2: Người chơi — Học tập (`FR-LEARN`)
@@ -55,11 +55,11 @@
 
 | Mã | Yêu cầu | Mô tả ngắn | Slice | Trạng thái |
 | :--- | :--- | :--- | :--- | :--- |
-| FR-TUT-01 | Thư ký hướng dẫn | Chân dung 2D, chữ chạy, spotlight khoanh nút | Tutorial | 🟡 Specified |
-| FR-TUT-02 | Bài kiểm tra trình độ | 30 câu từ 20 từ House Lv1, độ khó tăng dần | Tutorial | 🟡 Backend ✅ (M4), app ở M5/M6 |
-| FR-TUT-03 | Học + xây House Lv0→Lv1 | Bắt buộc 1 phiên học; cần 20/30 từ + 100 KP | Tutorial | 🟡 Backend ✅ (M4), app ở M5/M6 |
+| FR-TUT-01 | Thư ký hướng dẫn | Chân dung 2D, chữ chạy, spotlight khoanh nút | Tutorial | ✅ (SCR-16) |
+| FR-TUT-02 | Bài kiểm tra trình độ | 30 câu từ 20 từ House Lv1, độ khó tăng dần | Tutorial | ✅ (TC-TUT-02/03/09) |
+| FR-TUT-03 | Học + xây House Lv0→Lv1 | Bắt buộc 1 phiên học; cần 20/30 từ + 100 KP | Tutorial | ✅ (TC-TUT-04..06/09) |
 | FR-TUT-04 | Vào nhà và tuỳ biến | Chọn ngoại hình, tường/sàn | Tutorial | 🟡 Specified |
-| FR-TUT-05 | Làm tiếp sau khi thoát | Bước tutorial lưu trên server | Tutorial | 🟡 Backend ✅ (M4), app ở M5/M6 |
+| FR-TUT-05 | Làm tiếp sau khi thoát | Bước tutorial lưu trên server | Tutorial | ✅ (TC-TUT-08) |
 
 ### Bảng 1.6: Người chơi — Danh hiệu (`FR-ACH`) và Tuỳ biến (`FR-COS`)
 
@@ -67,7 +67,7 @@
 | :--- | :--- | :--- | :--- | :--- |
 | FR-ACH-01 | Nhận danh hiệu | Dễ / Khó / Ẩn; server xét sau mỗi phiên | VS3+ | ✅ (server + màn danh hiệu) |
 | FR-ACH-02 | Bộ sưu tập danh hiệu | Danh hiệu Ẩn chưa có hiện "???" | VS3+ | 🟡 bản cơ bản (SCR-18) |
-| FR-ACH-03 | Đeo danh hiệu | Một danh hiệu hiện trên HUD/Hồ sơ | VS3+ | 🟡 Đeo được, HUD tạm (đầy đủ ở M9) |
+| FR-ACH-03 | Đeo danh hiệu | Một danh hiệu hiện trên HUD/Hồ sơ | VS3+ | ✅ (HUD + Hồ sơ) |
 | FR-COS-01 | Ngoại hình nhân vật | Phối bộ phận low-poly, miễn phí | VS3+ | 🟡 Specified |
 | FR-COS-02 | Kiểu nhà | Tường, sàn; mở bằng KP hoặc danh hiệu | VS3+ | 🟡 Specified |
 | FR-COS-03 | Lưu trên server | Đổi máy vẫn giữ (khi có tài khoản) | VS3+ | 🟡 Specified |
@@ -76,11 +76,11 @@
 
 | Mã | Yêu cầu | Mô tả ngắn | Slice | Trạng thái |
 | :--- | :--- | :--- | :--- | :--- |
-| FR-UI-01 | Splash Screen | `core-splashscreen` + Splash Compose có logo động | UI | 🟡 Specified |
-| FR-UI-02 | Loading theo điểm đến | Loading riêng cho mỗi điểm đến, chỉ hiện nếu > 150 ms, kèm mẹo của thư ký | UI | 🟡 Specified |
-| FR-UI-03 | Menu nổi | Nút nổi trên bản đồ, bung hình cung, có hiệu ứng khi chạm | UI | 🟡 Specified |
-| FR-UI-04 | Hiệu ứng tải | Skeleton/shimmer, shared element, progressive loading, motion choreography | UI | 🟡 Specified |
-| FR-UI-05 | Cài đặt | Xoay màn hình Tự động/Dọc/Ngang; bật/tắt hiệu ứng; xem lại hướng dẫn | UI | 🟡 Specified |
+| FR-UI-01 | Splash Screen | `core-splashscreen` + Splash Compose có logo động | UI | ✅ (SCR-14) |
+| FR-UI-02 | Loading theo điểm đến | Loading riêng cho mỗi điểm đến, chỉ hiện nếu > 150 ms, kèm mẹo của thư ký | UI | ✅ (SCR-15) |
+| FR-UI-03 | Menu nổi | Nút nổi trên bản đồ, bung hình cung, có hiệu ứng khi chạm | UI | ✅ (SCR-22) |
+| FR-UI-04 | Hiệu ứng tải | Skeleton/shimmer, shared element, progressive loading, motion choreography | UI | ✅ skeleton, shared element, motion choreography; progressive: chữ từ Room hiện ngay, thanh Mastery điền sau (chưa có ảnh thật để làm blur → nét) |
+| FR-UI-05 | Cài đặt | Xoay màn hình Tự động/Dọc/Ngang; bật/tắt hiệu ứng; xem lại hướng dẫn | UI | ✅ (TC-UI-01/02) |
 
 > **Ngoài MVP (Future Expansion):** Teacher, Student, Class, Assignment, Dashboard Web, Cộng đồng — xem [future-expansion.md](../03-architecture/future-expansion.md). Không đưa vào bảng này cho tới khi bắt đầu VS6.
 

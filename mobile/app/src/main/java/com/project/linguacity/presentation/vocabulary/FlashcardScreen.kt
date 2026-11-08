@@ -35,6 +35,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.project.linguacity.domain.model.content.Vocabulary
+import com.project.linguacity.ui.loading.DelayedLoading
+import com.project.linguacity.ui.loading.LoadingKind
+import com.project.linguacity.ui.motion.sharedCard
 
 /**
  * SCR-07 Flashcard (UC_04): vuốt ngang qua các thẻ, chạm để lật (mặt trước: từ + IPA; mặt sau: nghĩa + ví dụ).
@@ -52,7 +55,7 @@ fun FlashcardScreen(
     Column(Modifier.fillMaxSize().statusBarsPadding().padding(16.dp)) {
         TextButton(onClick = onBack) { Text("‹ Danh sách") }
         if (state.words.isEmpty()) {
-            Box(Modifier.fillMaxSize(), Alignment.Center) { CircularProgressIndicator() }
+            DelayedLoading(LoadingKind.CARDS)
             return@Column
         }
         val pager = rememberPagerState(initialPage = startIndex.coerceIn(0, state.words.lastIndex)) { state.words.size }
@@ -87,6 +90,7 @@ private fun FlipCard(word: Vocabulary) {
             modifier = Modifier
                 .fillMaxWidth()
                 .aspectRatio(0.7f)
+                .sharedCard("word-${word.id}") // thẻ trong danh sách "bay" tới đây (shared element)
                 .graphicsLayer {
                     rotationY = rotation
                     cameraDistance = 12f * density

@@ -60,7 +60,12 @@ class UserRepositoryImpl @Inject constructor(
 
         // Server là nguồn sự thật: chỉ ghi Room sau khi Backend xác nhận.
         userProfileDao.getById(guestUuid)?.let { cached ->
-            userProfileDao.upsert(cached.copy(tutorialCompleted = response.tutorialCompleted))
+            userProfileDao.upsert(
+                cached.copy(
+                    tutorialCompleted = response.tutorialCompleted,
+                    tutorialStep = if (response.tutorialCompleted) "DONE" else cached.tutorialStep
+                )
+            )
         }
 
         return response.tutorialCompleted

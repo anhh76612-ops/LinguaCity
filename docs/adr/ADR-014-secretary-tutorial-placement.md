@@ -2,7 +2,7 @@
 
 | Mục | Nội dung |
 | :--- | :--- |
-| **Trạng thái** | 🟡 Proposed (08/11/2026). Thay Tutorial 3 trang tĩnh (UC_02 bản VS1). |
+| **Trạng thái** | ✅ Accepted (08/11/2026, M6). Đã cài và chạy E2E trên emulator (TC-TUT-01..09). Bước ENTER_HOUSE / CUSTOMIZE tạm chỉ có lời Mai; cảnh nội thất 3D và tuỳ biến làm ở M7/M8 (nhánh riêng). |
 | **Giai đoạn** | Sau VS3 (dùng nội dung VS2 và phiên học VS3) |
 | **Liên quan** | ADR-013 · UC_02 · FR-TUT-01..05 · FR-ACH · system-design §10.3.4, §10.4.3 · GDD §3.2 |
 

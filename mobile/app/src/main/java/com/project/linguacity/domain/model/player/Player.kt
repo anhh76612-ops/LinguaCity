@@ -14,6 +14,9 @@ data class AchievementView(
     val displayName: String get() = if (hidden && !earned) "???" else name
 }
 
+/** Thống kê học tập từ GET /users/me (cần mạng). */
+data class PlayerStats(val collectedWords: Int, val streakDays: Int)
+
 /** Kết quả bấm Xây (POST /buildings/{code}/build). */
 sealed interface BuildOutcome {
     data object Started : BuildOutcome

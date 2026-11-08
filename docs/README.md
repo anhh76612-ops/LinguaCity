@@ -15,7 +15,7 @@ Game mobile học tiếng Anh (TOEIC) kết hợp xây dựng thành phố. **Ko
 | [02-game-design/](02-game-design/) | [GDD](02-game-design/gdd.md): core loop, tài nguyên, balance, art | Ch.1 (nghiệp vụ), Ch.3.4 (công thức) | 🟡 |
 | [03-architecture/](03-architecture/) | [System Design v3.1](03-architecture/system-design.md) (ERD, ràng buộc, sequence, API, Room, Kotlin+Unity), [Future Expansion](03-architecture/future-expansion.md) | Ch.3, Ch.5, Ch.6.1 | ✅ baseline · 🟡 Ch.9 |
 | [04-ui/](04-ui/) | [Danh sách màn hình & sơ đồ chuyển đổi](04-ui/screen-catalog.md) | Ch.4 | 🟡 |
-| [05-implementation/](05-implementation/) | [Handover VS1/VS2](05-implementation/vertical-slices/vs1-vs2-handover.md), [kế hoạch kỹ thuật](05-implementation/plans/) | Ch.6.1 | 🟡 |
+| [05-implementation/](05-implementation/) | [Handover VS1/VS2](05-implementation/vertical-slices/vs1-vs2-handover.md), [kế hoạch kỹ thuật](05-implementation/plans/), bài học [WebView](05-implementation/city-webview-integration.md), [VS2→giao diện](05-implementation/vs2-vs3-tutorial-ui-lessons.md) | Ch.6.1 | 🟡 |
 | [06-testing/](06-testing/) | [Test plan & test case](06-testing/test-plan.md) | Ch.6.2 | 🟡 |
 | [adr/](adr/) | [ADR-001 → 009](adr/README.md), [nhật ký sự cố](adr/troubleshooting-log.md) | Ch.6.1.2, Kết luận | ✅ |
 | [diagrams/](diagrams/) | `images/` (ERD, drawio), `ea-model/` (Enterprise Architect) | Hình trong báo cáo | — |
@@ -53,6 +53,9 @@ Game mobile học tiếng Anh (TOEIC) kết hợp xây dựng thành phố. **Ko
 | VS2 | Static Content Bootstrap (gói theo Level) | ✅ Implemented (08/11/2026, TC-VS2-01..11) |
 | VS3 | Vocabulary Learning (phiên học trên server) | ✅ Implemented (08/11/2026, TC-VS3-01..16) |
 | VS4 | Exam | ⬜ |
-| City View | Three.js + WebView (ADR-010, ADR-011) | 🟡 nhúng xong, dữ liệu giả lập |
+| City View | Three.js + WebView (ADR-010, ADR-011) | ✅ dữ liệu thật từ `GET /city` (M5); 🟡 đo FPS máy thật |
+| Tutorial thư ký | Mai + bài kiểm tra trình độ + xây House (ADR-014) | ✅ (M6, TC-TUT-01..09); vào nhà 3D / tuỳ biến ở M7/M8 (nhánh riêng) |
+| Danh hiệu | 7 danh hiệu dễ / khó / ẩn | ✅ (M4–M5, TC-ACH-01..04) |
+| Giao diện | Splash, loading, menu nổi, HUD, Hồ sơ, Cài đặt, hiệu ứng | ✅ (M9, TC-UI-01/02) |
 | VS5 | Building Upgrade + City View | ⬜ |
 | VS6+ | Auth, Teacher/Student, Web, Cộng đồng | Future — [future-expansion.md](03-architecture/future-expansion.md) |

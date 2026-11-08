@@ -109,4 +109,7 @@ dependencies {
 
     // 6. WebView hiện đại: WebViewAssetLoader, WebMessageListener (City View, ADR-010)
     implementation("androidx.webkit:webkit:1.12.1")
+
+    // M9 / FR-UI-01: splash hệ thống Android 12+ (có bản tương thích cho API thấp hơn)
+    implementation("androidx.core:core-splashscreen:1.0.1")
 }

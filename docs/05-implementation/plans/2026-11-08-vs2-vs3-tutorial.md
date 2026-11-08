@@ -183,6 +183,11 @@ Hệ quả: T5 cần một phần nhỏ của VS5 (`user_buildings`, xây lv0→
 - **HUD:** KP, Hourglass, Blueprint Shards, danh hiệu đang đeo.
 - **Hồ sơ:** avatar, danh hiệu, số từ đã sưu tầm, chuỗi ngày học.
 
+## Tiến độ (cập nhật 08/11/2026)
+- ✅ M0–M6, M9, M10 xong (commit trên nhánh `feat/vs2-vs3-tutorial`; từ M6 Claude commit theo yêu cầu, không push).
+- ⏭️ M7 (city-web: avatar, nội thất House 3D) và M8 (tuỳ biến) — người dùng làm ở nhánh khác.
+- Bài học tổng kết: [vs2-vs3-tutorial-ui-lessons.md](../vs2-vs3-tutorial-ui-lessons.md).
+
 ## Các mốc (mỗi mốc chạy được, có test, có lời commit gợi ý)
 | Mốc | Nội dung | Kiểm chứng |
 |---|---|---|

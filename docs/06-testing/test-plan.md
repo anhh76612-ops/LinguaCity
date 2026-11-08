@@ -103,17 +103,17 @@ Test tự động backend (08/11/2026): 42/42 đạt — `LearningEngineTests` (
 | TC-TUT-04 | Học xong ở House | bước → `BUILD_HOUSE` | Đạt | Integration (`LearningFlowTests`) + E2E | ✅ |
 | TC-TUT-05 | Xây khi thiếu điều kiện | 409 `REQUIREMENTS_NOT_MET` kèm số thiếu | Đạt: `details.missingCollected = 20`, `missingKnowledge = 100` | Integration (`LearningFlowTests`) | ✅ |
 | TC-TUT-06 | Xây đủ điều kiện | Trừ 100 KP, UPGRADING 10 s; `GET /city` sau 10 s → Lv1, bước → `ENTER_HOUSE` | Đạt: KP 150 → 50, UPGRADING; gọi xây lại → `BUSY`; +11 s → Lv1 IDLE, bước `ENTER_HOUSE`; xây tiếp → `ALREADY_BUILT`. PostgreSQL thật cũng đạt | Integration (`LearningFlowTests`) + E2E | ✅ |
-| TC-TUT-07 | `tutorial/complete` sai bước | 409; ở `TOUR` → `DONE` + `NEW_RESIDENT` | 🟡 Phần `DONE` + `NEW_RESIDENT` đạt (`tutorialCompletionGrantsNewResident`). Kiểm tra bước `TOUR` cố ý **chưa bật** tới M6, vì app vẫn dùng tutorial 3 trang | Integration | ⬜ |
-| TC-TUT-08 | Làm tiếp sau khi tắt app | Tắt giữa bài PLACEMENT → mở lại đúng câu | | E2E | ⬜ |
-| TC-TUT-09 | Toàn bộ tutorial | Xoá dữ liệu → đi hết T0–T7 | | E2E | ⬜ |
+| TC-TUT-07 | `tutorial/complete` sai bước | 409; ở `TOUR` → `DONE` + `NEW_RESIDENT` | Đạt (M6, 08/11/2026): bước `BUILD_HOUSE` → 409 `INVALID_STEP` + `details.current`, không ghi DB; ở `TOUR` → `DONE` + `NEW_RESIDENT` | Unit (`completingBeforeTheTourStepIsRejected`) + Integration | ✅ |
+| TC-TUT-08 | Làm tiếp sau khi tắt app | Tắt giữa bài PLACEMENT → mở lại đúng câu | Đạt: làm 12/30 câu bài trình độ rồi `force-stop` app → mở lại, Mai nói "Bài kiểm tra trình độ vẫn đang chờ bạn đó…" + nút Làm tiếp → vào đúng câu 13/30, ✅ 12 (Hình 6.12) | E2E | ✅ |
+| TC-TUT-09 | Toàn bộ tutorial | Xoá dữ liệu → đi hết T0–T7 | Đạt: xoá dữ liệu → Mai chào 3 câu → bài trình độ 30/30 (190 KP; GOOD_START, FLAWLESS, TOP_ENTRANT, COMBO10) → Mai khoanh nút Học → bài 18/20 (+110 KP) → khoanh nút Xây → chờ 10 s → nhà Lv1 → Vào nhà → (CUSTOMIZE giữ chỗ cho M8) → tour 4 câu khoanh KP / Danh hiệu / Thẻ từ → Bắt đầu chơi → Mai biến mất, KP 200 (Hình 4.14–4.17, 6.13, 6.14) | E2E | ✅ |
 | TC-ACH-01 | GOOD_START | 16 từ đúng → có; 15 → không | Đạt: 15 từ → không, 16 từ → có | Integration (`LearningFlowTests`.goodStart…) | ✅ |
 | TC-ACH-02 | TOP_ENTRANT | < 50 mẫu: 27/30 có, 26/30 không; ≥ 50 mẫu: so phần trăm | Đạt: < 50 mẫu: 27 có / 26 không; ≥ 50 mẫu (45 bài 20/30 + 5 bài 29/30): 25 có, 20 không | Unit (`AchievementServiceTests`) + Integration | ✅ |
 | TC-ACH-03 | FLAWLESS / COMBO10 | 30/30; chuỗi 10 câu đúng | Đạt: 30/30 → FLAWLESS + COMBO10 (+ GOOD_START, TOP_ENTRANT) | Integration (`LearningFlowTests`) | ✅ |
 | TC-ACH-04 | Đeo danh hiệu | Chưa có → 409; có → HUD hiển thị | Đạt (phần server): chưa có → 409 `NOT_EARNED`; có → `equippedTitle`; `null` → tháo. HUD ở M9 | Integration (`LearningFlowTests`) | ✅ |
 | TC-COS-01 | Đổi ngoại hình | Mã sai category → 400; đúng → lưu | | Integration | ⬜ |
 | TC-COS-02 | Mở mẫu tường bằng KP | Thiếu KP → 409; đủ → trừ KP, mở | | Integration | ⬜ |
-| TC-UI-01 | Xoay màn hình | Dọc / Ngang / Tự động có hiệu lực ngay và giữ sau khi mở lại | | E2E | ⬜ |
-| TC-UI-02 | Tắt hiệu ứng | Chuyển cảnh không còn animation dài | | E2E | ⬜ |
+| TC-UI-01 | Xoay màn hình | Dọc / Ngang / Tự động có hiệu lực ngay và giữ sau khi mở lại | Đạt (08/11/2026): chọn Ngang → `requestedOrientation=USER_LANDSCAPE`, cửa sổ `ROTATION_90`, City 2340×1080 (Hình 4.22); Dọc / Tự động trở lại; lưu trong DataStore `linguacity_settings` | E2E | ✅ |
+| TC-UI-02 | Tắt hiệu ứng | Chuyển cảnh không còn animation dài | Đạt: bật "Giảm hiệu ứng chuyển động" → câu của Mai hiện đủ ngay (không còn chữ chạy, không có nút "Bỏ qua chữ"); mọi animation dùng `LocalReduceMotion` (thời lượng 0). Chưa đo bằng công cụ trên máy thật | E2E + đọc code | ✅ |
 
 ---
 
@@ -133,8 +133,14 @@ Test tự động backend (08/11/2026): 42/42 đạt — `LearningEngineTests` (
 | 6.9 | `6.9-tc-vs3-16-offline-mid-lesson.png` | TC-VS3-16: mất mạng giữa bài |
 | 6.10 | `6.10-tc-vs3-15-offline-progress.png` | TC-VS3-15: tiến độ sưu tầm khi offline |
 | 6.11 | `6.11-tc-tut-05-build-not-met.png` | TC-TUT-05 phía app: "Cần sưu tầm thêm 10 từ để xây nhé." |
+| 6.12 | `6.12-tc-tut-08-resume.png` | TC-TUT-08: mở lại app giữa bài trình độ |
+| 6.13 | `6.13-tc-tut-09-placement-result.png` | TC-TUT-09: kết quả bài trình độ 30/30 |
+| 6.14 | `6.14-tc-tut-09-done.png` | TC-TUT-09: xong tutorial |
+| 6.15 | `6.15-tc-ui-replay-tour.png` | Xem lại hướng dẫn từ Cài đặt (tour chạy lại, nút "Đã hiểu") |
 
 **E2E app VS3 (08/11/2026, emulator + PostgreSQL thật):** Room v3 → v4 (AutoMigration) giữ nguyên dữ liệu; City dùng dữ liệu thật (4 lô Lv0); bài 20 câu: câu 1 chọn sai → đỏ/xanh + đáp án + giải thích + Mastery 0/10; kết quả 17/20 → 105 KP (85 + 20), sưu tầm 10/30, danh hiệu "Liên hoàn" (Hình 4.10, 4.11); bấm Xây khi mới 10/20 từ → "Cần sưu tầm thêm 10 từ để xây nhé."; danh hiệu: 2/7, đeo "Cư dân mới" → HUD hiện tên (Hình 4.12).
+
+**E2E giao diện M9 (08/11/2026):** splash hệ thống (ngôi nhà vector) → Splash Compose khi onboarding → loading "Mai đang dựng thành phố" cho tới khi bản đồ vẽ xong; HUD 💡/⏳/🧩 + danh hiệu; menu nổi bung 4 mục theo cung (Hình 4.19) và mở đúng Thẻ từ, Danh hiệu, Hồ sơ (Hình 4.20), Cài đặt (Hình 4.21); chạm thẻ "rent" → flashcard 1/30 (shared element); xem lại tour từ Cài đặt chạy 4 câu rồi tắt. Skeleton/loading theo điểm đến chỉ hiện khi dữ liệu về chậm hơn 150 ms — với Room trên emulator gần như không thấy, đúng chủ đích.
 
 **Ghi nhận khi nghiệm thu (chưa phải lỗi chặn):**
 - Màn lỗi hiện nguyên văn lỗi kỹ thuật (`failed to connect to /10.0.2.2 …`). Nên thay bằng câu dễ hiểu ở mốc giao diện.

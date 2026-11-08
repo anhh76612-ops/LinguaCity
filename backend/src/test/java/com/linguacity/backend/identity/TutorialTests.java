@@ -3,6 +3,7 @@ package com.linguacity.backend.identity;
 import com.linguacity.backend.common.exception.ApiExceptionHandler;
 import com.linguacity.backend.achievement.service.AchievementService;
 import com.linguacity.backend.identity.controller.UserProfileController;
+import com.linguacity.backend.identity.entity.TutorialStep;
 import com.linguacity.backend.identity.entity.UserProfile;
 import com.linguacity.backend.identity.exception.UserProfileNotFoundException;
 import com.linguacity.backend.identity.repository.UserProfileRepository;
@@ -111,10 +112,26 @@ class TutorialTests {
         verifyNoInteractions(repository);
     }
 
+    /** Hồ sơ đã tới bước cuối TOUR (chưa xong) hoặc đã DONE (BR-TUT-05). */
     private UserProfile guest(boolean tutorialCompleted) {
         UserProfile profile = new UserProfile();
         profile.setId(UUID.randomUUID());
         profile.setTutorialCompleted(tutorialCompleted);
+        profile.setTutorialStep(tutorialCompleted ? TutorialStep.DONE : TutorialStep.TOUR);
         return profile;
+    }
+
+    // TC-TUT-07: chưa tới bước TOUR thì không được hoàn thành tutorial
+    @Test
+    void completingBeforeTheTourStepIsRejected() throws Exception {
+        UserProfile early = guest(false);
+        early.setTutorialStep(TutorialStep.BUILD_HOUSE);
+        when(repository.findById(early.getId())).thenReturn(Optional.of(early));
+
+        api.perform(post(COMPLETE_TUTORIAL).header("X-Guest-UUID", early.getId().toString()))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("INVALID_STEP"))
+                .andExpect(jsonPath("$.details.current").value("BUILD_HOUSE"));
+        verify(repository, never()).save(any());
     }
 }

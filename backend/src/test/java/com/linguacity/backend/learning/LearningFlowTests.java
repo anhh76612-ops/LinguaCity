@@ -395,6 +395,10 @@ class LearningFlowTests {
         String user = newUser();
         api.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
                         .post("/api/v1/users/me/tutorial/complete").header("X-Guest-UUID", user))
+                .andExpect(status().isConflict()); // TC-TUT-07: còn ở INTRO
+        setStep(UUID.fromString(user), TutorialStep.TOUR);
+        api.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                        .post("/api/v1/users/me/tutorial/complete").header("X-Guest-UUID", user))
                 .andExpect(status().isOk());
         api.perform(get("/api/v1/users/me/achievements").header("X-Guest-UUID", user))
                 .andExpect(jsonPath("$.items[*].code", hasItem("NEW_RESIDENT")));
