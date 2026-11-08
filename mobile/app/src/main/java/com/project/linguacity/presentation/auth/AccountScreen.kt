@@ -1,5 +1,6 @@
 package com.project.linguacity.presentation.auth
 
+import com.project.linguacity.ui.components.*
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -46,7 +47,7 @@ fun AccountScreen(
     val providers = me?.providers.orEmpty()
 
     AuthScaffold(title = "Tài khoản", onBack = onBack) {
-        Card(Modifier.fillMaxWidth()) {
+        CozyCard(Modifier.fillMaxWidth()) {
             Column(Modifier.padding(16.dp)) {
                 Text(me?.displayName ?: "Người chơi", style = MaterialTheme.typography.titleMedium)
                 Text(me?.email ?: "Chưa có email")
@@ -57,7 +58,7 @@ fun AccountScreen(
             }
         }
         if (me?.email != null && !me.emailVerified) {
-            OutlinedButton(
+            CozyOutlinedButton(
                 onClick = {
                     viewModel.sendVerifyEmail()
                     onVerifyEmail()
@@ -73,15 +74,15 @@ fun AccountScreen(
             SocialButtons(!state.loading, viewModel::linkSocial, viewModel::showError)
         }
         if ("PASSWORD" !in providers && me != null) {
-            OutlinedButton(onClick = { linkPassword = true }, modifier = Modifier.fillMaxWidth()) {
+            CozyOutlinedButton(onClick = { linkPassword = true }, modifier = Modifier.fillMaxWidth()) {
                 Text("Đặt mật khẩu đăng nhập")
             }
         }
         AuthMessages(state)
-        OutlinedButton(onClick = { confirmLogout = true }, modifier = Modifier.fillMaxWidth()) {
+        CozyOutlinedButton(onClick = { confirmLogout = true }, modifier = Modifier.fillMaxWidth()) {
             Text("Đăng xuất")
         }
-        TextButton(onClick = { confirmDelete = true }, modifier = Modifier.fillMaxWidth()) {
+        CozyTextButton(onClick = { confirmDelete = true }, modifier = Modifier.fillMaxWidth()) {
             Text("Xoá tài khoản", color = MaterialTheme.colorScheme.error)
         }
     }
@@ -102,12 +103,12 @@ fun AccountScreen(
             title = { Text("Đăng xuất?") },
             text = { Text("Thành phố vẫn được lưu trong tài khoản. Đăng nhập lại để chơi tiếp.") },
             confirmButton = {
-                TextButton(onClick = {
+                CozyTextButton(onClick = {
                     confirmLogout = false
                     viewModel.logout()
                 }) { Text("Đăng xuất") }
             },
-            dismissButton = { TextButton(onClick = { confirmLogout = false }) { Text("Huỷ") } }
+            dismissButton = { CozyTextButton(onClick = { confirmLogout = false }) { Text("Huỷ") } }
         )
     }
     if (confirmDelete) {
@@ -147,9 +148,9 @@ private fun LinkPasswordDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = { onConfirm(email.ifBlank { null }, password) }) { Text("Lưu") }
+            CozyTextButton(onClick = { onConfirm(email.ifBlank { null }, password) }) { Text("Lưu") }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Huỷ") } }
+        dismissButton = { CozyTextButton(onClick = onDismiss) { Text("Huỷ") } }
     )
 }
 
@@ -181,11 +182,11 @@ private fun DeleteAccountDialog(
         },
         confirmButton = {
             if (hasPassword) {
-                TextButton(onClick = { onPassword(password) }) {
+                CozyTextButton(onClick = { onPassword(password) }) {
                     Text("Xoá", color = MaterialTheme.colorScheme.error)
                 }
             }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Huỷ") } }
+        dismissButton = { CozyTextButton(onClick = onDismiss) { Text("Huỷ") } }
     )
 }

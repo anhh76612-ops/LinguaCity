@@ -1,5 +1,6 @@
 package com.project.linguacity.presentation.vocabulary
 
+import com.project.linguacity.ui.components.*
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -54,7 +55,7 @@ fun FlashcardScreen(
     val state by viewModel.state.collectAsState()
 
     Column(Modifier.fillMaxSize().statusBarsPadding().padding(16.dp)) {
-        TextButton(onClick = onBack) { Text("‹ Danh sách") }
+        CozyTextButton(onClick = onBack) { Text("‹ Danh sách") }
         if (state.words.isEmpty()) {
             DelayedLoading(LoadingKind.CARDS)
             return@Column
@@ -90,7 +91,7 @@ private fun FlipCard(word: Vocabulary) {
     val rotation by animateFloatAsState(if (flipped) 180f else 0f, tween(400), label = "flip")
 
     Box(Modifier.fillMaxSize(), Alignment.Center) {
-        Card(
+        CozyCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .aspectRatio(0.7f)

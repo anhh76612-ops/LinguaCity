@@ -1,5 +1,6 @@
 package com.project.linguacity.presentation.onboarding
 
+import com.project.linguacity.ui.components.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -77,7 +78,7 @@ fun OnboardingScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    Button(
+                    CozyButton(
                         onClick = { viewModel.onIntent(OnboardingIntent.Retry) }
                     ) {
                         Text(text = "Thử lại")

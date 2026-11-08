@@ -1,5 +1,6 @@
 package com.project.linguacity.presentation.practice
 
+import com.project.linguacity.ui.components.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -59,16 +60,16 @@ fun PracticeScreen(
     }
     Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(16.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            TextButton(onClick = onBack) { Text("‹ Quay lại") }
+            CozyTextButton(onClick = onBack) { Text("‹ Quay lại") }
             Text("🎯 Luyện tập", style = MaterialTheme.typography.titleLarge)
         }
         val status = state.status
         when {
             state.loading -> DelayedLoading(LoadingKind.LESSON)
-            status == null -> Button(onClick = viewModel::load) { Text("Thử lại") }
+            status == null -> CozyButton(onClick = viewModel::load) { Text("Thử lại") }
             else -> PracticeForm(state, status, viewModel)
         }
-        Button(
+        CozyButton(
             onClick = {
                 onStart(state.mode.name, state.themes.joinToString(","), state.wordCount)
             },
@@ -138,7 +139,7 @@ private fun ColumnScope.PracticeForm(
 
 @Composable
 private fun ModeCard(title: String, detail: String, selected: Boolean, onClick: () -> Unit) {
-    Card(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
+    CozyCard(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text((if (selected) "● " else "○ ") + title, fontWeight = FontWeight.SemiBold)
             Text(detail, style = MaterialTheme.typography.bodySmall)

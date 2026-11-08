@@ -1,5 +1,6 @@
 package com.project.linguacity.presentation.exam
 
+import com.project.linguacity.ui.components.*
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -73,7 +74,7 @@ fun ExamScreen(
             .padding(16.dp)
     ) {
         Row {
-            TextButton(onClick = onBack) { Text("‹ Quay lại") }
+            CozyTextButton(onClick = onBack) { Text("‹ Quay lại") }
         }
         val result = state.result
         val attempt = state.attempt
@@ -112,7 +113,7 @@ private fun ColumnScope.CenterView(status: ExamStatus, busy: Boolean, onStart: (
                 "không giới hạn giờ",
             style = MaterialTheme.typography.bodyMedium
         )
-        Card(Modifier.fillMaxWidth()) {
+        CozyCard(Modifier.fillMaxWidth()) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text("Điều kiện", fontWeight = FontWeight.SemiBold)
                 RequirementLine(
@@ -150,7 +151,7 @@ private fun ColumnScope.CenterView(status: ExamStatus, busy: Boolean, onStart: (
         status.activeAttemptId != null -> "Làm tiếp bài thi"
         else -> "Bắt đầu thi"
     }
-    Button(
+    CozyButton(
         onClick = onStart,
         enabled = !busy && !status.passed && (status.available || status.activeAttemptId != null),
         modifier = Modifier.fillMaxWidth()
@@ -162,7 +163,7 @@ private fun ColumnScope.CenterView(status: ExamStatus, busy: Boolean, onStart: (
 /** Mai giới thiệu luật thi lần đầu (ADR-015 §2). */
 @Composable
 private fun MaiTip(onDismiss: () -> Unit) {
-    Card(Modifier.fillMaxWidth().padding(bottom = 12.dp)) {
+    CozyCard(Modifier.fillMaxWidth().padding(bottom = 12.dp)) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Text("👩‍🏫 Mai", fontWeight = FontWeight.SemiBold)
             Text(
@@ -171,7 +172,7 @@ private fun MaiTip(onDismiss: () -> Unit) {
                     "và bài đang làm dở vẫn được giữ.",
                 style = MaterialTheme.typography.bodyMedium
             )
-            TextButton(onClick = onDismiss) { Text("Mình hiểu rồi") }
+            CozyTextButton(onClick = onDismiss) { Text("Mình hiểu rồi") }
         }
     }
 }
@@ -192,8 +193,8 @@ private fun FeeDialog(status: ExamStatus?, onConfirm: () -> Unit, onDismiss: () 
                     "Trượt thì không hoàn lại, nhưng bạn được thi lại bất cứ lúc nào."
             )
         },
-        confirmButton = { TextButton(onClick = onConfirm) { Text("Thi") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Để sau") } }
+        confirmButton = { CozyTextButton(onClick = onConfirm) { Text("Thi") } },
+        dismissButton = { CozyTextButton(onClick = onDismiss) { Text("Để sau") } }
     )
 }
 
@@ -228,12 +229,12 @@ private fun ColumnScope.TakeView(state: ExamUiState, attempt: ExamAttempt, vm: E
         }
     }
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        OutlinedButton(onClick = { vm.goTo(state.index - 1) }, enabled = state.index > 0) {
+        CozyOutlinedButton(onClick = { vm.goTo(state.index - 1) }, enabled = state.index > 0) {
             Text("‹ Câu trước")
         }
         Spacer(Modifier.weight(1f))
-        TextButton(onClick = vm::review) { Text("Xem lại") }
-        Button(onClick = vm::next) { Text(if (state.index + 1 >= total) "Xong" else "Câu sau ›") }
+        CozyTextButton(onClick = vm::review) { Text("Xem lại") }
+        CozyButton(onClick = vm::next) { Text(if (state.index + 1 >= total) "Xong" else "Câu sau ›") }
     }
 }
 
@@ -257,7 +258,7 @@ private fun ColumnScope.ReviewView(state: ExamUiState, attempt: ExamAttempt, vm:
     if (missing > 0) {
         Text("Còn $missing câu chưa trả lời — chạm vào câu để làm tiếp.")
     }
-    Button(
+    CozyButton(
         onClick = vm::submit,
         enabled = missing == 0 && !state.busy,
         modifier = Modifier.fillMaxWidth()
@@ -284,7 +285,7 @@ private fun ColumnScope.ResultView(result: ExamResult, onLearn: () -> Unit, onUp
                 "(cần ${result.passPercent}%)"
         )
         if (result.passed && result.blueprintTargetLevel != null) {
-            Card(Modifier.fillMaxWidth()) {
+            CozyCard(Modifier.fillMaxWidth()) {
                 Text(
                     "📐 Nhận bản vẽ Lv ${result.blueprintTargetLevel}! Ra thẻ công trình và bấm " +
                         "Nâng cấp nhé.",
@@ -295,7 +296,7 @@ private fun ColumnScope.ResultView(result: ExamResult, onLearn: () -> Unit, onUp
             Text("Mai: Đừng nản! Học thêm vài bài rồi quay lại thi nhé — từ đã học vẫn giữ nguyên.")
         }
         result.items.forEach { item ->
-            Card(Modifier.fillMaxWidth()) {
+            CozyCard(Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text("${if (item.isCorrect) "✅" else "❌"} Câu ${item.order}")
                     item.sentence?.let { Text(it) }
@@ -306,8 +307,8 @@ private fun ColumnScope.ResultView(result: ExamResult, onLearn: () -> Unit, onUp
         }
     }
     if (result.passed) {
-        Button(onClick = onUpgrade, modifier = Modifier.fillMaxWidth()) { Text("Về thành phố") }
+        CozyButton(onClick = onUpgrade, modifier = Modifier.fillMaxWidth()) { Text("Về thành phố") }
     } else {
-        Button(onClick = onLearn, modifier = Modifier.fillMaxWidth()) { Text("Học thêm") }
+        CozyButton(onClick = onLearn, modifier = Modifier.fillMaxWidth()) { Text("Học thêm") }
     }
 }

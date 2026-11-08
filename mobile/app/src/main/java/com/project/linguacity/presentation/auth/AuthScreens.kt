@@ -1,5 +1,6 @@
 package com.project.linguacity.presentation.auth
 
+import com.project.linguacity.ui.components.*
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -61,11 +62,11 @@ fun WelcomeScreen(
         Spacer(Modifier.height(8.dp))
         SocialButtons(!state.loading, viewModel::social, viewModel::showError)
         PrimaryButton("Đăng nhập bằng email", state.loading, onLogin)
-        TextButton(onClick = onRegister, modifier = Modifier.fillMaxWidth()) {
+        CozyTextButton(onClick = onRegister, modifier = Modifier.fillMaxWidth()) {
             Text("Chưa có tài khoản? Đăng ký")
         }
         HorizontalDivider()
-        TextButton(
+        CozyTextButton(
             onClick = viewModel::playAsGuest,
             enabled = !state.loading,
             modifier = Modifier.fillMaxWidth()
@@ -100,7 +101,7 @@ fun SaveProgressScreen(
     ) {
         SocialButtons(!state.loading, viewModel::social, viewModel::showError)
         PrimaryButton("Đăng ký bằng email", state.loading, onRegister)
-        TextButton(onClick = onLogin, modifier = Modifier.fillMaxWidth()) {
+        CozyTextButton(onClick = onLogin, modifier = Modifier.fillMaxWidth()) {
             Text("Tôi đã có tài khoản")
         }
         AuthMessages(state)
@@ -141,7 +142,7 @@ fun LoginScreen(
                 viewModel.login(email, password)
             }
         }
-        TextButton(onClick = onForgot) { Text("Quên mật khẩu?") }
+        CozyTextButton(onClick = onForgot) { Text("Quên mật khẩu?") }
         AuthMessages(state)
     }
 }
@@ -199,10 +200,10 @@ fun VerifyEmailScreen(
     ) {
         CodeField(code) { code = it }
         PrimaryButton("Xác minh", state.loading) { viewModel.verifyEmail(code) }
-        TextButton(onClick = viewModel::sendVerifyEmail, enabled = !state.loading) {
+        CozyTextButton(onClick = viewModel::sendVerifyEmail, enabled = !state.loading) {
             Text("Gửi lại mã")
         }
-        TextButton(onClick = onDone) { Text("Để sau") }
+        CozyTextButton(onClick = onDone) { Text("Để sau") }
         AuthMessages(state)
     }
 }
@@ -236,7 +237,7 @@ fun ForgotPasswordScreen(
             PrimaryButton("Đặt lại mật khẩu", state.loading) {
                 viewModel.resetPassword(email, code, password, confirm)
             }
-            TextButton(onClick = { viewModel.forgotPassword(email) }) { Text("Gửi lại mã") }
+            CozyTextButton(onClick = { viewModel.forgotPassword(email) }) { Text("Gửi lại mã") }
         }
         AuthMessages(state)
     }

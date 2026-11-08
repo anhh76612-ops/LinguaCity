@@ -1,5 +1,6 @@
 package com.project.linguacity.presentation.customize
 
+import com.project.linguacity.ui.components.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -83,11 +84,11 @@ fun CustomizeScreen(onBack: () -> Unit, viewModel: CustomizeViewModel = hiltView
                     else "Cần ${item.priceKp} KP, bạn mới có ${state.cosmetics.knowledgePoints} KP."
                 )
             },
-            confirmButton = { TextButton(
+            confirmButton = { CozyTextButton(
                 onClick = viewModel::confirmUnlock,
                 enabled = enough
             ) { Text("Mở khoá") } },
-            dismissButton = { TextButton(onClick = viewModel::dismissUnlock) { Text("Để sau") } }
+            dismissButton = { CozyTextButton(onClick = viewModel::dismissUnlock) { Text("Để sau") } }
         )
     }
 
@@ -95,7 +96,7 @@ fun CustomizeScreen(onBack: () -> Unit, viewModel: CustomizeViewModel = hiltView
         topBar = {
             TopAppBar(
                 title = { Text("Tuỳ biến") },
-                navigationIcon = { TextButton(onClick = onBack) { Text("‹ Quay lại") } },
+                navigationIcon = { CozyTextButton(onClick = onBack) { Text("‹ Quay lại") } },
                 actions = {
                     Text("💡 ${state.cosmetics.knowledgePoints} KP", Modifier.padding(end = 16.dp))
                 }
@@ -103,7 +104,7 @@ fun CustomizeScreen(onBack: () -> Unit, viewModel: CustomizeViewModel = hiltView
         },
         snackbarHost = { SnackbarHost(snackbar) },
         bottomBar = {
-            Button(
+            CozyButton(
                 onClick = viewModel::save,
                 enabled = state.dirty && !state.busy,
                 modifier = Modifier.fillMaxWidth().padding(16.dp)

@@ -1,5 +1,6 @@
 package com.project.linguacity.presentation.vocabulary
 
+import com.project.linguacity.ui.components.*
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -47,7 +48,7 @@ fun VocabularyListScreen(
 
     Column(Modifier.fillMaxSize().statusBarsPadding().padding(16.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            TextButton(onClick = onBack) { Text("‹ Thành phố") }
+            CozyTextButton(onClick = onBack) { Text("‹ Thành phố") }
         }
         Text(
             "${building?.icon ?: ""} ${building?.displayName ?: state.buildingCode} · Level " +
@@ -74,7 +75,7 @@ fun VocabularyListScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 itemsIndexed(state.words, key = { _, w -> w.id }) { index, word ->
-                    Card(Modifier.fillMaxWidth().staggeredAppear(index)
+                    CozyCard(Modifier.fillMaxWidth().staggeredAppear(index)
                         .sharedCard("word-${word.id}").clickable { onOpenCard(index) }) {
                         Row(
                             Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
