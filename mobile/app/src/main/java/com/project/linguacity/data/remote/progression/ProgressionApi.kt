@@ -188,7 +188,9 @@ data class QuestsDto(
     val daily: List<QuestDto> = emptyList(),
     val dailyBonus: QuestDto? = null,
     val streak: StreakDto = StreakDto(),
-    val resetsAt: String? = null
+    val resetsAt: String? = null,
+    /** 7 ngày gần nhất, cũ trước, hôm nay cuối (SCR-23). */
+    val streakWeek: List<Boolean> = emptyList()
 )
 
 @Serializable

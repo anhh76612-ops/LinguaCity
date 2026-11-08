@@ -82,7 +82,8 @@ class ProgressionRepositoryImpl @Inject constructor(
                 dto.streak.lessonDone,
                 dto.streak.questDone
             ),
-            resetsAtMillis = IsoTime.parseMillis(dto.resetsAt)
+            resetsAtMillis = IsoTime.parseMillis(dto.resetsAt),
+            streakWeek = dto.streakWeek
         )
     }
 

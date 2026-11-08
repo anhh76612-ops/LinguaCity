@@ -103,7 +103,8 @@ public class QuestService {
                 daily,
                 bonusView(userId, daily),
                 streak.status(profile),
-                resetsAt());
+                resetsAt(),
+                streak.lastSevenDays(userId));
     }
 
     /** POST /quests/{code}/claim (BR-QUEST-02). */

@@ -12,6 +12,12 @@ data class AchievementView(
 ) {
     /** Danh hiệu Ẩn chưa có thì che tên (BR-ACH-02). */
     val displayName: String get() = if (hidden && !earned) "???" else name
+
+    /**
+     * Danh hiệu chuỗi bị thu hồi khi đứt chuỗi (BR-STREAK-03). Room v5 chưa lưu cột revocable
+     * nên nhận theo tiền tố mã của V007 (STREAK_3/10/20/30).
+     */
+    val revocable: Boolean get() = code.startsWith("STREAK_")
 }
 
 /** Thống kê học tập từ GET /users/me (cần mạng). */

@@ -57,7 +57,7 @@ fun QuestsScreen(onBack: () -> Unit, viewModel: QuestsViewModel = hiltViewModel(
             state.loading -> DelayedLoading(LoadingKind.PROFILE)
             overview == null -> OfflineView(state.offline, viewModel::load)
             else -> {
-                StreakCard(overview.streak)
+                StreakCard(overview.streak, overview.streakWeek)
                 Spacer(Modifier.padding(4.dp))
                 TabRow(selectedTabIndex = if (state.dailyTab) 1 else 0) {
                     Tab(
@@ -93,13 +93,16 @@ private fun OfflineView(offline: Boolean, onRetry: () -> Unit) {
 
 /** Chuỗi ngày: một ngày được tính khi có cả bài học lẫn nhiệm vụ hằng ngày (BR-STREAK-01). */
 @Composable
-private fun StreakCard(streak: StreakStatus) {
+private fun StreakCard(streak: StreakStatus, week: List<Boolean>) {
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(
                 "🔥 Chuỗi ${streak.days} ngày · kỷ lục ${streak.best}",
                 style = MaterialTheme.typography.titleMedium
             )
+            if (week.isNotEmpty()) {
+                WeekRow(week)
+            }
             Text(
                 (if (streak.lessonDone) "✅" else "⬜") + " Học 1 bài   " +
                     (if (streak.questDone) "✅" else "⬜") + " Xong 1 nhiệm vụ hằng ngày"
@@ -112,6 +115,20 @@ private fun StreakCard(streak: StreakStatus) {
                 },
                 style = MaterialTheme.typography.bodySmall
             )
+        }
+    }
+}
+
+/** Lịch 7 ngày: 🔥 ngày được tính, ⬜ ngày không; ô cuối là hôm nay. */
+@Composable
+private fun WeekRow(week: List<Boolean>) {
+    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        week.forEachIndexed { index, counted ->
+            val label = if (index == week.lastIndex) "Nay" else "-${week.lastIndex - index}"
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(if (counted) "🔥" else "⬜")
+                Text(label, style = MaterialTheme.typography.labelSmall)
+            }
         }
     }
 }

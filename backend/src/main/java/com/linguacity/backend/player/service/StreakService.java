@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -32,6 +33,8 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 public class StreakService {
+
+    private static final int WEEK_DAYS = 7;
 
     private static final List<SessionType> LESSON_TYPES = List.of(
             SessionType.LEARNING, SessionType.PRACTICE_REVIEW, SessionType.PRACTICE_MIXED);
@@ -114,6 +117,22 @@ public class StreakService {
                 today.equals(profile.getStreakLastDate()),
                 lessonDone(profile.getId(), today),
                 dailyQuestDone(profile.getId(), today));
+    }
+
+    /**
+     * Lịch chuỗi SCR-23: 7 ngày gần nhất, cũ trước, hôm nay cuối. Một ngày "có" khi đủ cả hai
+     * điều kiện của BR-STREAK-01. Chỉ màn Nhiệm vụ gọi (14 truy vấn đếm) nên không nằm trong
+     * StreakStatus dùng chung với GET /city.
+     */
+    @Transactional(readOnly = true)
+    public List<Boolean> lastSevenDays(UUID userId) {
+        LocalDate today = today();
+        List<Boolean> days = new ArrayList<>();
+        for (int back = WEEK_DAYS - 1; back >= 0; back--) {
+            LocalDate day = today.minusDays(back);
+            days.add(lessonDone(userId, day) && dailyQuestDone(userId, day));
+        }
+        return days;
     }
 
     private boolean lessonDone(UUID userId, LocalDate day) {

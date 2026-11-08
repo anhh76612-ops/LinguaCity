@@ -10,7 +10,9 @@ import com.project.linguacity.domain.model.progression.ExamStatus
 import com.project.linguacity.domain.model.progression.ProgressionException
 import com.project.linguacity.domain.model.progression.ProgressionException.Kind
 import com.project.linguacity.domain.repository.ProgressionRepository
+import com.project.linguacity.data.local.preferences.SettingsStore
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -30,7 +32,9 @@ data class ExamUiState(
     val confirmFee: Boolean = false,
     val busy: Boolean = false,
     val result: ExamResult? = null,
-    val message: String? = null
+    val message: String? = null,
+    /** Lần đầu mở Trung tâm thi: Mai giải thích luật (một lần, lưu trong SettingsStore). */
+    val showTip: Boolean = false
 ) {
     val currentOrder: Int? get() = attempt?.questions?.getOrNull(index)?.order
     val answeredCount: Int get() = answers.count { it.value.isNotBlank() }
@@ -39,7 +43,8 @@ data class ExamUiState(
 @HiltViewModel
 class ExamViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val repository: ProgressionRepository
+    private val repository: ProgressionRepository,
+    private val settings: SettingsStore
 ) : ViewModel() {
 
     private val building: BuildingCode = BuildingCode.entries.firstOrNull {
@@ -51,6 +56,15 @@ class ExamViewModel @Inject constructor(
 
     init {
         load()
+        viewModelScope.launch {
+            val seen = settings.examTipSeen.first()
+            _state.update { it.copy(showTip = !seen) }
+        }
+    }
+
+    fun dismissTip() {
+        _state.update { it.copy(showTip = false) }
+        viewModelScope.launch { settings.markExamTipSeen() }
     }
 
     fun load() {

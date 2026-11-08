@@ -49,6 +49,12 @@ class SettingsStore @Inject constructor(@ApplicationContext private val context:
     private val orientationKey = stringPreferencesKey("orientation")
     private val reduceMotionKey = booleanPreferencesKey("reduce_motion")
     private val replayTourKey = booleanPreferencesKey("replay_tour")
+    private val examTipSeenKey = booleanPreferencesKey("exam_tip_seen")
+
+    /** Mai đã giới thiệu Trung tâm thi chưa (SCR-10, chỉ một lần). */
+    val examTipSeen: Flow<Boolean> = context.settingsStore.data.map { it[examTipSeenKey] ?: false }
+
+    suspend fun markExamTipSeen() = context.settingsStore.edit { it[examTipSeenKey] = true }
 
     val settings: Flow<AppSettings> = context.settingsStore.data.map { p ->
         AppSettings(

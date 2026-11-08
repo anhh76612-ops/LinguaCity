@@ -264,8 +264,8 @@ public class LearningService {
         boolean rewarded = isRewardable(session, userId, vocabularyId, now);
         VocabProgressRecorder.Outcome outcome =
                 recorder.record(userId, vocabularyId, correct, max, rewarded, now);
-        if (session.getType().isPractice() && rewarded && correct) {
-            rewardPracticeAnswer(session, outcome.row(), now);
+        if (session.getType().isPractice() && rewarded) {
+            rewardPracticeAnswer(session, outcome.row(), correct, now);
         }
         trackAnswer(userId, session, outcome);
         return outcome;
@@ -417,11 +417,17 @@ public class LearningService {
                 .orElse(true);
     }
 
-    /** Câu đúng đầu tiên trong ngày của từ: ghi ngày thưởng, cộng dồn KP vào phiên. */
+    /**
+     * Câu đầu tiên trong ngày của từ (đúng hay sai) đã đổi Mastery, nên ghi ngày để các câu sau
+     * cùng ngày không đổi nữa (BR-PRAC-03, lỗi B2). KP chỉ cộng khi câu đó đúng.
+     */
     private void rewardPracticeAnswer(
-            LearningSession session, UserVocabProgress row, LocalDateTime now) {
+            LearningSession session, UserVocabProgress row, boolean correct, LocalDateTime now) {
         row.setLastRewardedOn(Times.localDate(now, balance.zone()));
         progress.save(row);
+        if (!correct) {
+            return;
+        }
         int kpSoFar = session.getKpAwarded() == null ? 0 : session.getKpAwarded();
         session.setKpAwarded(kpSoFar + balance.getPracticeKpPerCorrect());
         sessions.save(session);
@@ -491,8 +497,12 @@ public class LearningService {
         if (!lesson) {
             return List.of();
         }
-        tracker.record(userId, QuestTracker.LESSON_COMPLETED, 1);
-        return streak.recordActivity(userId);
+        // Nhiệm vụ "học một bài" xong có thể đã tính ngày và trao danh hiệu ở trong tracker;
+        // gộp cả hai kết quả để không mất danh hiệu (lỗi B3).
+        List<String> titles = new ArrayList<>(
+                tracker.record(userId, QuestTracker.LESSON_COMPLETED, 1));
+        titles.addAll(streak.recordActivity(userId));
+        return titles;
     }
 
     /** Bước tutorial do server chuyển khi xong phiên (ADR-014). */

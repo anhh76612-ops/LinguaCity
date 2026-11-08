@@ -84,17 +84,21 @@ public class QuestTracker {
         return rows;
     }
 
-    /** Cộng {@code amount} vào nhiệm vụ hằng ngày có loại mục tiêu {@code goalType}. */
-    public void record(UUID userId, String goalType, int amount) {
-        update(userId, goalType, progress -> progress + amount);
+    /**
+     * Cộng {@code amount} vào nhiệm vụ hằng ngày có loại mục tiêu {@code goalType}. Trả danh
+     * hiệu chuỗi vừa trao nếu nhiệm vụ xong làm hôm nay được tính (lỗi B3).
+     */
+    public List<String> record(UUID userId, String goalType, int amount) {
+        return update(userId, goalType, progress -> progress + amount);
     }
 
     /** Ghi giá trị lớn nhất (ví dụ chuỗi trả lời đúng dài nhất trong ngày). */
-    public void recordMax(UUID userId, String goalType, int value) {
-        update(userId, goalType, progress -> Math.max(progress, value));
+    public List<String> recordMax(UUID userId, String goalType, int value) {
+        return update(userId, goalType, progress -> Math.max(progress, value));
     }
 
-    private void update(UUID userId, String goalType, Function<Integer, Integer> next) {
+    private List<String> update(
+            UUID userId, String goalType, Function<Integer, Integer> next) {
         Map<String, Quest> templates = dailyTemplates();
         LocalDateTime now = Times.nowUtc(clock);
         boolean newlyCompleted = false;
@@ -110,9 +114,10 @@ public class QuestTracker {
             }
             userQuests.save(row);
         }
-        if (newlyCompleted) {
-            streak.recordActivity(userId);
+        if (!newlyCompleted) {
+            return List.of();
         }
+        return streak.recordActivity(userId);
     }
 
     private Map<String, Quest> dailyTemplates() {
