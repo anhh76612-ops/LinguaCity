@@ -1,13 +1,13 @@
 /* Bố cục bản đồ (nhìn từ trên xuống, đơn vị = 1 ô):
 
-        z = -12 ┌────────────┬────┬────────────┐
-                │  HOUSING   │    │   SCHOOL   │      Hai con đường cắt nhau ở giữa (|x| < 2, |z| < 2).
-                │  (-6.5,-6.5)│ đường│ (6.5,-6.5) │      Mỗi góc là một khối nhà (block) nâng cao 0.1,
-                ├────────────┼────┼────────────┤      viền ngoài là vỉa hè rộng 1 ô, bên trong là lô đất 7×7.
-                │   PARK     │    │   ROAD     │
-                │  (-6.5,6.5) │    │ (6.5,6.5)  │      Camera nhìn từ góc (+x, +z) nên HOUSING ở xa nhất:
-        z = 12  └────────────┴────┴────────────┘      nhà cao đặt ở đó không che công trình khác.
-              x = -12                     x = 12
+                z = -12 ┌────────────┬────┬────────────┐
+                                │  HOUSING   │    │   SCHOOL   │      Hai con đường cắt nhau ở giữa (|x| < 2, |z| < 2).
+                                │  (-6.5,-6.5)│ đường│ (6.5,-6.5) │      Mỗi góc là một khối nhà (block) nâng cao 0.1,
+                                ├────────────┼────┼────────────┤      viền ngoài là vỉa hè rộng 1 ô, bên trong là lô đất 7×7.
+                                │   PARK     │    │   ROAD     │
+                                │  (-6.5,6.5) │    │ (6.5,6.5)  │      Camera nhìn từ góc (+x, +z) nên HOUSING ở xa nhất:
+                z = 12  └────────────┴────┴────────────┘      nhà cao đặt ở đó không che công trình khác.
+                            x = -12                     x = 12
 */
 export const MAP_HALF = 12;     // bản đồ từ -12 đến 12 theo cả x và z
 export const ROAD_HALF = 2;     // đường: |x| < 2 hoặc |z| < 2 (hai làn, mỗi làn rộng 2)
@@ -24,24 +24,24 @@ export const BUILDING_CODES: BuildingCode[] = ['HOUSING', 'SCHOOL', 'PARK', 'ROA
 
 /** Mỗi lô nằm ở một góc phần tư: sx, sz là dấu (+1/-1) của góc đó. */
 export const LOTS: Record<BuildingCode, { sx: number; sz: number; name: string; icon: string }> = {
-  HOUSING: { sx: -1, sz: -1, name: 'Housing', icon: '🏠' },
-  SCHOOL: { sx: 1, sz: -1, name: 'School', icon: '🏫' },
-  PARK: { sx: -1, sz: 1, name: 'Park', icon: '🌳' },
-  ROAD: { sx: 1, sz: 1, name: 'Road', icon: '🚌' },
+    HOUSING: { sx: -1, sz: -1, name: 'Housing', icon: '🏠' },
+    SCHOOL: { sx: 1, sz: -1, name: 'School', icon: '🏫' },
+    PARK: { sx: -1, sz: 1, name: 'Park', icon: '🌳' },
+    ROAD: { sx: 1, sz: 1, name: 'Road', icon: '🚌' },
 };
 
 export function lotCenter(code: BuildingCode): { x: number; z: number } {
-  const l = LOTS[code];
-  return { x: l.sx * LOT_C, z: l.sz * LOT_C };
+    const l = LOTS[code];
+    return { x: l.sx * LOT_C, z: l.sz * LOT_C };
 }
 
 /** Có nằm trên một khối nhà (vỉa hè hoặc lô đất) không? */
 export function onBlock(x: number, z: number): boolean {
-  const ax = Math.abs(x), az = Math.abs(z);
-  return ax >= BLOCK_IN && ax <= BLOCK_OUT && az >= BLOCK_IN && az <= BLOCK_OUT;
+    const ax = Math.abs(x), az = Math.abs(z);
+    return ax >= BLOCK_IN && ax <= BLOCK_OUT && az >= BLOCK_IN && az <= BLOCK_OUT;
 }
 
 /** Độ cao mặt đất tại (x, z): người đi lên vỉa hè sẽ "bước lên" 0.1. */
 export function heightAt(x: number, z: number): number {
-  return onBlock(x, z) ? BLOCK_H : 0;
+    return onBlock(x, z) ? BLOCK_H : 0;
 }

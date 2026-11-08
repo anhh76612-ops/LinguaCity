@@ -21,4 +21,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "LinguaCity"
 include(":app")
- 
+

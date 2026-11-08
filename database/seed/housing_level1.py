@@ -230,14 +230,11 @@ WORDS = [
 
 assert len(WORDS) == 30, len(WORDS)
 
-
 def q(s):
     return "'" + s.replace("'", "''") + "'"
 
-
 def hint_of(word):
     return " ".join([word[0]] + ["_"] * (len(word) - 2) + [word[-1]]) if len(word) > 2 else word
-
 
 def main(out):
     w = out.write
@@ -282,7 +279,6 @@ def main(out):
     for i in range(1, 31, 3):
         w("INSERT INTO exam_questions (exam_id, question_id) VALUES "
           f"((SELECT id FROM exams WHERE code = 'EXAM_HOUSING_LV2'), {i * 3});\n")
-
 
 if __name__ == "__main__":
     sys.stdout.reconfigure(encoding="utf-8")
