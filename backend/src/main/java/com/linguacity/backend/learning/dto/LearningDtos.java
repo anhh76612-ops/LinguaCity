@@ -19,30 +19,88 @@ public final class LearningDtos {
 
     public record AnswerRequest(String answer) {}
 
-    public record QuestionView(Long id, String skill, String questionType, int tier, String questionText,
-                               JsonNode metadata) {}
+    public record QuestionView(
+            Long id,
+            String skill,
+            String questionType,
+            int tier,
+            String questionText,
+            JsonNode metadata) {}
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    public record ItemDto(int itemNo, Long vocabularyId, boolean answered, Boolean isCorrect, QuestionView question) {}
+    public record ItemDto(
+            int itemNo,
+            Long vocabularyId,
+            boolean answered,
+            Boolean isCorrect,
+            QuestionView question) {}
 
-    public record SessionDto(UUID sessionId, String type, String buildingCode, int vocabLevel, String status,
-                             Instant startedAt, Instant expiresAt, Instant serverTime, int totalCount,
-                             int correctCount, List<ItemDto> items) {}
+    public record SessionDto(
+            UUID sessionId,
+            String type,
+            String buildingCode,
+            int vocabLevel,
+            String status,
+            Instant startedAt,
+            Instant expiresAt,
+            Instant serverTime,
+            int totalCount,
+            int correctCount,
+            List<ItemDto> items) {}
 
-    public record AnswerResultDto(int itemNo, boolean isCorrect, String correctAnswer, String explanation,
-                                  Long vocabularyId, int masteryAfter, int maxMastery, boolean collectedNow,
-                                  int streak) {}
+    public record AnswerResultDto(
+            int itemNo,
+            boolean isCorrect,
+            String correctAnswer,
+            String explanation,
+            Long vocabularyId,
+            int masteryAfter,
+            int maxMastery,
+            boolean collectedNow,
+            int streak) {}
 
     public record CollectionDto(String buildingCode, int level, long collected, int total) {}
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    public record CompleteResultDto(UUID sessionId, String type, int correct, int total, int kpAwarded,
-                                    Integer kpBase, Integer kpBonus, Integer dailySessionIndex,
-                                    Double dailyMultiplier, CollectionDto collection, List<String> newAchievements,
-                                    ResourcesDto profile, TutorialStep tutorialStep) {}
+    public record CompleteResultDto(
+            UUID sessionId,
+            String type,
+            int correct,
+            int total,
+            int kpAwarded,
+            Integer kpBase,
+            Integer kpBonus,
+            Integer dailySessionIndex,
+            Double dailyMultiplier,
+            CollectionDto collection,
+            List<String> newAchievements,
+            ResourcesDto profile,
+            TutorialStep tutorialStep,
+            Integer shardsAwarded,
+            Boolean eventResolved) {}
 
-    public record ProgressItemDto(Long vocabularyId, int masteryScore, int maxMastery, boolean collected,
-                                  Instant firstSeenAt, Instant lastReviewedAt) {}
+    /** POST /learning/practice (ADR-015 §6): mode REVIEW | MIXED, wordCount 10 | 20. */
+    public record PracticeRequest(String mode, List<String> themeCodes, Integer wordCount) {}
+
+    public record PracticeUsage(long used, int limit) {}
+
+    public record ThemeProgressDto(String code, String name, long collected, int total) {}
+
+    /** GET /learning/practice/status. */
+    public record PracticeStatusDto(
+            PracticeUsage review,
+            PracticeUsage mixed,
+            PracticeUsage newWords,
+            List<ThemeProgressDto> themes,
+            Instant resetsAt) {}
+
+    public record ProgressItemDto(
+            Long vocabularyId,
+            int masteryScore,
+            int maxMastery,
+            boolean collected,
+            Instant firstSeenAt,
+            Instant lastReviewedAt) {}
 
     public record ProgressDto(Instant serverTime, List<ProgressItemDto> items) {}
 }

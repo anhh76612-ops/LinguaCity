@@ -1,26 +1,26 @@
 /* Nền trời là gradient CSS phía sau canvas trong suốt: rẻ hơn vẽ trời bằng WebGL. */
 :root {
-  --sky-top: #bfe3f2;
-  --sky-bottom: #f6efe2;
-  --ink: #2f3a45;
-  --card: rgba(255, 255, 255, 0.92);
-  --accent: #f4b740;
+    --sky-top: #bfe3f2;
+    --sky-bottom: #f6efe2;
+    --ink: #2f3a45;
+    --card: rgba(255, 255, 255, 0.92);
+    --accent: #f4b740;
 }
 
 * { box-sizing: border-box; }
 
 html, body {
-  margin: 0;
-  height: 100%;
-  overflow: hidden;
-  background: linear-gradient(180deg, var(--sky-top), var(--sky-bottom));
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  color: var(--ink);
-  /* Chặn cử chỉ mặc định của trình duyệt (cuộn, zoom trang) để tự xử lý kéo/chụm */
-  touch-action: none;
-  -webkit-user-select: none;
-  user-select: none;
-  -webkit-tap-highlight-color: transparent;
+    margin: 0;
+    height: 100%;
+    overflow: hidden;
+    background: linear-gradient(180deg, var(--sky-top), var(--sky-bottom));
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    color: var(--ink);
+    /* Chặn cử chỉ mặc định của trình duyệt (cuộn, zoom trang) để tự xử lý kéo/chụm */
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
 }
 
 #app { position: fixed; inset: 0; }
@@ -30,77 +30,77 @@ html, body {
 .label-layer { pointer-events: none; }
 
 .b-label {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3px;
-  padding: 4px 9px;
-  border-radius: 10px;
-  background: var(--card);
-  box-shadow: 0 2px 6px rgba(40, 50, 60, 0.18);
-  font-size: 12px;
-  font-weight: 600;
-  white-space: nowrap;
-  transform-origin: 50% 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 4px 9px;
+    border-radius: 10px;
+    background: var(--card);
+    box-shadow: 0 2px 6px rgba(40, 50, 60, 0.18);
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    transform-origin: 50% 100%;
 }
 .b-label .lv {
-  font-weight: 700;
-  color: #fff;
-  background: #6c8ebf;
-  border-radius: 6px;
-  padding: 0 5px;
-  margin-left: 4px;
+    font-weight: 700;
+    color: #fff;
+    background: #6c8ebf;
+    border-radius: 6px;
+    padding: 0 5px;
+    margin-left: 4px;
 }
 .b-label .bar {
-  width: 72px;
-  height: 5px;
-  border-radius: 3px;
-  background: #e3e6ea;
-  overflow: hidden;
+    width: 72px;
+    height: 5px;
+    border-radius: 3px;
+    background: #e3e6ea;
+    overflow: hidden;
 }
 .b-label .bar > i {
-  display: block;
-  height: 100%;
-  background: var(--accent);
-  transition: width 0.3s;
+    display: block;
+    height: 100%;
+    background: var(--accent);
+    transition: width 0.3s;
 }
 .b-label.hidden-bar .bar { display: none; }
 
 /* ---------- Toast ---------- */
 #toast {
-  position: fixed;
-  left: 50%;
-  bottom: calc(16px + env(safe-area-inset-bottom));
-  transform: translate(-50%, 20px);
-  padding: 8px 14px;
-  border-radius: 999px;
-  background: rgba(47, 58, 69, 0.9);
-  color: #fff;
-  font-size: 13px;
-  opacity: 0;
-  transition: opacity 0.25s, transform 0.25s;
-  pointer-events: none;
-  max-width: calc(100vw - 32px);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+    position: fixed;
+    left: 50%;
+    bottom: calc(16px + env(safe-area-inset-bottom));
+    transform: translate(-50%, 20px);
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: rgba(47, 58, 69, 0.9);
+    color: #fff;
+    font-size: 13px;
+    opacity: 0;
+    transition: opacity 0.25s, transform 0.25s;
+    pointer-events: none;
+    max-width: calc(100vw - 32px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 #toast.show { opacity: 1; transform: translate(-50%, 0); }
 
 /* Bảng debug lil-gui: thu gọn trên màn hình hẹp */
 .lil-gui.root { --width: 230px; }
 @media (max-width: 480px) {
-  .lil-gui.root { --width: 190px; font-size: 11px; }
+    .lil-gui.root { --width: 190px; font-size: 11px; }
 }
 
 /* ---------- M7: màn mờ khi đổi cảnh (vào/ra nhà) ---------- */
 #fade {
-  position: fixed;
-  inset: 0;
-  background: #fff8ec;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s ease;
+    position: fixed;
+    inset: 0;
+    background: #fff8ec;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
 }
 #fade.on { opacity: 1; }
 

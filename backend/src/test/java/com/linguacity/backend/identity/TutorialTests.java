@@ -31,9 +31,11 @@ class TutorialTests {
     private static final String COMPLETE_TUTORIAL = "/api/v1/users/me/tutorial/complete";
 
     private final UserProfileRepository repository = mock(UserProfileRepository.class);
-    private final TutorialService service = new TutorialService(repository, mock(AchievementService.class), Clock.systemUTC());
+    private final TutorialService service = new TutorialService(
+            repository, mock(AchievementService.class), Clock.systemUTC());
     private final MockMvc api = MockMvcBuilders
-            .standaloneSetup(new UserProfileController(new UserOnboardingService(repository), service))
+            .standaloneSetup(new UserProfileController(
+                    new UserOnboardingService(repository), service))
             .setControllerAdvice(new ApiExceptionHandler())
             .build();
 

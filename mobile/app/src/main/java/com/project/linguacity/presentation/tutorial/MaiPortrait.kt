@@ -24,19 +24,41 @@ fun MaiPortrait(mood: MaiMood, modifier: Modifier = Modifier) {
         // nền tròn
         drawCircle(Color(0xFFFFE6C7), radius = w * 0.5f, center = Offset(cx, h * 0.5f))
         // áo vest xanh + cổ áo trắng + bảng tên
-        drawOval(Color(0xFF3F5A8F), topLeft = Offset(w * 0.12f, h * 0.70f), size = Size(w * 0.76f, h * 0.55f))
+        drawOval(
+            Color(0xFF3F5A8F),
+            topLeft = Offset(w * 0.12f, h * 0.70f),
+            size = Size(w * 0.76f, h * 0.55f)
+        )
         val collar = Path().apply {
-            moveTo(cx - w * 0.14f, h * 0.72f); lineTo(cx, h * 0.86f); lineTo(cx + w * 0.14f, h * 0.72f); close()
+            moveTo(cx - w * 0.14f, h * 0.72f)
+            lineTo(cx, h * 0.86f)
+            lineTo(cx + w * 0.14f, h * 0.72f)
+            close()
         }
         drawPath(collar, Color.White)
-        drawRoundRect(Color(0xFFF2C94C), topLeft = Offset(cx + w * 0.12f, h * 0.80f), size = Size(w * 0.13f, h * 0.07f),
+        drawRoundRect(Color(0xFFF2C94C), topLeft = Offset(
+            cx + w * 0.12f,
+            h * 0.80f
+        ), size = Size(w * 0.13f, h * 0.07f),
             cornerRadius = androidx.compose.ui.geometry.CornerRadius(w * 0.02f))
         // cổ
-        drawRect(Color(0xFFF3C9A8), topLeft = Offset(cx - w * 0.07f, h * 0.60f), size = Size(w * 0.14f, h * 0.13f))
+        drawRect(
+            Color(0xFFF3C9A8),
+            topLeft = Offset(cx - w * 0.07f, h * 0.60f),
+            size = Size(w * 0.14f, h * 0.13f)
+        )
         // tóc phía sau
-        drawOval(Color(0xFF4A2E22), topLeft = Offset(w * 0.20f, h * 0.14f), size = Size(w * 0.60f, h * 0.60f))
+        drawOval(
+            Color(0xFF4A2E22),
+            topLeft = Offset(w * 0.20f, h * 0.14f),
+            size = Size(w * 0.60f, h * 0.60f)
+        )
         // mặt
-        drawOval(Color(0xFFF8D7BC), topLeft = Offset(w * 0.27f, h * 0.22f), size = Size(w * 0.46f, h * 0.48f))
+        drawOval(
+            Color(0xFFF8D7BC),
+            topLeft = Offset(w * 0.27f, h * 0.22f),
+            size = Size(w * 0.46f, h * 0.48f)
+        )
         // mái tóc
         val bangs = Path().apply {
             moveTo(w * 0.25f, h * 0.40f)
@@ -50,8 +72,16 @@ fun MaiPortrait(mood: MaiMood, modifier: Modifier = Modifier) {
         // búi tóc
         drawCircle(Color(0xFF4A2E22), radius = w * 0.09f, center = Offset(cx, h * 0.12f))
         // má hồng
-        drawCircle(Color(0x55FF7F7F), radius = w * 0.045f, center = Offset(cx - w * 0.13f, h * 0.53f))
-        drawCircle(Color(0x55FF7F7F), radius = w * 0.045f, center = Offset(cx + w * 0.13f, h * 0.53f))
+        drawCircle(
+            Color(0x55FF7F7F),
+            radius = w * 0.045f,
+            center = Offset(cx - w * 0.13f, h * 0.53f)
+        )
+        drawCircle(
+            Color(0x55FF7F7F),
+            radius = w * 0.045f,
+            center = Offset(cx + w * 0.13f, h * 0.53f)
+        )
         face(mood, cx, w, h)
     }
 }
@@ -62,15 +92,25 @@ private fun DrawScope.face(mood: MaiMood, cx: Float, w: Float, h: Float) {
     val eyeY = h * 0.45f
     val dx = w * 0.10f
     // lông mày
-    val browLift = when (mood) { MaiMood.SURPRISED -> -h * 0.05f; MaiMood.ENCOURAGE -> -h * 0.02f; else -> 0f }
+    val browLift = when (mood) {
+        MaiMood.SURPRISED -> -h * 0.05f
+        MaiMood.ENCOURAGE -> -h * 0.02f
+        else -> 0f
+    }
     for (side in listOf(-1f, 1f)) {
         drawLine(ink, Offset(cx + side * dx - w * 0.05f, eyeY - h * 0.07f + browLift),
-            Offset(cx + side * dx + w * 0.05f, eyeY - h * 0.075f + browLift), strokeWidth = w * 0.018f, cap = StrokeCap.Round)
+            Offset(
+                cx + side * dx + w * 0.05f,
+                eyeY - h * 0.075f + browLift
+            ), strokeWidth = w * 0.018f, cap = StrokeCap.Round)
     }
     // mắt
     when (mood) {
         MaiMood.HAPPY -> for (side in listOf(-1f, 1f)) { // mắt cười ^^
-            drawArc(ink, 200f, 140f, false, topLeft = Offset(cx + side * dx - w * 0.04f, eyeY - h * 0.02f),
+            drawArc(ink, 200f, 140f, false, topLeft = Offset(
+                cx + side * dx - w * 0.04f,
+                eyeY - h * 0.02f
+            ),
                 size = Size(w * 0.08f, h * 0.06f), style = stroke)
         }
         MaiMood.GREET -> { // nháy mắt phải
@@ -84,21 +124,28 @@ private fun DrawScope.face(mood: MaiMood, cx: Float, w: Float, h: Float) {
         }
         MaiMood.ENCOURAGE -> for (side in listOf(-1f, 1f)) {
             drawCircle(ink, radius = w * 0.03f, center = Offset(cx + side * dx, eyeY))
-            drawCircle(Color.White, radius = w * 0.01f, center = Offset(cx + side * dx + w * 0.01f, eyeY - h * 0.01f))
+            drawCircle(
+                Color.White,
+                radius = w * 0.01f,
+                center = Offset(cx + side * dx + w * 0.01f, eyeY - h * 0.01f)
+            )
         }
     }
     // miệng
     val mouthY = h * 0.58f
     when (mood) {
-        MaiMood.SURPRISED -> drawOval(Color(0xFFB34A4A), topLeft = Offset(cx - w * 0.035f, mouthY - h * 0.02f),
+        MaiMood.SURPRISED -> drawOval(Color(0xFFB34A4A), topLeft = Offset(
+            cx - w * 0.035f,
+            mouthY - h * 0.02f
+        ),
             size = Size(w * 0.07f, h * 0.06f))
         MaiMood.HAPPY -> {
-            val p = Path().apply {
+            val path = Path().apply {
                 moveTo(cx - w * 0.08f, mouthY - h * 0.01f)
                 quadraticTo(cx, mouthY + h * 0.08f, cx + w * 0.08f, mouthY - h * 0.01f)
                 close()
             }
-            drawPath(p, Color(0xFFB34A4A))
+            drawPath(path, Color(0xFFB34A4A))
         }
         else -> drawArc(ink, 20f, 140f, false, topLeft = Offset(cx - w * 0.07f, mouthY - h * 0.05f),
             size = Size(w * 0.14f, h * 0.07f), style = stroke)

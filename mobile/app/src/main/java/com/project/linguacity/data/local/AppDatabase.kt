@@ -33,7 +33,8 @@ import com.project.linguacity.data.local.user.UserProfileEntity
  * v1 → v2: thêm tutorialCompleted (UC_02, migration viết tay).
  * v2 → v3: thêm 12 bảng nội dung tĩnh (VS2). Chỉ thêm bảng mới nên dùng AutoMigration:
  *          Room so sánh schemas/…/2.json với 3.json và tự sinh các câu CREATE TABLE.
- * v3 → v4: Player State (VS3): tiến độ từ, công trình, danh hiệu + 2 cột hồ sơ (có DEFAULT) → vẫn AutoMigration.
+ * v3 → v4: Player State (VS3): tiến độ từ, công trình, danh hiệu + 2 cột hồ sơ (có DEFAULT) → vẫn
+ * AutoMigration.
  * v4 → v5: Tuỳ biến (M8): 2 bảng mới + 2 cột hồ sơ cho phép NULL → AutoMigration.
  */
 @Database(
@@ -60,7 +61,11 @@ import com.project.linguacity.data.local.user.UserProfileEntity
     ],
     version = 5,
     exportSchema = true,
-    autoMigrations = [AutoMigration(from = 2, to = 3), AutoMigration(from = 3, to = 4), AutoMigration(from = 4, to = 5)]
+    autoMigrations = [
+        AutoMigration(from = 2, to = 3),
+        AutoMigration(from = 3, to = 4),
+        AutoMigration(from = 4, to = 5)
+    ]
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {

@@ -98,7 +98,8 @@ object WebCityRenderer : CityRenderer {
     }
 
     /**
-     * M7: nhân vật 3D xoay trên bệ (city-web `?mode=avatar-preview`) cho màn chọn ngoại hình (UC_14).
+     * M7: nhân vật 3D xoay trên bệ (city-web `?mode=avatar-preview`) cho màn chọn ngoại hình
+     * (UC_14).
      * Nền trong suốt để thấy UI Compose phía sau.
      */
     @Composable
@@ -108,8 +109,14 @@ object WebCityRenderer : CityRenderer {
         AndroidView(
             modifier = modifier,
             factory = { context ->
-                createWebView(context, "$START_URL?mode=avatar-preview", transparent = true) { raw ->
-                    if (CityBridgeJson.decodeIntent(raw) == CityMapIntent.Ready) ready = true
+                createWebView(
+                    context,
+                    "$START_URL?mode=avatar-preview",
+                    transparent = true
+                ) { raw ->
+                    if (CityBridgeJson.decodeIntent(raw) == CityMapIntent.Ready) {
+                        ready = true
+                    }
                 }
             },
             update = { webView -> if (ready) webView.pushState(json) },
@@ -118,8 +125,12 @@ object WebCityRenderer : CityRenderer {
     }
 
     private fun WebView.pushState(json: String) {
-        // JSONObject.quote biến chuỗi JSON thành một chuỗi JavaScript an toàn (thoát dấu nháy, xuống dòng…).
-        evaluateJavascript("window.LinguaCity && LinguaCity.setState(${JSONObject.quote(json)})", null)
+        // JSONObject.quote biến chuỗi JSON thành một chuỗi JavaScript an toàn (thoát dấu nháy,
+        // xuống dòng…).
+        evaluateJavascript(
+            "window.LinguaCity && LinguaCity.setState(${JSONObject.quote(json)})",
+            null
+        )
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -145,11 +156,17 @@ object WebCityRenderer : CityRenderer {
             setBackgroundColor(if (transparent) 0 else 0xFFCFE8F3.toInt())
 
             webViewClient = object : WebViewClient() {
-                override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? =
+                override fun shouldInterceptRequest(
+                    view: WebView,
+                    request: WebResourceRequest
+                ): WebResourceResponse? =
                     assetLoader.shouldInterceptRequest(request.url)
 
                 // Bản đồ không bao giờ cần đi tới trang khác: chặn mọi điều hướng.
-                override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean = true
+                override fun shouldOverrideUrlLoading(
+                    view: WebView,
+                    request: WebResourceRequest
+                ): Boolean = true
             }
 
             attachBridge(this, onMessage)
@@ -158,15 +175,24 @@ object WebCityRenderer : CityRenderer {
     }
 
     /**
-     * Tạo đối tượng window.AndroidBridge với hàm postMessage(json) — đúng tên mà city-web/src/bridge/bridge.ts gọi.
+     * Tạo đối tượng window.AndroidBridge với hàm postMessage(json) — đúng tên mà
+     * city-web/src/bridge/bridge.ts gọi.
      *
-     * Ưu tiên WebMessageListener: chỉ trang từ [ORIGIN] mới thấy đối tượng này, và callback chạy trên main thread.
-     * WebView quá cũ không hỗ trợ thì lùi về addJavascriptInterface (callback chạy trên luồng khác → post về main).
+     * Ưu tiên WebMessageListener: chỉ trang từ [ORIGIN] mới thấy đối tượng này, và callback chạy
+     * trên main thread.
+     * WebView quá cũ không hỗ trợ thì lùi về addJavascriptInterface (callback chạy trên luồng khác
+     * → post về main).
      */
     private fun attachBridge(webView: WebView, onMessage: (String) -> Unit) {
         if (WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER)) {
-            WebViewCompat.addWebMessageListener(webView, "AndroidBridge", setOf(ORIGIN)) { _, message, sourceOrigin, isMainFrame, _ ->
-                if (isMainFrame && sourceOrigin == Uri.parse(ORIGIN)) message.data?.let(onMessage)
+            WebViewCompat.addWebMessageListener(
+                webView,
+                "AndroidBridge",
+                setOf(ORIGIN)
+            ) { _, message, sourceOrigin, isMainFrame, _ ->
+                if (isMainFrame && sourceOrigin == Uri.parse(ORIGIN)) {
+                    message.data?.let(onMessage)
+                }
             }
         } else {
             webView.addJavascriptInterface(object {

@@ -37,7 +37,8 @@ import kotlin.math.sin
 data class MenuEntry(val key: String, val icon: String, val label: String, val onClick: () -> Unit)
 
 /**
- * Toạ độ của mục thứ [index] trên cung 1/4 (từ thẳng lên tới ngang sang trái) quanh nút ở góc phải dưới.
+ * Toạ độ của mục thứ [index] trên cung 1/4 (từ thẳng lên tới ngang sang trái) quanh nút ở góc phải
+ * dưới.
  * Hàm thuần — có test (FloatingMenuTest).
  */
 fun arcOffset(index: Int, count: Int, radius: Float): Pair<Float, Float> {
@@ -49,23 +50,37 @@ fun arcOffset(index: Int, count: Int, radius: Float): Pair<Float, Float> {
 }
 
 /**
- * SCR-22 Nút menu nổi (FR-UI-03): chạm → nút xoay 45°, các mục bung theo cung tròn lần lượt (~40 ms/mục)
+ * SCR-22 Nút menu nổi (FR-UI-03): chạm → nút xoay 45°, các mục bung theo cung tròn lần lượt (~40
+ * ms/mục)
  * kèm rung nhẹ; chọn một mục thì menu thu lại rồi mới điều hướng.
  */
 @Composable
-fun FloatingMenu(entries: List<MenuEntry>, modifier: Modifier = Modifier, fabModifier: Modifier = Modifier) {
+fun FloatingMenu(
+    entries: List<MenuEntry>,
+    modifier: Modifier = Modifier,
+    fabModifier: Modifier = Modifier
+) {
     var open by remember { mutableStateOf(false) }
     val haptic = LocalHapticFeedback.current
     val reduce = LocalReduceMotion.current
-    val rotation by animateFloatAsState(if (open) 45f else 0f, tween(if (reduce) 0 else 220), label = "fabRotation")
+    val rotation by animateFloatAsState(
+        if (open) 45f else 0f,
+        tween(if (reduce) 0 else 220),
+        label = "fabRotation"
+    )
 
     Box(modifier, contentAlignment = Alignment.BottomEnd) {
         entries.forEachIndexed { index, entry ->
             val progress = remember { Animatable(0f) }
             LaunchedEffect(open) {
                 if (open) {
-                    if (!reduce) delay(index * 40L)
-                    if (reduce) progress.snapTo(1f) else progress.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy))
+                    if (!reduce) {
+                        delay(index * 40L)
+                    }
+                    if (reduce) progress.snapTo(1f) else progress.animateTo(
+                        1f,
+                        spring(dampingRatio = Spring.DampingRatioMediumBouncy)
+                    )
                 } else {
                     if (reduce) progress.snapTo(0f) else progress.animateTo(0f, tween(150))
                 }
@@ -79,12 +94,24 @@ fun FloatingMenu(entries: List<MenuEntry>, modifier: Modifier = Modifier, fabMod
                 }
                 Column(
                     Modifier
-                        .offset { IntOffset((dx * progress.value * density).roundToInt(), (dy * progress.value * density).roundToInt()) }
-                        .graphicsLayer { alpha = progress.value; scaleX = progress.value; scaleY = progress.value }
-                        .clickable(onClickLabel = entry.label) { select() }, // chạm cả nhãn cũng được
+                        .offset {
+                            IntOffset(
+                                (dx * progress.value * density).roundToInt(),
+                                (dy * progress.value * density).roundToInt()
+                            )
+                        }
+                        .graphicsLayer {
+                            alpha = progress.value
+                            scaleX = progress.value
+                            scaleY = progress.value
+                        }
+                        // chạm cả nhãn cũng được
+                        .clickable(onClickLabel = entry.label) { select() },
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    SmallFloatingActionButton(onClick = select) { Text(entry.icon, style = MaterialTheme.typography.titleMedium) }
+                    SmallFloatingActionButton(onClick = select) {
+                        Text(entry.icon, style = MaterialTheme.typography.titleMedium)
+                    }
                     Surface(shape = MaterialTheme.shapes.small, tonalElevation = 2.dp) {
                         Text(entry.label, style = MaterialTheme.typography.labelSmall,
                             modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp))
@@ -99,7 +126,11 @@ fun FloatingMenu(entries: List<MenuEntry>, modifier: Modifier = Modifier, fabMod
             },
             modifier = fabModifier
         ) {
-            Text("＋", style = MaterialTheme.typography.headlineSmall, modifier = Modifier.graphicsLayer { rotationZ = rotation })
+            Text(
+                "＋",
+                style = MaterialTheme.typography.headlineSmall,
+                modifier = Modifier.graphicsLayer { rotationZ = rotation }
+            )
         }
     }
 }

@@ -32,7 +32,8 @@ import com.project.linguacity.ui.motion.sharedCard
 import com.project.linguacity.ui.motion.staggeredAppear
 
 /**
- * SCR-06 Danh sách từ của một (công trình, Level). Bản cơ bản: skeleton/shimmer và shared element ở M9;
+ * SCR-06 Danh sách từ của một (công trình, Level). Bản cơ bản: skeleton/shimmer và shared element ở
+ * M9;
  * dấu ✓ sưu tầm + thanh Mastery ở M5 (khi có user_vocab_progress).
  */
 @Composable
@@ -49,17 +50,22 @@ fun VocabularyListScreen(
             TextButton(onClick = onBack) { Text("‹ Thành phố") }
         }
         Text(
-            "${building?.icon ?: ""} ${building?.displayName ?: state.buildingCode} · Level ${state.level}",
+            "${building?.icon ?: ""} ${building?.displayName ?: state.buildingCode} · Level " +
+            "${state.level}",
             style = MaterialTheme.typography.titleLarge
         )
-        Text("Đã sưu tầm ${state.collectedCount}/${state.words.size} thẻ", style = MaterialTheme.typography.bodySmall)
+        Text(
+            "Đã sưu tầm ${state.collectedCount}/${state.words.size} thẻ",
+            style = MaterialTheme.typography.bodySmall
+        )
 
         when {
             // Skeleton có hình dáng giống danh sách thẻ, thay vòng xoay (FR-UI-04)
             state.loading -> SkeletonList(rows = 7, modifier = Modifier.padding(top = 12.dp))
             state.words.isEmpty() -> Box(Modifier.fillMaxSize(), Alignment.Center) {
                 Text(
-                    "Level này chưa có thẻ từ trong máy.\nMở khoá khi xây công trình tới Level ${state.level - 1} và có mạng để tải.",
+                    "Level này chưa có thẻ từ trong máy.\nMở khoá khi xây công trình tới Level " +
+                    "${state.level - 1} và có mạng để tải.",
                     textAlign = TextAlign.Center
                 )
             }
@@ -68,26 +74,41 @@ fun VocabularyListScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 itemsIndexed(state.words, key = { _, w -> w.id }) { index, word ->
-                    Card(Modifier.fillMaxWidth().staggeredAppear(index).sharedCard("word-${word.id}").clickable { onOpenCard(index) }) {
+                    Card(Modifier.fillMaxWidth().staggeredAppear(index)
+                        .sharedCard("word-${word.id}").clickable { onOpenCard(index) }) {
                         Row(
                             Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            val p = state.progress[word.id]
-                            Text(if (p?.collected == true) "✅" else "⬜", modifier = Modifier.padding(end = 12.dp))
+                            val wordProgress = state.progress[word.id]
+                            Text(
+                                if (wordProgress?.collected == true) "✅" else "⬜",
+                                modifier = Modifier.padding(end = 12.dp)
+                            )
                             Column(Modifier.weight(1f)) {
-                                Text(word.word, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                                Text(
+                                    word.word,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.SemiBold
+                                )
                                 Text(word.meaning, style = MaterialTheme.typography.bodyMedium)
-                                if (p != null) {
+                                if (wordProgress != null) {
                                     LinearProgressIndicator(
-                                        progress = { p.mastery.toFloat() / p.maxMastery },
+                                        progress = {
+                                            wordProgress.mastery.toFloat() / wordProgress.maxMastery
+                                        },
                                         modifier = Modifier.fillMaxWidth(0.6f).padding(top = 6.dp)
                                     )
                                 }
                             }
                             Column(horizontalAlignment = Alignment.End) {
                                 Text(word.ipa ?: "", style = MaterialTheme.typography.bodySmall)
-                                if (p != null) Text("${p.mastery}/${p.maxMastery}", style = MaterialTheme.typography.labelSmall)
+                                if (wordProgress != null) {
+                                    Text(
+                                        "${wordProgress.mastery}/${wordProgress.maxMastery}",
+                                        style = MaterialTheme.typography.labelSmall
+                                    )
+                                }
                             }
                         }
                     }

@@ -35,4 +35,8 @@ public class Achievement {
     public boolean isHidden() {
         return "HIDDEN".equals(tier);
     }
+
+    /** Danh hiệu thu hồi được khi điều kiện mất đi, ví dụ danh hiệu chuỗi (BR-ACH-05). */
+    @Column(name = "revocable", nullable = false)
+    private boolean revocable = false;
 }

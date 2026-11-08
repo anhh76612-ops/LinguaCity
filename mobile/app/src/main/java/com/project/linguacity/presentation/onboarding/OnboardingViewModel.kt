@@ -48,7 +48,8 @@ class OnboardingViewModel @Inject constructor(
 
                 _state.value = OnboardingState(
                     isLoading = false,
-                    // Câu dễ hiểu thay cho lỗi kỹ thuật "failed to connect to /10.0.2.2…" (ghi nhận nghiệm thu VS1)
+                    // Câu dễ hiểu thay cho lỗi kỹ thuật "failed to connect to /10.0.2.2…" (ghi nhận
+                    // nghiệm thu VS1)
                     error = friendlyNetworkError(exception, firstRun = true)
                 )
             }

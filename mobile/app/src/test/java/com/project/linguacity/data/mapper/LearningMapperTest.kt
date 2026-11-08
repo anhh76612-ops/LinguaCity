@@ -20,7 +20,9 @@ class LearningMapperTest {
     fun `session json maps multiple choice and fill blank questions`() {
         val s = json.decodeFromString(SessionDto.serializer(), """
             {"sessionId":"a1","type":"PLACEMENT","buildingCode":"HOUSING","vocabLevel":1,"status":"ACTIVE",
-             "startedAt":"2026-11-08T03:00:00Z","expiresAt":"2026-11-09T03:00:00.5Z","serverTime":"2026-11-08T03:00:00Z",
+             "startedAt":"2026-11-08T03:00:00Z",
+             "expiresAt":"2026-11-09T03:00:00.5Z",
+             "serverTime":"2026-11-08T03:00:00Z",
              "totalCount":2,"correctCount":1,"items":[
               {"itemNo":1,"vocabularyId":5,"answered":true,"isCorrect":true,
                "question":{"id":13,"skill":"READING","questionType":"MULT_CHOICE","tier":1,"questionText":"What does \"deposit\" mean?",
@@ -44,8 +46,11 @@ class LearningMapperTest {
     fun `complete result keeps the kp breakdown and tutorial step`() {
         val r = json.decodeFromString(CompleteResultDto.serializer(), """
             {"sessionId":"a1","type":"LEARNING","correct":17,"total":20,"kpAwarded":105,"kpBase":85,"kpBonus":20,
-             "dailySessionIndex":1,"dailyMultiplier":1.0,"collection":{"buildingCode":"HOUSING","level":1,"collected":22,"total":30},
-             "newAchievements":["COMBO10"],"profile":{"knowledgePoints":205,"hourglassCount":0,"blueprintShards":0},
+             "dailySessionIndex":1,
+             "dailyMultiplier":1.0,
+             "collection":{"buildingCode":"HOUSING","level":1,"collected":22,"total":30},
+             "newAchievements":["COMBO10"],
+             "profile":{"knowledgePoints":205,"hourglassCount":0,"blueprintShards":0},
              "tutorialStep":"BUILD_HOUSE"}""").toDomain()
         assertEquals(105, r.kpAwarded)
         assertEquals(22, r.collected)

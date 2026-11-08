@@ -13,7 +13,13 @@ import org.junit.Test
 class CityRenderStateTest {
 
     private fun upgrading(start: Long?, finish: Long?) =
-        BuildingState(BuildingCode.SCHOOL, level = 1, status = BuildingStatus.UPGRADING, startedAtMillis = start, finishAtMillis = finish)
+        BuildingState(
+            BuildingCode.SCHOOL,
+            level = 1,
+            status = BuildingStatus.UPGRADING,
+            startedAtMillis = start,
+            finishAtMillis = finish
+        )
 
     @Test
     fun progress_cacMocThoiGian() {
@@ -27,15 +33,20 @@ class CityRenderStateTest {
 
     @Test
     fun progress_duLieuBatThuong() {
-        assertEquals(1f, upgrading(start = 3_000, finish = 3_000).progressAt(3_000), 0f) // thời gian xây = 0
+        // thời gian xây = 0
+        assertEquals(1f, upgrading(start = 3_000, finish = 3_000).progressAt(3_000), 0f)
         assertEquals(0f, upgrading(start = null, finish = 5_000).progressAt(2_000), 0f)
-        assertEquals(0f, BuildingState(BuildingCode.SCHOOL, level = 1).progressAt(2_000), 0f) // IDLE
+        // IDLE
+        assertEquals(0f, BuildingState(BuildingCode.SCHOOL, level = 1).progressAt(2_000), 0f)
     }
 
     @Test
     fun toRenderState_dungDoLechDongHoServer() {
         // Server chạy nhanh hơn máy 10 giây.
-        val city = CityState(buildings = listOf(upgrading(start = 10_000, finish = 30_000)), serverOffsetMillis = 10_000)
+        val city = CityState(
+            buildings = listOf(upgrading(start = 10_000, finish = 30_000)),
+            serverOffsetMillis = 10_000
+        )
         val view = city.toRenderState(city.serverNow(deviceNowMillis = 10_000)).buildings.single()
         assertTrue(view.upgrading)
         assertEquals(0.5f, view.progress, 1e-6f) // giờ server = 20 000 → nửa chặng

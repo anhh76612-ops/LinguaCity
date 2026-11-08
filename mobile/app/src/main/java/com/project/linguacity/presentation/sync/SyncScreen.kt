@@ -24,7 +24,8 @@ import com.project.linguacity.ui.loading.DestinationLoading
 import com.project.linguacity.ui.loading.LoadingKind
 
 /**
- * SCR-03: tải CORE + các gói cần (UC_03). Bản cơ bản; hiệu ứng Loading theo điểm đến làm ở mốc giao diện (M9).
+ * SCR-03: tải CORE + các gói cần (UC_03). Bản cơ bản; hiệu ứng Loading theo điểm đến làm ở mốc giao
+ * diện (M9).
  */
 @Composable
 fun SyncScreen(
@@ -39,13 +40,19 @@ fun SyncScreen(
     Box(Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
         val error = state.error
         if (error != null) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
                 Text("Chưa tải được nội dung học", style = MaterialTheme.typography.titleMedium)
                 Text(error, textAlign = TextAlign.Center)
                 Button(onClick = { viewModel.onIntent(SyncIntent.Retry) }) { Text("Thử lại") }
             }
         } else {
-            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
                 DestinationLoading(LoadingKind.SYNC, Modifier.weight(1f, fill = false))
                 if (state.total > 0) {
                     LinearProgressIndicator(
@@ -53,7 +60,8 @@ fun SyncScreen(
                         modifier = Modifier.fillMaxWidth(0.7f)
                     )
                     Text(
-                        state.currentPack?.let { "Gói $it (${state.done + 1}/${state.total})" } ?: "Xong!",
+                        state.currentPack?.let { "Gói $it (${state.done + 1}/${state.total})" }
+                            ?: "Xong!",
                         style = MaterialTheme.typography.bodySmall
                     )
                 }

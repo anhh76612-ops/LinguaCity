@@ -3,6 +3,7 @@ package com.linguacity.backend.learning.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -41,4 +42,8 @@ public class UserVocabProgress {
     public boolean isCollected() {
         return collectedAt != null;
     }
+
+    /** Luyện tập: ngày cuối cùng từ này được thưởng KP / Mastery (BR-PRAC-03). */
+    @Column(name = "last_rewarded_on")
+    private LocalDate lastRewardedOn;
 }

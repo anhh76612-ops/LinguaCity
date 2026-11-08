@@ -37,7 +37,12 @@ class TutorialGuideTest {
         assertEquals(GuideAction.BUILD, ready.action)
         assertEquals(SpotKeys.BUILD, ready.lines.last().target)
 
-        val waiting = TutorialGuide.script(ctx("BUILD_HOUSE", collected = 20, kp = 72, upgrading = true))!!
+        val waiting = TutorialGuide.script(ctx(
+            "BUILD_HOUSE",
+            collected = 20,
+            kp = 72,
+            upgrading = true
+        ))!!
         assertEquals(GuideAction.NONE, waiting.action)
     }
 

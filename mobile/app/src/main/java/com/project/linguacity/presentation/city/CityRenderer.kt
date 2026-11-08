@@ -21,7 +21,10 @@ interface CityRenderer {
     )
 }
 
-/** Những gì người chơi làm trên bản đồ, gửi ngược về app. Khớp với CityIntent của city-web (hợp đồng B v1). */
+/**
+ * Những gì người chơi làm trên bản đồ, gửi ngược về app. Khớp với CityIntent của city-web (hợp đồng
+ * B v1).
+ */
 sealed interface CityMapIntent {
     data object Ready : CityMapIntent
     data class BuildingTapped(val code: BuildingCode) : CityMapIntent

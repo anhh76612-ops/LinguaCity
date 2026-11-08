@@ -34,7 +34,8 @@ private val Sky = Color(0xFFCFE8F3)
 private val Ground = Color(0xFF8FC27A)
 
 /**
- * SCR-14 Splash Compose (FR-UI-01): sau splash hệ thống (core-splashscreen), hiện bóng thành phố mọc lên
+ * SCR-14 Splash Compose (FR-UI-01): sau splash hệ thống (core-splashscreen), hiện bóng thành phố
+ * mọc lên
  * và tên game trong lúc khởi tạo người chơi (onboarding).
  */
 @Composable
@@ -42,8 +43,16 @@ fun BrandedSplash(modifier: Modifier = Modifier) {
     val reduce = LocalReduceMotion.current
     var started by remember { mutableStateOf(reduce) }
     LaunchedEffect(Unit) { started = true }
-    val rise by animateFloatAsState(if (started) 1f else 0f, tween(if (reduce) 0 else 900), label = "rise")
-    val textAlpha by animateFloatAsState(if (started) 1f else 0f, tween(if (reduce) 0 else 700, delayMillis = if (reduce) 0 else 450), label = "title")
+    val rise by animateFloatAsState(
+        if (started) 1f else 0f,
+        tween(if (reduce) 0 else 900),
+        label = "rise"
+    )
+    val textAlpha by animateFloatAsState(
+        if (started) 1f else 0f,
+        tween(if (reduce) 0 else 700, delayMillis = if (reduce) 0 else 450),
+        label = "title"
+    )
 
     Column(
         modifier.fillMaxSize().background(Sky).padding(32.dp),
@@ -56,8 +65,13 @@ fun BrandedSplash(modifier: Modifier = Modifier) {
             heights.forEachIndexed { i, hMax ->
                 val grow = (rise * 1.4f - i * 0.07f).coerceIn(0f, 1f)
                 val h = size.height * 0.85f * hMax * grow
-                val color = if (i == 2) Color(0xFF3F5A8F) else Color(0xFF5B7BB5).copy(alpha = 0.55f + 0.08f * i)
-                drawRect(color, Offset(i * bw + bw * 0.1f, size.height * 0.88f - h), Size(bw * 0.8f, h))
+                val color = if (i == 2) Color(0xFF3F5A8F) else Color(0xFF5B7BB5)
+                    .copy(alpha = 0.55f + 0.08f * i)
+                drawRect(
+                    color,
+                    Offset(i * bw + bw * 0.1f, size.height * 0.88f - h),
+                    Size(bw * 0.8f, h)
+                )
                 if (i == 2 && grow > 0.8f) { // mái nhà đỏ trên toà giữa
                     val roof = Path().apply {
                         moveTo(i * bw, size.height * 0.88f - h)
@@ -70,9 +84,11 @@ fun BrandedSplash(modifier: Modifier = Modifier) {
             }
             drawRect(Ground, Offset(0f, size.height * 0.88f), Size(size.width, size.height * 0.12f))
         }
-        Text("LinguaCity", style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Bold,
+        Text("LinguaCity", style = MaterialTheme.typography.displaySmall,
+            fontWeight = FontWeight.Bold,
             color = Color(0xFF2D3F66), modifier = Modifier.graphicsLayer { alpha = textAlpha })
-        Text("Học một từ — xây một viên gạch", style = MaterialTheme.typography.bodyLarge, color = Color(0xFF2D3F66),
+        Text("Học một từ — xây một viên gạch", style = MaterialTheme.typography.bodyLarge,
+            color = Color(0xFF2D3F66),
             modifier = Modifier.graphicsLayer { alpha = textAlpha })
         LinearProgressIndicator(Modifier.fillMaxWidth(0.5f).graphicsLayer { alpha = textAlpha })
     }

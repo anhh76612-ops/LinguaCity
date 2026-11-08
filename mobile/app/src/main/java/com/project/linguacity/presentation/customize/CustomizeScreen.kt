@@ -52,7 +52,8 @@ import com.project.linguacity.presentation.city.web.WebCityRenderer
 
 /**
  * SCR-20 Tuỳ biến (UC_14, M8).
- *  - Tab Nhân vật: xem trước 3D (city-web `avatar-preview`) + chọn da, tóc, áo, quần, phụ kiện. Miễn phí.
+ *  - Tab Nhân vật: xem trước 3D (city-web `avatar-preview`) + chọn da, tóc, áo, quần, phụ kiện.
+ * Miễn phí.
  *  - Tab Nhà: tường và sàn. Món khoá hiện giá KP (chạm để mua) hoặc danh hiệu cần có.
  * Chọn xong bấm Lưu → server kiểm tra lại (BR-COS-03) rồi mới ghi vào Room.
  */
@@ -76,11 +77,16 @@ fun CustomizeScreen(onBack: () -> Unit, viewModel: CustomizeViewModel = hiltView
             title = { Text("Mở khoá ${item.name}?") },
             text = {
                 Text(
-                    if (enough) "Dùng ${item.priceKp} KP (bạn có ${state.cosmetics.knowledgePoints} KP)."
+                    if (enough) {
+                        "Dùng ${item.priceKp} KP (bạn có ${state.cosmetics.knowledgePoints} KP)."
+                    }
                     else "Cần ${item.priceKp} KP, bạn mới có ${state.cosmetics.knowledgePoints} KP."
                 )
             },
-            confirmButton = { TextButton(onClick = viewModel::confirmUnlock, enabled = enough) { Text("Mở khoá") } },
+            confirmButton = { TextButton(
+                onClick = viewModel::confirmUnlock,
+                enabled = enough
+            ) { Text("Mở khoá") } },
             dismissButton = { TextButton(onClick = viewModel::dismissUnlock) { Text("Để sau") } }
         )
     }
@@ -90,7 +96,9 @@ fun CustomizeScreen(onBack: () -> Unit, viewModel: CustomizeViewModel = hiltView
             TopAppBar(
                 title = { Text("Tuỳ biến") },
                 navigationIcon = { TextButton(onClick = onBack) { Text("‹ Quay lại") } },
-                actions = { Text("💡 ${state.cosmetics.knowledgePoints} KP", Modifier.padding(end = 16.dp)) }
+                actions = {
+                    Text("💡 ${state.cosmetics.knowledgePoints} KP", Modifier.padding(end = 16.dp))
+                }
             )
         },
         snackbarHost = { SnackbarHost(snackbar) },
@@ -104,25 +112,39 @@ fun CustomizeScreen(onBack: () -> Unit, viewModel: CustomizeViewModel = hiltView
     ) { padding ->
         Column(Modifier.fillMaxSize().padding(padding)) {
             TabRow(selectedTabIndex = if (state.houseTab) 1 else 0) {
-                Tab(selected = !state.houseTab, onClick = { viewModel.selectTab(false) }, text = { Text("Nhân vật") })
-                Tab(selected = state.houseTab, onClick = { viewModel.selectTab(true) }, text = { Text("Nhà") })
+                Tab(
+                    selected = !state.houseTab,
+                    onClick = { viewModel.selectTab(false) },
+                    text = { Text("Nhân vật") }
+                )
+                Tab(
+                    selected = state.houseTab,
+                    onClick = { viewModel.selectTab(true) },
+                    text = { Text("Nhà") }
+                )
             }
             Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 if (!state.houseTab) {
-                    val look = LookResolver.avatar(state.avatar ?: state.cosmetics.avatar, state.cosmetics.items)
+                    val look = LookResolver.avatar(
+                        state.avatar ?: state.cosmetics.avatar,
+                        state.cosmetics.items
+                    )
                     WebCityRenderer.AvatarPreview(look, Modifier.fillMaxWidth().height(260.dp))
                 } else {
                     HousePreview(state)
                 }
-                val categories = if (state.houseTab) CosmeticCategory.HOUSE else CosmeticCategory.AVATAR
+                val categories =
+                    if (state.houseTab) CosmeticCategory.HOUSE else CosmeticCategory.AVATAR
                 if (state.cosmetics.items.isEmpty()) {
                     Text("Chưa có danh mục tuỳ biến. Kết nối mạng để tải nội dung mới nhé.",
                         style = MaterialTheme.typography.bodyMedium)
                 }
-                categories.forEach { c ->
-                    val items = state.itemsOf(c)
-                    if (items.isNotEmpty()) CategoryRow(c, items, state, viewModel::pick)
+                categories.forEach { category ->
+                    val items = state.itemsOf(category)
+                    if (items.isNotEmpty()) {
+                        CategoryRow(category, items, state, viewModel::pick)
+                    }
                 }
             }
         }
@@ -131,20 +153,33 @@ fun CustomizeScreen(onBack: () -> Unit, viewModel: CustomizeViewModel = hiltView
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun CategoryRow(c: CosmeticCategory, items: List<CosmeticItem>, state: CustomizeState, onPick: (CosmeticItem) -> Unit) {
+private fun CategoryRow(
+    c: CosmeticCategory,
+    items: List<CosmeticItem>,
+    state: CustomizeState,
+    onPick: (CosmeticItem) -> Unit
+) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(c.label, style = MaterialTheme.typography.titleSmall)
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
             items.forEach { item ->
                 val selected = state.selectedCode(c) == item.code
                 val unlocked = state.cosmetics.isUnlocked(item)
                 val lock = when {
                     unlocked -> null
                     item.unlockType == "KP" -> "🔒 ${item.priceKp} KP"
-                    else -> "🏅 ${state.achievementNames[item.achievementCode] ?: item.achievementCode}"
+                    else -> {
+                        val title = state.achievementNames[item.achievementCode]
+                        "🏅 ${title ?: item.achievementCode}"
+                    }
                 }
                 val color = parseColor(item.assetKey)
-                if (color != null) Swatch(item, color, selected, lock, onPick)
+                if (color != null) {
+                    Swatch(item, color, selected, lock, onPick)
+                }
                 else FilterChip(
                     selected = selected,
                     onClick = { onPick(item) },
@@ -156,31 +191,60 @@ private fun CategoryRow(c: CosmeticCategory, items: List<CosmeticItem>, state: C
 }
 
 @Composable
-private fun Swatch(item: CosmeticItem, color: Color, selected: Boolean, lock: String?, onPick: (CosmeticItem) -> Unit) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable { onPick(item) }) {
+private fun Swatch(
+    item: CosmeticItem,
+    color: Color,
+    selected: Boolean,
+    lock: String?,
+    onPick: (CosmeticItem) -> Unit
+) {
+    val borderWidth = if (selected) 3.dp else 1.dp
+    val borderColor = if (selected) {
+        MaterialTheme.colorScheme.primary
+    } else {
+        MaterialTheme.colorScheme.outline
+    }
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.clickable { onPick(item) }
+    ) {
         Box(
             Modifier.size(44.dp).clip(CircleShape).background(color)
-                .border(BorderStroke(if (selected) 3.dp else 1.dp,
-                    if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline), CircleShape),
+                .border(BorderStroke(borderWidth, borderColor), CircleShape),
             contentAlignment = Alignment.Center
-        ) { if (lock != null) Text("🔒") }
-        Text(lock ?: item.name, style = MaterialTheme.typography.labelSmall, textAlign = TextAlign.Center,
+        ) {
+            if (lock != null) {
+                Text("🔒")
+            }
+        }
+        Text(lock
+            ?: item.name, style = MaterialTheme.typography.labelSmall, textAlign = TextAlign.Center,
             modifier = Modifier.padding(top = 2.dp).size(width = 64.dp, height = 28.dp))
     }
 }
 
-/** Xem trước kiểu nhà đơn giản: mảng tường + tên sàn. Nội thất 3D thật nằm trong cảnh "Vào nhà" (M7). */
+/**
+ * Xem trước kiểu nhà đơn giản: mảng tường + tên sàn. Nội thất 3D thật nằm trong cảnh "Vào nhà"
+ * (M7).
+ */
 @Composable
 private fun HousePreview(state: CustomizeState) {
     val look = LookResolver.house(state.house ?: state.cosmetics.house, state.cosmetics.items)
-    val floorName = state.cosmetics.byCode((state.house ?: state.cosmetics.house).floor)?.name ?: look.floor
-    Surface(shape = RoundedCornerShape(16.dp), tonalElevation = 2.dp, modifier = Modifier.fillMaxWidth()) {
+    val floorName = state.cosmetics.byCode((state.house ?: state.cosmetics.house).floor)?.name
+        ?: look.floor
+    Surface(
+        shape = RoundedCornerShape(16.dp),
+        tonalElevation = 2.dp,
+        modifier = Modifier.fillMaxWidth()
+    ) {
         Column {
-            Box(Modifier.fillMaxWidth().height(110.dp).background(parseColor(look.wall) ?: Color.LightGray),
+            Box(Modifier.fillMaxWidth().height(110.dp)
+                .background(parseColor(look.wall) ?: Color.LightGray),
                 contentAlignment = Alignment.Center) {
                 Text("🪟", style = MaterialTheme.typography.displaySmall)
             }
-            Row(Modifier.fillMaxWidth().background(FLOOR_TINT[look.floor] ?: Color(0xFFD9B07C)).padding(12.dp)) {
+            Row(Modifier.fillMaxWidth().background(FLOOR_TINT[look.floor] ?: Color(0xFFD9B07C))
+                .padding(12.dp)) {
                 Text("Sàn: $floorName", color = Color(0xFF2F3A45))
             }
         }
@@ -193,4 +257,6 @@ private val FLOOR_TINT = mapOf(
 )
 
 private fun parseColor(key: String): Color? =
-    if (key.length == 7 && key.startsWith("#")) runCatching { Color(android.graphics.Color.parseColor(key)) }.getOrNull() else null
+    if (key.length == 7
+        && key.startsWith("#")) runCatching { Color(android.graphics.Color.parseColor(key)) }
+        .getOrNull() else null

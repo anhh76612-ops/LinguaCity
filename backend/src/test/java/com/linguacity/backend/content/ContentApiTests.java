@@ -15,6 +15,8 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -86,7 +88,8 @@ class ContentApiTests {
         vocab("ticket", transport, 1);   // chủ đề của ROAD: không được lọt vào gói HOUSING:1
         vocab("mortgage", house, 2);     // Level 2: không được lọt vào gói HOUSING:1
 
-        Question q1 = question(1, "MULT_CHOICE", "{\"options\":[\"tiền thuê nhà\",\"hoá đơn\"]}", "tiền thuê nhà");
+        Question q1 = question(
+                1, "MULT_CHOICE", "{\"options\":[\"tiền thuê nhà\",\"hoá đơn\"]}", "tiền thuê nhà");
         Question q2 = question(3, "FILL_BLANK", "{\"sentence\":\"Pay the ___.\"}", "bill");
         target(q1, rent);
         target(q2, bill);
@@ -170,14 +173,15 @@ class ContentApiTests {
     // TC-VS2-04 (NFR-01, BR-CONTENT-07)
     @Test
     void packNeverLeaksAnswers() throws Exception {
-        String body = api.perform(get("/api/v1/content/packs/housing/1").header("X-Guest-UUID", GUEST))
+        String body = api.perform(get("/api/v1/content/packs/housing/1").header(
+                "X-Guest-UUID", GUEST))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
-        org.junit.jupiter.api.Assertions.assertAll(
-                () -> org.junit.jupiter.api.Assertions.assertFalse(body.contains("\"answer\"")),
-                () -> org.junit.jupiter.api.Assertions.assertFalse(body.contains("acceptedAnswers")),
-                () -> org.junit.jupiter.api.Assertions.assertFalse(body.contains("explanation")),
-                () -> org.junit.jupiter.api.Assertions.assertFalse(body.contains("SECRET")));
+        assertAll(
+                () -> assertFalse(body.contains("\"answer\"")),
+                () -> assertFalse(body.contains("acceptedAnswers")),
+                () -> assertFalse(body.contains("explanation")),
+                () -> assertFalse(body.contains("SECRET")));
     }
 
     // TC-VS2-05

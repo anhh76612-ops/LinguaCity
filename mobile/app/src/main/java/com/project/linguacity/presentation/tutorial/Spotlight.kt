@@ -26,5 +26,7 @@ fun rememberSpotlightRegistry() = remember { SpotlightRegistry() }
 
 fun Modifier.spotlightTarget(key: String): Modifier = composed {
     val registry = LocalSpotlight.current
-    if (registry == null) this else this.onGloballyPositioned { registry.rects[key] = it.boundsInRoot() }
+    if (registry == null) this else this.onGloballyPositioned {
+        registry.rects[key] = it.boundsInRoot()
+    }
 }

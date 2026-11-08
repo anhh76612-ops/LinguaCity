@@ -1,5 +1,6 @@
 package com.project.linguacity.data.remote.city
 
+import com.project.linguacity.data.remote.progression.StreakDto
 import com.project.linguacity.data.remote.learning.ResourcesDto
 import kotlinx.serialization.Serializable
 import retrofit2.http.GET
@@ -14,17 +15,57 @@ interface CityApi {
     suspend fun city(@Header("X-Guest-UUID") guest: String): CityDto
 
     @POST("api/v1/buildings/{code}/build")
-    suspend fun build(@Header("X-Guest-UUID") guest: String, @Path("code") code: String): BuildResultDto
+    suspend fun build(
+        @Header("X-Guest-UUID") guest: String,
+        @Path("code") code: String
+    ): BuildResultDto
 }
 
 @Serializable
 data class BuildingStateDto(
-    val buildingId: Long, val code: String, val currentLevel: Int, val targetLevel: Int? = null,
-    val maxLevel: Int, val status: String, val startedAt: String? = null, val finishAt: String? = null
+    val buildingId: Long,
+    val code: String,
+    val currentLevel: Int,
+    val targetLevel: Int? = null,
+    val maxLevel: Int,
+    val status: String,
+    val startedAt: String? = null,
+    val finishAt: String? = null
 )
 
 @Serializable
-data class CityDto(val serverTime: String, val buildings: List<BuildingStateDto>, val tutorialStep: String? = null)
+data class CityDto(
+    val serverTime: String,
+    val buildings: List<BuildingStateDto>,
+    val tutorialStep: String? = null,
+    val events: List<CityEventDto> = emptyList(),
+    val blueprints: List<OwnedBlueprintDto> = emptyList(),
+    val profile: ResourcesDto? = null,
+    val streak: StreakDto? = null
+)
+
+/** Sự kiện thành phố (ADR-015 §5). */
+@Serializable
+data class CityEventDto(
+    val eventId: String,
+    val id: Long,
+    val buildingCode: String,
+    val residentName: String,
+    val situation: String,
+    val status: String
+)
 
 @Serializable
-data class BuildResultDto(val building: BuildingStateDto, val serverTime: String, val profile: ResourcesDto)
+data class OwnedBlueprintDto(
+    val code: String,
+    val buildingCode: String? = null,
+    val targetLevel: Int,
+    val quantity: Int
+)
+
+@Serializable
+data class BuildResultDto(
+    val building: BuildingStateDto,
+    val serverTime: String,
+    val profile: ResourcesDto
+)

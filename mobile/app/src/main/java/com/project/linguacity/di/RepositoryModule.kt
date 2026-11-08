@@ -1,5 +1,7 @@
 package com.project.linguacity.di
 
+import com.project.linguacity.domain.repository.ProgressionRepository
+import com.project.linguacity.data.repository.ProgressionRepositoryImpl
 import com.project.linguacity.data.repository.ContentRepositoryImpl
 import com.project.linguacity.data.repository.CosmeticRepositoryImpl
 import com.project.linguacity.data.repository.CityRepositoryImpl
@@ -52,4 +54,10 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindCosmeticRepository(implementation: CosmeticRepositoryImpl): CosmeticRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindProgressionRepository(
+        implementation: ProgressionRepositoryImpl
+    ): ProgressionRepository
 }

@@ -25,7 +25,12 @@ class UserOnboardingTests {
     private final UserProfileRepository repository = mock(UserProfileRepository.class);
     private final UserOnboardingService service = new UserOnboardingService(repository);
     private final MockMvc api = MockMvcBuilders
-            .standaloneSetup(new UserProfileController(service, new TutorialService(repository, mock(AchievementService.class), Clock.systemUTC()))).build();
+            .standaloneSetup(new UserProfileController(
+                    service,
+                    new TutorialService(
+                            repository,
+                            mock(AchievementService.class),
+                            Clock.systemUTC()))).build();
 
     @Test
     void createsNewGuestWithZeroResources() {

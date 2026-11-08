@@ -24,28 +24,50 @@ interface ContentApi {
 }
 
 @Serializable
-data class PackRefDto(val code: String, val buildingCode: String? = null, val level: Int? = null, val version: Int)
+data class PackRefDto(
+    val code: String,
+    val buildingCode: String? = null,
+    val level: Int? = null,
+    val version: Int
+)
 
 @Serializable
 data class ManifestDto(val serverTime: String, val packs: List<PackRefDto>)
 
 @Serializable
-data class ThemeDto(val id: Long, val code: String, val name: String, val description: String? = null)
+data class ThemeDto(
+    val id: Long,
+    val code: String,
+    val name: String,
+    val description: String? = null
+)
 
 @Serializable
 data class BuildingDto(
-    val id: Long, val code: String, val name: String, val maxLevel: Int, val sortOrder: Int,
+    val id: Long,
+    val code: String,
+    val name: String,
+    val maxLevel: Int,
+    val sortOrder: Int,
     val themeCodes: List<String> = emptyList()
 )
 
 @Serializable
 data class BuildingLevelDto(
-    val buildingCode: String, val level: Int, val knowledgeCost: Int,
-    val constructionTimeSeconds: Long, val requiredCollected: Int
+    val buildingCode: String,
+    val level: Int,
+    val knowledgeCost: Int,
+    val constructionTimeSeconds: Long,
+    val requiredCollected: Int
 )
 
 @Serializable
-data class BlueprintDto(val id: Long, val code: String, val buildingCode: String, val targetLevel: Int)
+data class BlueprintDto(
+    val id: Long,
+    val code: String,
+    val buildingCode: String,
+    val targetLevel: Int
+)
 
 @Serializable
 data class CoreDto(
@@ -62,41 +84,77 @@ data class CoreDto(
 /** Món tuỳ biến (V005, M8). */
 @Serializable
 data class CosmeticItemDto(
-    val code: String, val category: String, val name: String, val unlockType: String, val priceKp: Int = 0,
-    val achievementCode: String? = null, val assetKey: String, val sortOrder: Int = 0
+    val code: String,
+    val category: String,
+    val name: String,
+    val unlockType: String,
+    val priceKp: Int = 0,
+    val achievementCode: String? = null,
+    val assetKey: String,
+    val sortOrder: Int = 0
 )
 
 /** Danh hiệu Ẩn không có description (BR-ACH-02). */
 @Serializable
 data class AchievementDto(
-    val code: String, val name: String, val description: String? = null, val tier: String,
-    val hidden: Boolean, val sortOrder: Int
+    val code: String,
+    val name: String,
+    val description: String? = null,
+    val tier: String,
+    val hidden: Boolean,
+    val sortOrder: Int
 )
 
 @Serializable
 data class VocabularyDto(
-    val id: Long, val word: String, val meaning: String, val wordType: String, val ipa: String? = null,
-    val examples: List<String> = emptyList(), val imageUrl: String? = null, val themeCode: String,
-    val level: Int, val difficultyRank: String
+    val id: Long,
+    val word: String,
+    val meaning: String,
+    val wordType: String,
+    val ipa: String? = null,
+    val examples: List<String> = emptyList(),
+    val imageUrl: String? = null,
+    val themeCode: String,
+    val level: Int,
+    val difficultyRank: String
 )
 
 /** Không có answer / acceptedAnswers / explanation — server không bao giờ gửi (NFR-01). */
 @Serializable
 data class QuestionDto(
-    val id: Long, val contentType: String, val skill: String, val questionType: String, val tier: Int,
-    val questionText: String? = null, val audioUrl: String? = null, val metadata: JsonElement? = null
+    val id: Long,
+    val contentType: String,
+    val skill: String,
+    val questionType: String,
+    val tier: Int,
+    val questionText: String? = null,
+    val audioUrl: String? = null,
+    val metadata: JsonElement? = null
 )
 
 @Serializable
-data class QuestionVocabularyDto(val questionId: Long, val vocabularyId: Long, val relationType: String)
+data class QuestionVocabularyDto(
+    val questionId: Long,
+    val vocabularyId: Long,
+    val relationType: String
+)
 
 @Serializable
-data class ExamRequirementDto(val requiredCardCount: Int, val requiredKnowledge: Int, val requiredBlueprintShards: Int)
+data class ExamRequirementDto(
+    val requiredCardCount: Int,
+    val requiredKnowledge: Int,
+    val requiredBlueprintShards: Int
+)
 
 @Serializable
 data class ExamDto(
-    val id: Long, val code: String, val buildingCode: String, val targetLevel: Int,
-    val blueprintCode: String? = null, val questionCount: Int, val requirement: ExamRequirementDto,
+    val id: Long,
+    val code: String,
+    val buildingCode: String,
+    val targetLevel: Int,
+    val blueprintCode: String? = null,
+    val questionCount: Int,
+    val requirement: ExamRequirementDto,
     val questionIds: List<Long> = emptyList()
 )
 

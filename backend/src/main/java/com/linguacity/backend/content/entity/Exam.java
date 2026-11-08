@@ -30,4 +30,8 @@ public class Exam {
 
     @Column(name = "question_count", nullable = false)
     private Integer questionCount;
+
+    /** Điểm đậu (% câu đúng), mặc định 80 — ADR-015 §2. */
+    @Column(name = "pass_percent", nullable = false)
+    private Integer passPercent = 80;
 }

@@ -26,7 +26,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Xét và trao danh hiệu (BR-ACH-01..04, system-design §10.5). Danh hiệu chỉ trao một lần, không thu hồi.
+ * Xét và trao danh hiệu (BR-ACH-01..05, system-design §10.5). Danh hiệu chỉ trao một lần,
+ * không thu hồi — trừ danh hiệu {@code revocable} (danh hiệu chuỗi, ADR-015 §7).
  */
 @Service
 public class AchievementService {
@@ -38,6 +39,8 @@ public class AchievementService {
     public static final String DILIGENT = "DILIGENT";
     public static final String FLAWLESS = "FLAWLESS";
     public static final String COMBO10 = "COMBO10";
+    /** condition_type của danh hiệu chuỗi (ADR-015 §7). */
+    public static final String STREAK_DAYS = "STREAK_DAYS";
 
     private final AchievementRepository catalog;
     private final UserAchievementRepository earned;
@@ -45,9 +48,12 @@ public class AchievementService {
     private final UserProfileRepository users;
     private final BalanceProperties balance;
 
-    public AchievementService(AchievementRepository catalog, UserAchievementRepository earned,
-                              LearningSessionRepository sessions, UserProfileRepository users,
-                              BalanceProperties balance) {
+    public AchievementService(
+            AchievementRepository catalog,
+            UserAchievementRepository earned,
+            LearningSessionRepository sessions,
+            UserProfileRepository users,
+            BalanceProperties balance) {
         this.catalog = catalog;
         this.earned = earned;
         this.sessions = sessions;
@@ -70,12 +76,16 @@ public class AchievementService {
     }
 
     /**
-     * Xét sau khi một phiên vừa COMPLETED. {@code levelFullyCollected}: người chơi đã sưu tầm đủ mọi từ của
+     * Xét sau khi một phiên vừa COMPLETED. {@code levelFullyCollected}: người chơi đã sưu tầm đủ
+     * mọi từ của
      * (công trình, Level) của phiên chưa — tính sẵn ở LearningService.
      */
     @Transactional
-    public List<String> evaluateAfterSession(LearningSession session, List<LearningSessionItem> items,
-                                             boolean levelFullyCollected, LocalDateTime nowUtc) {
+    public List<String> evaluateAfterSession(
+            LearningSession session,
+            List<LearningSessionItem> items,
+            boolean levelFullyCollected,
+            LocalDateTime nowUtc) {
         UUID user = session.getUserId();
         List<String> granted = new ArrayList<>();
         Map<String, Integer> threshold = catalog.findAll().stream()
@@ -88,7 +98,8 @@ public class AchievementService {
             if (distinctCorrectWords > threshold.getOrDefault(GOOD_START, 15)) {
                 grantInto(granted, user, GOOD_START, nowUtc);
             }
-            if (session.getTotalCount() > 0 && session.getCorrectCount().equals(session.getTotalCount())) {
+            if (session.getTotalCount() > 0
+                    && session.getCorrectCount().equals(session.getTotalCount())) {
                 grantInto(granted, user, FLAWLESS, nowUtc);
             }
             if (isTopEntrant(session)) {
@@ -112,7 +123,8 @@ public class AchievementService {
      * chưa đủ mẫu thì dùng ngưỡng cố định (≥ fallback-correct câu đúng).
      */
     public boolean isTopEntrant(LearningSession session) {
-        List<Integer> others = sessions.correctCountsOfOthers(SessionType.PLACEMENT, SessionStatus.COMPLETED, session.getId());
+        List<Integer> others = sessions.correctCountsOfOthers(
+                SessionType.PLACEMENT, SessionStatus.COMPLETED, session.getId());
         int mine = session.getCorrectCount();
         if (others.size() < balance.getAchievementMinSamples()) {
             return mine >= balance.getAchievementFallbackCorrect();
@@ -126,7 +138,8 @@ public class AchievementService {
     public int streakDays(UUID userId, LocalDateTime nowUtc) {
         ZoneId zone = balance.zone();
         LocalDate today = Times.localDate(nowUtc, zone);
-        Set<LocalDate> days = sessions.completedAtSince(userId, SessionStatus.COMPLETED, nowUtc.minusDays(400)).stream()
+        Set<LocalDate> days = sessions.completedAtSince(
+                userId, SessionStatus.COMPLETED, nowUtc.minusDays(400)).stream()
                 .map(t -> Times.localDate(t, zone))
                 .collect(Collectors.toSet());
         LocalDate cursor = days.contains(today) ? today : today.minusDays(1);
@@ -136,6 +149,45 @@ public class AchievementService {
             cursor = cursor.minusDays(1);
         }
         return streak;
+    }
+
+    /**
+     * Danh hiệu chuỗi (condition_type STREAK_DAYS) đạt mốc {@code days}: trao những cái chưa có
+     * (BR-STREAK-03). Trả danh sách mã vừa trao.
+     */
+    @Transactional
+    public List<String> grantStreakTitles(UUID userId, int days, LocalDateTime nowUtc) {
+        List<String> granted = new ArrayList<>();
+        for (Achievement achievement : catalog.findAllByOrderBySortOrderAsc()) {
+            // Chỉ danh hiệu thu hồi được: DILIGENT cũng dùng STREAK_DAYS nhưng theo luật cũ
+            boolean streakTitle = achievement.isRevocable()
+                    && STREAK_DAYS.equals(achievement.getConditionType());
+            if (streakTitle && days >= achievement.getThreshold()) {
+                grantInto(granted, userId, achievement.getCode(), nowUtc);
+            }
+        }
+        return granted;
+    }
+
+    /**
+     * Thu hồi mọi danh hiệu {@code revocable} của người chơi; đang đeo thì gỡ (BR-ACH-05).
+     * Người gọi tự lưu {@code profile}.
+     */
+    @Transactional
+    public void revokeRevocable(UserProfile profile) {
+        Set<String> revocable = catalog.findAll().stream()
+                .filter(Achievement::isRevocable)
+                .map(Achievement::getCode)
+                .collect(Collectors.toSet());
+        for (String code : revocable) {
+            UserAchievementId id = new UserAchievementId(profile.getId(), code);
+            if (earned.existsById(id)) {
+                earned.deleteById(id);
+            }
+        }
+        if (revocable.contains(profile.getEquippedAchievementCode())) {
+            profile.setEquippedAchievementCode(null);
+        }
     }
 
     @Transactional(readOnly = true)

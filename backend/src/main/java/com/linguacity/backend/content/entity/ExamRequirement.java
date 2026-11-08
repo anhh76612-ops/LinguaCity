@@ -27,4 +27,11 @@ public class ExamRequirement {
 
     @Column(name = "required_blueprint_shards", nullable = false)
     private Integer requiredBlueprintShards;
+
+    /** Công trình phải đạt level nào trước khi thi (nhiệm vụ chính tuyến, ADR-015 §2). */
+    @Column(name = "required_building_id")
+    private Long requiredBuildingId;
+
+    @Column(name = "required_building_level", nullable = false)
+    private Integer requiredBuildingLevel = 0;
 }

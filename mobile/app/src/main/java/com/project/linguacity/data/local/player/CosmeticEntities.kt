@@ -17,6 +17,9 @@ data class CosmeticItemEntity(
     val sortOrder: Int
 )
 
-/** Những món người chơi DÙNG ĐƯỢC theo server (FREE + đã mua + có danh hiệu). Thay toàn bộ mỗi lần tải. */
+/**
+ * Những món người chơi DÙNG ĐƯỢC theo server (FREE + đã mua + có danh hiệu). Thay toàn bộ mỗi lần
+ * tải.
+ */
 @Entity(tableName = "unlocked_cosmetics", primaryKeys = ["code"])
 data class UnlockedCosmeticEntity(val code: String)

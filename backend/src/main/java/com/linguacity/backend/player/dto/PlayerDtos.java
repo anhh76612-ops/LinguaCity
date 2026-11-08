@@ -13,12 +13,21 @@ public final class PlayerDtos {
     private PlayerDtos() {
     }
 
-    public record StatsDto(long collectedWords, int streakDays) {}
+    /** streakDays: chuỗi ngày theo ADR-015 §7 (học bài + xong nhiệm vụ hằng ngày). */
+    public record StatsDto(long collectedWords, int streakDays, int bestStreak) {}
 
     /** GET /users/me (§10.4.3). */
-    public record PlayerDto(UUID userId, int knowledgePoints, int hourglassCount, int blueprintShards,
-                            TutorialStep tutorialStep, boolean tutorialCompleted, String equippedTitle,
-                            AvatarConfig avatar, HouseStyleConfig houseStyle, StatsDto stats) {}
+    public record PlayerDto(
+            UUID userId,
+            int knowledgePoints,
+            int hourglassCount,
+            int blueprintShards,
+            TutorialStep tutorialStep,
+            boolean tutorialCompleted,
+            String equippedTitle,
+            AvatarConfig avatar,
+            HouseStyleConfig houseStyle,
+            StatsDto stats) {}
 
     public record StepRequest(TutorialStep step) {}
 

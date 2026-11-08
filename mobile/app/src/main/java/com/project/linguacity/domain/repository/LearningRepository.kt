@@ -10,6 +10,12 @@ import kotlinx.coroutines.flow.Flow
 interface LearningRepository {
     suspend fun startLesson(buildingCode: String): LessonSession
     suspend fun startPlacement(): LessonSession
+
+    /** Luyện tập (ADR-015 §6): mode REVIEW | MIXED; themes rỗng = mọi chủ đề. */
+    suspend fun startPractice(mode: String, themes: List<String>, wordCount: Int): LessonSession
+
+    /** Giải sự kiện thành phố (ADR-015 §5). */
+    suspend fun startEvent(eventId: Long): LessonSession
     suspend fun session(id: String): LessonSession
     suspend fun answer(sessionId: String, itemNo: Int, answer: String): AnswerFeedback
     suspend fun complete(sessionId: String): LessonResult

@@ -42,12 +42,23 @@ interface ContentDao {
     @Upsert suspend fun upsertExamRequirements(items: List<ExamRequirementEntity>)
     @Upsert suspend fun upsertExamQuestions(items: List<ExamQuestionEntity>)
 
-    @Query("DELETE FROM vocabularies WHERE packCode = :pack") suspend fun deleteVocabularies(pack: String)
-    @Query("DELETE FROM questions WHERE packCode = :pack") suspend fun deleteQuestions(pack: String)
-    @Query("DELETE FROM question_vocabularies WHERE packCode = :pack") suspend fun deleteQuestionVocabularies(pack: String)
-    @Query("DELETE FROM exams WHERE packCode = :pack") suspend fun deleteExams(pack: String)
-    @Query("DELETE FROM exam_requirements WHERE packCode = :pack") suspend fun deleteExamRequirements(pack: String)
-    @Query("DELETE FROM exam_questions WHERE packCode = :pack") suspend fun deleteExamQuestions(pack: String)
+    @Query("DELETE FROM vocabularies WHERE packCode = :pack")
+    suspend fun deleteVocabularies(pack: String)
+
+    @Query("DELETE FROM questions WHERE packCode = :pack")
+    suspend fun deleteQuestions(pack: String)
+
+    @Query("DELETE FROM question_vocabularies WHERE packCode = :pack")
+    suspend fun deleteQuestionVocabularies(pack: String)
+
+    @Query("DELETE FROM exams WHERE packCode = :pack")
+    suspend fun deleteExams(pack: String)
+
+    @Query("DELETE FROM exam_requirements WHERE packCode = :pack")
+    suspend fun deleteExamRequirements(pack: String)
+
+    @Query("DELETE FROM exam_questions WHERE packCode = :pack")
+    suspend fun deleteExamQuestions(pack: String)
 
     @Query("SELECT * FROM vocabularies WHERE packCode = :pack ORDER BY id")
     fun observeVocabularies(pack: String): Flow<List<VocabularyEntity>>

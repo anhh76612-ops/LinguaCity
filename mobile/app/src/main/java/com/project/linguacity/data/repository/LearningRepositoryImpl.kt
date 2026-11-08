@@ -1,5 +1,7 @@
 package com.project.linguacity.data.repository
 
+import com.project.linguacity.data.remote.progression.ProgressionApi
+import com.project.linguacity.data.remote.progression.PracticeRequestDto
 import com.project.linguacity.data.local.player.PlayerDao
 import com.project.linguacity.data.local.player.UserAchievementEntity
 import com.project.linguacity.data.local.player.UserVocabProgressEntity
@@ -33,6 +35,7 @@ import javax.inject.Singleton
 @Singleton
 class LearningRepositoryImpl @Inject constructor(
     private val api: LearningApi,
+    private val progressionApi: ProgressionApi,
     private val playerApi: PlayerApi,
     private val playerDao: PlayerDao,
     private val profiles: UserProfileDao,
@@ -42,43 +45,65 @@ class LearningRepositoryImpl @Inject constructor(
     override suspend fun startLesson(buildingCode: String): LessonSession =
         call { api.start(guest(), StartSessionRequestDto(buildingCode)).toDomain() }
 
-    override suspend fun startPlacement(): LessonSession = call { api.placement(guest()).toDomain() }
+    override suspend fun startPlacement(): LessonSession = call {
+        api.placement(guest()).toDomain()
+    }
 
-    override suspend fun session(id: String): LessonSession = call { api.get(guest(), id).toDomain() }
+    override suspend fun startPractice(
+        mode: String,
+        themes: List<String>,
+        wordCount: Int
+    ): LessonSession = call {
+        progressionApi.startPractice(guest(), PracticeRequestDto(mode, themes, wordCount))
+            .toDomain()
+    }
 
-    override suspend fun answer(sessionId: String, itemNo: Int, answer: String): AnswerFeedback = call {
-        val r = api.answer(guest(), sessionId, itemNo, AnswerRequestDto(answer))
-        val before = playerDao.progress(r.vocabularyId)
+    override suspend fun startEvent(eventId: Long): LessonSession = call {
+        progressionApi.startEvent(guest(), eventId).toDomain()
+    }
+
+    override suspend fun session(id: String): LessonSession = call { api.get(
+        guest(),
+        id
+    ).toDomain() }
+
+    override suspend fun answer(
+        sessionId: String,
+        itemNo: Int,
+        answer: String
+    ): AnswerFeedback = call {
+        val result = api.answer(guest(), sessionId, itemNo, AnswerRequestDto(answer))
+        val before = playerDao.progress(result.vocabularyId)
         playerDao.upsertProgress(
             listOf(
                 UserVocabProgressEntity(
-                    vocabularyId = r.vocabularyId,
-                    masteryScore = r.masteryAfter,
-                    maxMastery = r.maxMastery,
-                    collected = (before?.collected == true) || r.collectedNow,
+                    vocabularyId = result.vocabularyId,
+                    masteryScore = result.masteryAfter,
+                    maxMastery = result.maxMastery,
+                    collected = (before?.collected == true) || result.collectedNow,
                     lastReviewedAtMillis = System.currentTimeMillis()
                 )
             )
         )
-        r.toDomain()
+        result.toDomain()
     }
 
     override suspend fun complete(sessionId: String): LessonResult = call {
-        val r = api.complete(guest(), sessionId)
+        val result = api.complete(guest(), sessionId)
         val id = guest()
         profiles.getById(id)?.let {
             profiles.upsert(
                 it.copy(
-                    knowledgePoints = r.profile.knowledgePoints,
-                    hourglassCount = r.profile.hourglassCount,
-                    blueprintShards = r.profile.blueprintShards,
-                    tutorialStep = r.tutorialStep
+                    knowledgePoints = result.profile.knowledgePoints,
+                    hourglassCount = result.profile.hourglassCount,
+                    blueprintShards = result.profile.blueprintShards,
+                    tutorialStep = result.tutorialStep
                 )
             )
         }
         val now = System.currentTimeMillis()
-        playerDao.upsertEarned(r.newAchievements.map { UserAchievementEntity(it, now) })
-        r.toDomain()
+        playerDao.upsertEarned(result.newAchievements.map { UserAchievementEntity(it, now) })
+        result.toDomain()
     }
 
     override suspend fun refreshProgress() {
@@ -91,7 +116,14 @@ class LearningRepositoryImpl @Inject constructor(
 
     override fun observeProgress(): Flow<Map<Long, VocabProgress>> =
         playerDao.observeProgress().map { rows ->
-            rows.associate { it.vocabularyId to VocabProgress(it.vocabularyId, it.masteryScore, it.maxMastery, it.collected) }
+            rows.associate {
+                it.vocabularyId to VocabProgress(
+                    it.vocabularyId,
+                    it.masteryScore,
+                    it.maxMastery,
+                    it.collected
+                )
+            }
         }
 
     private suspend fun guest() = guestIdStore.getOrCreateGuestUuid()
@@ -112,6 +144,8 @@ class LearningRepositoryImpl @Inject constructor(
             "SESSION_CLOSED" -> Kind.CLOSED
             "INCOMPLETE" -> Kind.INCOMPLETE
             "NO_CONTENT" -> Kind.NO_CONTENT
+            "DAILY_LIMIT" -> Kind.DAILY_LIMIT
+            "EVENT_RESOLVED", "EVENT_NOT_FOUND" -> Kind.CLOSED
             "INVALID_STEP" -> Kind.INVALID_STEP
             else -> Kind.OTHER
         }

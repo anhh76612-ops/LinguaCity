@@ -19,7 +19,11 @@ data class ThemeEntity(
     val description: String?
 )
 
-@Entity(tableName = "buildings", primaryKeys = ["id"], indices = [Index(value = ["code"], unique = true)])
+@Entity(
+    tableName = "buildings",
+    primaryKeys = ["id"],
+    indices = [Index(value = ["code"], unique = true)]
+)
 data class BuildingEntity(
     val id: Long,
     val code: String,
@@ -112,14 +116,21 @@ data class ExamRequirementEntity(
     val packCode: String
 )
 
-@Entity(tableName = "exam_questions", primaryKeys = ["examId", "questionId"], indices = [Index("packCode")])
+@Entity(
+    tableName = "exam_questions",
+    primaryKeys = ["examId", "questionId"],
+    indices = [Index("packCode")]
+)
 data class ExamQuestionEntity(
     val examId: Long,
     val questionId: Long,
     val packCode: String
 )
 
-/** Version của từng gói đã tải về máy (ADR-012). Có dòng "CORE" nghĩa là app đã vào game được offline. */
+/**
+ * Version của từng gói đã tải về máy (ADR-012). Có dòng "CORE" nghĩa là app đã vào game được
+ * offline.
+ */
 @Entity(tableName = "content_pack_state", primaryKeys = ["code"])
 data class ContentPackStateEntity(
     val code: String,

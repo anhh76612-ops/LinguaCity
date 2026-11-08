@@ -1,9 +1,11 @@
 package com.project.linguacity.presentation.lesson
 
 /**
- * Lời phản hồi của thư ký Mai sau mỗi câu — viết như người thật nói, không máy móc (yêu cầu người dùng).
+ * Lời phản hồi của thư ký Mai sau mỗi câu — viết như người thật nói, không máy móc (yêu cầu người
+ * dùng).
  * Chọn theo {@code seed} (số câu) để không đổi câu khi màn hình vẽ lại.
- * Ghi chú tương lai (future-expansion §6, mục 3): AI viết lời giải thích theo đúng câu sai của người chơi.
+ * Ghi chú tương lai (future-expansion §6, mục 3): AI viết lời giải thích theo đúng câu sai của
+ * người chơi.
  */
 object MaiLines {
 
@@ -25,11 +27,20 @@ object MaiLines {
     )
 
     fun forAnswer(isCorrect: Boolean, streak: Int, collectedNow: Boolean, seed: Int): String {
-        val base = (if (isCorrect) correct else wrong).let { it[Math.floorMod(seed * 7 + 3, it.size)] }
+        val base = (if (isCorrect) correct else wrong).let { it[Math.floorMod(
+            seed * 7 + 3,
+            it.size
+        )] }
         val extra = buildList {
-            if (isCorrect && streak >= 3 && streak % 5 != 0) add("$streak câu liền rồi đó!")
-            if (isCorrect && streak > 0 && streak % 5 == 0) add("Chuỗi $streak câu đúng, đỉnh thật sự!")
-            if (collectedNow) add("Thêm một thẻ mới vào bộ sưu tầm 🎴")
+            if (isCorrect && streak >= 3 && streak % 5 != 0) {
+                add("$streak câu liền rồi đó!")
+            }
+            if (isCorrect && streak > 0 && streak % 5 == 0) {
+                add("Chuỗi $streak câu đúng, đỉnh thật sự!")
+            }
+            if (collectedNow) {
+                add("Thêm một thẻ mới vào bộ sưu tầm 🎴")
+            }
         }
         return (listOf(base) + extra).joinToString(" ")
     }

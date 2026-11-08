@@ -121,6 +121,8 @@ ADR-010 (🟡 Proposed) đề xuất thay Unity bằng **Three.js chạy trong W
 ## 6. NỘI DUNG CẦN BỔ SUNG (⬜)
 
 ### 6.1. Cân bằng game (Game Balance) — để mở, chỉnh sau khi có prototype
+
+> **Đợt 2 (ADR-015):** đã chốt điểm đậu bài thi (80%), phí thi, điều kiện nâng cấp, nguồn mảnh (nhiệm vụ + sự kiện), giới hạn luyện tập, chuỗi ngày. Bảng đầy đủ: system-design §11.7 và ADR-015 §8.
 - 🟡 Giá xây / thời gian xây (seed V003, chỉnh sau): Lv1 = 100 KP / 10 giây (House, tutorial); các công trình khác Lv1 = 150 KP / 60 giây; Lv2 = 300 KP / 1 giờ; Lv3 = 800 KP / 4 giờ.
 - ⬜ Tốc độ sinh Knowledge Points của Housing.
 - 🟡 Level tối đa của mỗi công trình: 3.

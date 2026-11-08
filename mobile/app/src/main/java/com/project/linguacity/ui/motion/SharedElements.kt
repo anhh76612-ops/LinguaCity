@@ -17,11 +17,16 @@ val LocalSharedScope = compositionLocalOf<SharedTransitionScope?> { null }
 
 val LocalNavAnimScope = compositionLocalOf<AnimatedVisibilityScope?> { null }
 
-/** Gắn phần tử vào cặp chuyển cảnh dùng chung có khoá [key]. Không có scope / tắt hiệu ứng thì bỏ qua. */
+/**
+ * Gắn phần tử vào cặp chuyển cảnh dùng chung có khoá [key]. Không có scope / tắt hiệu ứng thì bỏ
+ * qua.
+ */
 @OptIn(ExperimentalSharedTransitionApi::class)
 fun Modifier.sharedCard(key: String): Modifier = composed {
     val shared = LocalSharedScope.current
     val anim = LocalNavAnimScope.current
-    if (shared == null || anim == null || LocalReduceMotion.current) this
+    if (shared == null || anim == null || LocalReduceMotion.current) {
+        this
+    }
     else with(shared) { this@composed.sharedBounds(rememberSharedContentState(key), anim) }
 }

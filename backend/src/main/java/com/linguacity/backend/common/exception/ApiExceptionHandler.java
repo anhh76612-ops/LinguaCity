@@ -21,7 +21,8 @@ public class ApiExceptionHandler {
     @ExceptionHandler(ApiException.class)
     public ResponseEntity<ErrorResponse> handleApi(ApiException exception) {
         return ResponseEntity.status(exception.getStatus())
-                .body(new ErrorResponse(exception.getCode(), exception.getMessage(), exception.getDetails()));
+                .body(new ErrorResponse(
+                        exception.getCode(), exception.getMessage(), exception.getDetails()));
     }
 
     @ExceptionHandler(UserProfileNotFoundException.class)
@@ -31,17 +32,27 @@ public class ApiExceptionHandler {
         return error(HttpStatus.NOT_FOUND, "USER_NOT_FOUND", exception.getMessage());
     }
 
-    /** Hai request cùng sửa một bản ghi có @Version (FR-SYS-05): request đến sau bị từ chối; app đọc lại rồi thử lại. */
+    /**
+     * Hai request cùng sửa một bản ghi có @Version (FR-SYS-05): request đến sau bị từ chối; app đọc
+     * lại rồi thử lại.
+     */
     @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
-    public ResponseEntity<ErrorResponse> handleOptimisticLock(ObjectOptimisticLockingFailureException exception) {
-        return error(HttpStatus.CONFLICT, "CONCURRENT_UPDATE", "The data was changed by another request, please retry");
+    public ResponseEntity<ErrorResponse> handleOptimisticLock(
+            ObjectOptimisticLockingFailureException exception) {
+        return error(
+                HttpStatus.CONFLICT,
+                "CONCURRENT_UPDATE",
+                "The data was changed by another request, please retry");
     }
 
     @ExceptionHandler(MissingRequestHeaderException.class)
     public ResponseEntity<ErrorResponse> handleMissingHeader(
             MissingRequestHeaderException exception
     ) {
-        return error(HttpStatus.BAD_REQUEST, "MISSING_HEADER", "Missing header " + exception.getHeaderName());
+        return error(
+                HttpStatus.BAD_REQUEST,
+                "MISSING_HEADER",
+                "Missing header " + exception.getHeaderName());
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
@@ -52,8 +63,10 @@ public class ApiExceptionHandler {
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<ErrorResponse> handleUnreadableBody(HttpMessageNotReadableException exception) {
-        return error(HttpStatus.BAD_REQUEST, "INVALID_BODY", "Request body is missing or malformed");
+    public ResponseEntity<ErrorResponse> handleUnreadableBody(
+            HttpMessageNotReadableException exception) {
+        return error(
+                HttpStatus.BAD_REQUEST, "INVALID_BODY", "Request body is missing or malformed");
     }
 
     private ResponseEntity<ErrorResponse> error(HttpStatus status, String code, String message) {

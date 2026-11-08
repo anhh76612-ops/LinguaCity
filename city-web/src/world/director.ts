@@ -6,11 +6,13 @@
 
    enter(code):
      1. Avatar đi bộ (nhanh) tới cổng rồi tới cửa; camera bám theo và phóng to dần.
-     2. Housing Lv ≥ 1: camera lao vào cửa + màn mờ → đổi sang cảnh nội thất 3D → avatar bước vào phòng.
+     2. Housing Lv ≥ 1: camera lao vào cửa + màn mờ → đổi sang cảnh nội thất 3D → avatar bước vào
+     phòng.
         Công trình khác (và lô đất trống): dừng lại ở góc nhìn cận cảnh, app tự mở màn Compose.
    exit(): làm ngược lại rồi trả camera về đúng chỗ người chơi đang xem trước khi vào.
 
-   Đạo diễn chỉ lo HÌNH ẢNH. Vào được hay không, vào để làm gì là việc của app (bản đồ không giữ nghiệp vụ). */
+   Đạo diễn chỉ lo HÌNH ẢNH. Vào được hay không, vào để làm gì là việc của app
+   (bản đồ không giữ nghiệp vụ). */
 import * as THREE from 'three';
 import { camera, placeCamera, scene, target } from '../core/renderer';
 import { onUpdate, setView } from '../core/loop';
@@ -25,7 +27,9 @@ import type { CityIntent } from '../bridge/cityState';
 export type DirectorMode = 'city' | 'entering' | 'inside' | 'exiting';
 
 /** Nút trên vỉa hè trước lối vào của từng lô (people/nav.ts). */
-const GATE: Record<BuildingCode, string> = { HOUSING: 'HOUSING.gate', SCHOOL: 'SCHOOL.gate', PARK: 'PARK.gateZ', ROAD: 'ROAD.gate' };
+const GATE: Record<BuildingCode, string> = {
+    HOUSING: 'HOUSING.gate', SCHOOL: 'SCHOOL.gate', PARK: 'PARK.gateZ', ROAD: 'ROAD.gate'
+};
 
 const FOLLOW_ZOOM = 2.3;   // phóng to khi bám theo avatar
 const DOOR_ZOOM = 3.8;     // lao vào cửa
@@ -36,128 +40,165 @@ const MAX_WALK_S = 3.5;    // công trình ở xa: tăng tốc để quãng đi 
 type CamGoal = { x: number; y: number; z: number; zoom: number; rate: number };
 
 export class Director {
-  mode: DirectorMode = 'city';
-  building: BuildingCode | null = null;
-  private saved = { target: new THREE.Vector3(), zoom: 1 };
-  private goal: CamGoal | null = null;
-  private follow = false;
-  private interiorShown = false;
+    mode: DirectorMode = 'city';
+    building: BuildingCode | null = null;
+    private saved = { target: new THREE.Vector3(), zoom: 1 };
+    private goal: CamGoal | null = null;
+    private follow = false;
+    private interiorShown = false;
 
-  constructor(
-    private city: City,
-    private player: Player,
-    private interior: InteriorView,
-    private emit: (i: CityIntent) => void,
-    private fadeEl: HTMLElement,
-  ) {
-    onUpdate((dt) => this.update(dt));
-  }
-
-  /** Kéo/zoom bản đồ chỉ khi đang ở thành phố và không có hoạt cảnh. */
-  canPan(): boolean {
-    return this.mode === 'city';
-  }
-
-  isIndoors(): boolean {
-    return this.interiorShown;
-  }
-
-  async enter(code: BuildingCode): Promise<boolean> {
-    if (this.mode !== 'city') return false;
-    this.mode = 'entering';
-    this.building = code;
-    this.saved.target.copy(target);
-    this.saved.zoom = camera.zoom;
-    this.player.busy = true;
-
-    // 1) đi tới cổng rồi tới cửa, camera bám theo
-    this.follow = true;
-    const gate = NODES[GATE[code]];
-    const path = route(nearestNode(this.player.x, this.player.z), GATE[code]).map((id) => ({ x: NODES[id][0], z: NODES[id][1] }));
-    const door = this.city.doorOf(code);
-    if (door) path.push(door);
-    else path.push({ x: gate[0], z: gate[1] });
-    let len = 0;
-    for (let i = 0, px = this.player.x, pz = this.player.z; i < path.length; px = path[i].x, pz = path[i].z, i++) len += Math.hypot(path[i].x - px, path[i].z - pz);
-    await this.player.walkTo(path, Math.max(WALK_SPEED, len / MAX_WALK_S));
-    this.follow = false;
-
-    const indoor = code === 'HOUSING' && this.city.levelOf('HOUSING') >= 1;
-    if (indoor && door) {
-      // 2) lao vào cửa + màn mờ → đổi cảnh
-      this.goal = { x: door.x, y: 0.8, z: door.z, zoom: DOOR_ZOOM, rate: 5 };
-      this.player.visible = false;
-      await this.fade(true);
-      this.interiorShown = true;
-      this.interior.active = true;
-      setView(this.interior.scene, this.interior.camera);
-      document.body.classList.add('indoor');
-      await this.fade(false);
-      await this.interior.walkIn();
-    } else {
-      // dừng ở góc nhìn cận cảnh của lô; có cửa thì avatar "bước vào" (ẩn đi)
-      const c = lotCenter(code);
-      this.goal = { x: c.x, y: 1, z: c.z, zoom: FOLLOW_ZOOM, rate: 4 };
-      if (door) this.player.visible = false;
-      else this.player.act('idle', 999);
-      await wait(500);
+    constructor(
+        private city: City,
+        private player: Player,
+        private interior: InteriorView,
+        private emit: (i: CityIntent) => void,
+        private fadeEl: HTMLElement,
+    ) {
+        onUpdate((dt) => this.update(dt));
     }
-    this.mode = 'inside';
-    this.emit({ type: 'BuildingEntered', buildingCode: code });
-    return true;
-  }
 
-  async exit(): Promise<boolean> {
-    if (this.mode !== 'inside' || !this.building) return false;
-    const code = this.building;
-    this.mode = 'exiting';
-
-    if (this.interiorShown) {
-      await this.interior.walkOut();
-      await this.fade(true);
-      this.interiorShown = false;
-      this.interior.active = false;
-      setView(scene, camera);
-      document.body.classList.remove('indoor');
+    /** Kéo/zoom bản đồ chỉ khi đang ở thành phố và không có hoạt cảnh. */
+    canPan(): boolean {
+        return this.mode === 'city';
     }
-    const door = this.city.doorOf(code);
-    const gate = NODES[GATE[code]];
-    if (door) this.player.placeAt(door.x, door.z, 0);
-    this.player.visible = true;
-    // camera lùi về chỗ cũ trong lúc avatar đi ra cổng
-    this.goal = { x: this.saved.target.x, y: this.saved.target.y, z: this.saved.target.z, zoom: this.saved.zoom, rate: 3.2 };
-    await this.fade(false);
-    await Promise.all([this.player.walkTo([{ x: gate[0], z: gate[1] }], WALK_SPEED), wait(700)]);
 
-    this.player.busy = false;
-    this.player.act('wave', 1.2);
-    this.mode = 'city';
-    this.building = null;
-    this.emit({ type: 'BuildingExited', buildingCode: code });
-    return true;
-  }
-
-  private fade(on: boolean): Promise<void> {
-    this.fadeEl.classList.toggle('on', on);
-    return wait(FADE_MS);
-  }
-
-  private update(dt: number): void {
-    if (this.follow) {
-      this.goal = { x: this.player.x, y: 0.8, z: this.player.z, zoom: FOLLOW_ZOOM, rate: 3 };
+    isIndoors(): boolean {
+        return this.interiorShown;
     }
-    const g = this.goal;
-    if (!g) return;
-    const k = 1 - Math.exp(-dt * g.rate); // nội suy mũ: nhanh lúc đầu, chậm dần, không phụ thuộc FPS
-    target.x += (g.x - target.x) * k;
-    target.y += (g.y - target.y) * k;
-    target.z += (g.z - target.z) * k;
-    camera.zoom += (g.zoom - camera.zoom) * k;
-    camera.updateProjectionMatrix();
-    placeCamera();
-    const done = Math.abs(g.zoom - camera.zoom) < 0.002 && target.distanceTo(new THREE.Vector3(g.x, g.y, g.z)) < 0.005;
-    if (done && !this.follow && this.mode !== 'entering') this.goal = null;
-  }
+
+    async enter(code: BuildingCode): Promise<boolean> {
+        if (this.mode !== 'city') {
+            return false;
+        }
+        this.mode = 'entering';
+        this.building = code;
+        this.saved.target.copy(target);
+        this.saved.zoom = camera.zoom;
+        this.player.busy = true;
+
+        // 1) đi tới cổng rồi tới cửa, camera bám theo
+        this.follow = true;
+        const gate = NODES[GATE[code]];
+        const path = route(
+            nearestNode(this.player.x, this.player.z),
+            GATE[code]
+        ).map((id) => ({ x: NODES[id][0], z: NODES[id][1] }));
+        const door = this.city.doorOf(code);
+        if (door) {
+            path.push(door);
+        } else {
+            path.push({ x: gate[0], z: gate[1] });
+        }
+        let len = 0;
+        for (
+            let i = 0,
+            px = this.player.x,
+            pz = this.player.z;
+            i < path.length;
+            px = path[i].x,
+            pz = path[i].z,
+            i++
+        ) {
+            len += Math.hypot(path[i].x - px, path[i].z - pz);
+        }
+        await this.player.walkTo(path, Math.max(WALK_SPEED, len / MAX_WALK_S));
+        this.follow = false;
+
+        const indoor = code === 'HOUSING' && this.city.levelOf('HOUSING') >= 1;
+        if (indoor && door) {
+            // 2) lao vào cửa + màn mờ → đổi cảnh
+            this.goal = { x: door.x, y: 0.8, z: door.z, zoom: DOOR_ZOOM, rate: 5 };
+            this.player.visible = false;
+            await this.fade(true);
+            this.interiorShown = true;
+            this.interior.active = true;
+            setView(this.interior.scene, this.interior.camera);
+            document.body.classList.add('indoor');
+            await this.fade(false);
+            await this.interior.walkIn();
+        } else {
+            // dừng ở góc nhìn cận cảnh của lô; có cửa thì avatar "bước vào" (ẩn đi)
+            const c = lotCenter(code);
+            this.goal = { x: c.x, y: 1, z: c.z, zoom: FOLLOW_ZOOM, rate: 4 };
+            if (door) {
+                this.player.visible = false;
+            } else {
+                this.player.act('idle', 999);
+            }
+            await wait(500);
+        }
+        this.mode = 'inside';
+        this.emit({ type: 'BuildingEntered', buildingCode: code });
+        return true;
+    }
+
+    async exit(): Promise<boolean> {
+        if (this.mode !== 'inside' || !this.building) {
+            return false;
+        }
+        const code = this.building;
+        this.mode = 'exiting';
+
+        if (this.interiorShown) {
+            await this.interior.walkOut();
+            await this.fade(true);
+            this.interiorShown = false;
+            this.interior.active = false;
+            setView(scene, camera);
+            document.body.classList.remove('indoor');
+        }
+        const door = this.city.doorOf(code);
+        const gate = NODES[GATE[code]];
+        if (door) {
+            this.player.placeAt(door.x, door.z, 0);
+        }
+        this.player.visible = true;
+        // camera lùi về chỗ cũ trong lúc avatar đi ra cổng
+        this.goal = {
+            x: this.saved.target.x, y: this.saved.target.y, z: this.saved.target.z,
+            zoom: this.saved.zoom, rate: 3.2
+        };
+        await this.fade(false);
+        await Promise.all([
+            this.player.walkTo([{ x: gate[0], z: gate[1] }], WALK_SPEED),
+            wait(700)
+        ]);
+
+        this.player.busy = false;
+        this.player.act('wave', 1.2);
+        this.mode = 'city';
+        this.building = null;
+        this.emit({ type: 'BuildingExited', buildingCode: code });
+        return true;
+    }
+
+    private fade(on: boolean): Promise<void> {
+        this.fadeEl.classList.toggle('on', on);
+        return wait(FADE_MS);
+    }
+
+    private update(dt: number): void {
+        if (this.follow) {
+            this.goal = { x: this.player.x, y: 0.8, z: this.player.z, zoom: FOLLOW_ZOOM, rate: 3 };
+        }
+        const g = this.goal;
+        if (!g) {
+            return;
+        }
+        // nội suy mũ: nhanh lúc đầu, chậm dần, không phụ thuộc FPS
+        const k = 1 - Math.exp(-dt * g.rate);
+        target.x += (g.x - target.x) * k;
+        target.y += (g.y - target.y) * k;
+        target.z += (g.z - target.z) * k;
+        camera.zoom += (g.zoom - camera.zoom) * k;
+        camera.updateProjectionMatrix();
+        placeCamera();
+        const done = Math.abs(g.zoom - camera.zoom) < 0.002
+            && target.distanceTo(new THREE.Vector3(g.x, g.y, g.z)) < 0.005;
+        if (done && !this.follow && this.mode !== 'entering') {
+            this.goal = null;
+        }
+    }
 }
 
 const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));

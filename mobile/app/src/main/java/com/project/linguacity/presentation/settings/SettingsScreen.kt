@@ -25,16 +25,26 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(private val store: SettingsStore) : ViewModel() {
-    val settings: StateFlow<AppSettings> = store.settings.stateIn(viewModelScope, SharingStarted.Eagerly, AppSettings())
-    fun orientation(v: OrientationSetting) = viewModelScope.launch { store.setOrientation(v) }
-    fun reduceMotion(v: Boolean) = viewModelScope.launch { store.setReduceMotion(v) }
+    val settings: StateFlow<AppSettings> = store.settings.stateIn(
+        viewModelScope,
+        SharingStarted.Eagerly,
+        AppSettings()
+    )
+    fun orientation(setting: OrientationSetting) = viewModelScope.launch {
+        store.setOrientation(setting)
+    }
+    fun reduceMotion(enabled: Boolean) = viewModelScope.launch { store.setReduceMotion(enabled) }
     fun replayTour() = viewModelScope.launch { store.setReplayTour(true) }
 }
 
 /** SCR-21 Cài đặt (FR-UI-05): xoay màn hình, giảm hiệu ứng, xem lại hướng dẫn. */
 @Composable
-fun SettingsScreen(onBack: () -> Unit, onReplayTour: () -> Unit, viewModel: SettingsViewModel = hiltViewModel()) {
-    val s by viewModel.settings.collectAsState()
+fun SettingsScreen(
+    onBack: () -> Unit,
+    onReplayTour: () -> Unit,
+    viewModel: SettingsViewModel = hiltViewModel()
+) {
+    val settings by viewModel.settings.collectAsState()
     Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)) {
         TextButton(onClick = onBack) { Text("‹ Thành phố") }
@@ -44,9 +54,15 @@ fun SettingsScreen(onBack: () -> Unit, onReplayTour: () -> Unit, viewModel: Sett
             Column(Modifier.padding(16.dp)) {
                 Text("Xoay màn hình", style = MaterialTheme.typography.titleMedium)
                 OrientationSetting.entries.forEach { o ->
-                    Row(Modifier.fillMaxWidth().selectable(selected = s.orientation == o, onClick = { viewModel.orientation(o) })
+                    Row(Modifier.fillMaxWidth().selectable(
+                        selected = settings.orientation == o,
+                        onClick = { viewModel.orientation(o) }
+                    )
                         .padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
-                        RadioButton(selected = s.orientation == o, onClick = { viewModel.orientation(o) })
+                        RadioButton(
+                            selected = settings.orientation == o,
+                            onClick = { viewModel.orientation(o) }
+                        )
                         Text(o.label)
                     }
                 }
@@ -56,18 +72,31 @@ fun SettingsScreen(onBack: () -> Unit, onReplayTour: () -> Unit, viewModel: Sett
             Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
                     Text("Giảm hiệu ứng chuyển động", style = MaterialTheme.typography.titleMedium)
-                    Text("Tắt chuyển cảnh, chữ chạy và ánh sáng chạy trên khung chờ.", style = MaterialTheme.typography.bodySmall)
+                    Text(
+                        "Tắt chuyển cảnh, chữ chạy và ánh sáng chạy trên khung chờ.",
+                        style = MaterialTheme.typography.bodySmall
+                    )
                 }
-                Switch(checked = s.reduceMotion, onCheckedChange = viewModel::reduceMotion)
+                Switch(checked = settings.reduceMotion, onCheckedChange = viewModel::reduceMotion)
             }
         }
         Card(Modifier.fillMaxWidth().staggeredAppear(2)) {
             Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
                     Text("Xem lại hướng dẫn", style = MaterialTheme.typography.titleMedium)
-                    Text("Mai giới thiệu lại các chức năng chính.", style = MaterialTheme.typography.bodySmall)
+                    Text(
+                        "Mai giới thiệu lại các chức năng chính.",
+                        style = MaterialTheme.typography.bodySmall
+                    )
                 }
-                FilledTonalButton(onClick = { viewModel.replayTour(); onReplayTour() }) { Text("Xem") }
+                FilledTonalButton(
+                    onClick = {
+                        viewModel.replayTour()
+                        onReplayTour()
+                    }
+                ) {
+                    Text("Xem")
+                }
             }
         }
     }

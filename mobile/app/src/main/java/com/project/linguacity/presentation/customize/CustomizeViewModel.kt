@@ -34,11 +34,15 @@ data class CustomizeState(
     val message: String? = null
 ) {
     val dirty: Boolean
-        get() = (avatar != null && avatar != cosmetics.avatar) || (house != null && house != cosmetics.house)
+        get() = (avatar != null && avatar != cosmetics.avatar)
+            || (house != null && house != cosmetics.house)
 
-    fun selectedCode(c: CosmeticCategory): String? = avatar?.codeOf(c) ?: house?.codeOf(c)
+    fun selectedCode(category: CosmeticCategory): String? = avatar?.codeOf(category)
+        ?: house?.codeOf(category)
 
-    fun itemsOf(c: CosmeticCategory): List<CosmeticItem> = cosmetics.items.filter { it.category == c }
+    fun itemsOf(category: CosmeticCategory): List<CosmeticItem> = cosmetics.items.filter {
+        it.category == category
+    }
 }
 
 @HiltViewModel
@@ -48,19 +52,29 @@ class CustomizeViewModel @Inject constructor(
     player: PlayerRepository
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(CustomizeState(houseTab = savedStateHandle.get<Boolean>("houseTab") ?: false))
+    private val _state = MutableStateFlow(
+        CustomizeState(houseTab = savedStateHandle.get<Boolean>("houseTab") ?: false)
+    )
     val state: StateFlow<CustomizeState> = _state.asStateFlow()
 
     init {
         viewModelScope.launch {
-            repository.observe().collect { c ->
+            repository.observe().collect { cosmeticState ->
                 // bản nháp lấy theo cấu hình đã lưu lần đầu; sau đó giữ lựa chọn của người chơi
-                _state.update { it.copy(cosmetics = c, avatar = it.avatar ?: c.avatar, house = it.house ?: c.house) }
+                _state.update {
+                    it.copy(
+                        cosmetics = cosmeticState,
+                        avatar = it.avatar ?: cosmeticState.avatar,
+                        house = it.house ?: cosmeticState.house
+                    )
+                }
             }
         }
         viewModelScope.launch {
             player.observeAchievements().collect { list ->
-                _state.update { it.copy(achievementNames = list.associate { a -> a.code to a.name }) }
+                _state.update {
+                    it.copy(achievementNames = list.associate { a -> a.code to a.name })
+                }
             }
         }
         viewModelScope.launch { runCatching { repository.refresh() } }
@@ -68,14 +82,16 @@ class CustomizeViewModel @Inject constructor(
 
     fun selectTab(house: Boolean) = _state.update { it.copy(houseTab = house) }
 
-    /** Chạm một món: đã mở thì chọn; món KP thì hỏi mua; món danh hiệu thì nói cần danh hiệu nào. */
+    /**
+     * Chạm một món: đã mở thì chọn; món KP thì hỏi mua; món danh hiệu thì nói cần danh hiệu nào.
+     */
     fun pick(item: CosmeticItem) {
-        val st = _state.value
+        val current = _state.value
         when {
-            st.cosmetics.isUnlocked(item) -> choose(item)
+            current.cosmetics.isUnlocked(item) -> choose(item)
             item.unlockType == "KP" -> _state.update { it.copy(confirmUnlock = item) }
             else -> {
-                val title = item.achievementCode?.let { st.achievementNames[it] ?: it } ?: "?"
+                val title = item.achievementCode?.let { current.achievementNames[it] ?: it } ?: "?"
                 _state.update { it.copy(message = "Nhận danh hiệu \"$title\" để mở ${item.name}.") }
             }
         }
@@ -88,20 +104,29 @@ class CustomizeViewModel @Inject constructor(
         _state.update { it.copy(confirmUnlock = null, busy = true) }
         viewModelScope.launch {
             val outcome = repository.unlock(item.code)
-            if (outcome == CosmeticOutcome.Done) choose(item)
-            _state.update { it.copy(busy = false, message = describe(outcome, "Đã mở khoá ${item.name}!")) }
+            if (outcome == CosmeticOutcome.Done) {
+                choose(item)
+            }
+            _state.update {
+                it.copy(busy = false, message = describe(outcome, "Đã mở khoá ${item.name}!"))
+            }
         }
     }
 
     fun save() {
-        val st = _state.value
-        if (st.busy || !st.dirty) return
+        val current = _state.value
+        if (current.busy || !current.dirty) {
+            return
+        }
         _state.update { it.copy(busy = true) }
         viewModelScope.launch {
             var outcome: CosmeticOutcome = CosmeticOutcome.Done
-            if (st.avatar != null && st.avatar != st.cosmetics.avatar) outcome = repository.saveAvatar(st.avatar)
-            if (outcome == CosmeticOutcome.Done && st.house != null && st.house != st.cosmetics.house) {
-                outcome = repository.saveHouse(st.house)
+            if (current.avatar != null && current.avatar != current.cosmetics.avatar) {
+                outcome = repository.saveAvatar(current.avatar)
+            }
+            if (outcome == CosmeticOutcome.Done && current.house != null
+                && current.house != current.cosmetics.house) {
+                outcome = repository.saveHouse(current.house)
             }
             _state.update { it.copy(busy = false, message = describe(outcome, "Đã lưu!")) }
         }
@@ -110,7 +135,9 @@ class CustomizeViewModel @Inject constructor(
     fun messageShown() = _state.update { it.copy(message = null) }
 
     private fun choose(item: CosmeticItem) = _state.update {
-        if (item.category in CosmeticCategory.AVATAR) it.copy(avatar = (it.avatar ?: it.cosmetics.avatar).with(item.category, item.code))
+        if (item.category in CosmeticCategory.AVATAR) {
+            it.copy(avatar = (it.avatar ?: it.cosmetics.avatar).with(item.category, item.code))
+        }
         else it.copy(house = (it.house ?: it.cosmetics.house).with(item.category, item.code))
     }
 

@@ -16,6 +16,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
@@ -42,8 +43,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class CosmeticFlowTests {
 
     private static final String AVATAR_OK =
-            "{\"skin\":\"SKIN_4\",\"hairStyle\":\"HAIR_SPIKY\",\"hairColor\":\"HAIR_BLONDE\",\"shirtColor\":\"SHIRT_RED\","
-                    + "\"pantsColor\":\"PANTS_NAVY\",\"accessory\":\"ACC_GLASSES\"}";
+            "{\"skin\":\"SKIN_4\",\"hairStyle\":\"HAIR_SPIKY\",\"hairColor\":\"HAIR_BLONDE\","
+                    + "\"shirtColor\":\"SHIRT_RED\",\"pantsColor\":\"PANTS_NAVY\","
+                    + "\"accessory\":\"ACC_GLASSES\"}";
 
     @Autowired private WebApplicationContext context;
     @Autowired private CosmeticItemRepository items;
@@ -57,7 +59,9 @@ class CosmeticFlowTests {
     @BeforeEach
     void setUp() {
         api = MockMvcBuilders.webAppContextSetup(context).build();
-        if (items.count() == 0) seed();
+        if (items.count() == 0) {
+            seed();
+        }
     }
 
     // TC-COS-01: ngoại hình mặc định, đổi hợp lệ thì lưu; /users/me trả cùng cấu hình
@@ -96,7 +100,10 @@ class CosmeticFlowTests {
         put("/api/v1/users/me/avatar", user, "{\"skin\":\"SKIN_2\"}")
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.details.field").value("hairStyle"));
-        get("/api/v1/users/me/cosmetics", user).andExpect(jsonPath("$.avatar.skin").value("SKIN_2")); // không lưu gì
+        // không lưu gì
+        get(
+                "/api/v1/users/me/cosmetics",
+                user).andExpect(jsonPath("$.avatar.skin").value("SKIN_2"));
     }
 
     // TC-COS-02: món KP — thiếu KP → 409; đủ → trừ KP, mở; mua lại → 409; rồi mới dùng được
@@ -119,7 +126,10 @@ class CosmeticFlowTests {
         post("/api/v1/cosmetics/WALL_SKY/unlock", user)
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.code").value("ALREADY_UNLOCKED"));
-        put("/api/v1/users/me/house-style", user, "{\"wall\":\"WALL_SKY\",\"floor\":\"FLOOR_TILE\"}")
+        put(
+                "/api/v1/users/me/house-style",
+                user,
+                "{\"wall\":\"WALL_SKY\",\"floor\":\"FLOOR_TILE\"}")
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.houseStyle.wall").value("WALL_SKY"))
                 .andExpect(jsonPath("$.houseStyle.floor").value("FLOOR_TILE"));
@@ -131,11 +141,14 @@ class CosmeticFlowTests {
         String user = newUser();
         setKp(user, 500);
         post("/api/v1/cosmetics/WALL_MINT/unlock", user)
-                .andExpect(status().isConflict()).andExpect(jsonPath("$.code").value("NOT_PURCHASABLE"));
+                .andExpect(status().isConflict())
+                        .andExpect(jsonPath("$.code").value("NOT_PURCHASABLE"));
         post("/api/v1/cosmetics/WALL_BRICK/unlock", user)
-                .andExpect(status().isConflict()).andExpect(jsonPath("$.code").value("NOT_PURCHASABLE"));
+                .andExpect(status().isConflict())
+                        .andExpect(jsonPath("$.code").value("NOT_PURCHASABLE"));
         post("/api/v1/cosmetics/WALL_GOLD/unlock", user)
-                .andExpect(status().isNotFound()).andExpect(jsonPath("$.code").value("COSMETIC_NOT_FOUND"));
+                .andExpect(status().isNotFound())
+                        .andExpect(jsonPath("$.code").value("COSMETIC_NOT_FOUND"));
         get("/api/v1/users/me", user).andExpect(jsonPath("$.knowledgePoints").value(500));
     }
 
@@ -143,22 +156,34 @@ class CosmeticFlowTests {
     @Test
     void achievementUnlocksItem() throws Exception {
         String user = newUser();
-        put("/api/v1/users/me/house-style", user, "{\"wall\":\"WALL_BRICK\",\"floor\":\"FLOOR_OAK\"}")
-                .andExpect(status().isBadRequest()).andExpect(jsonPath("$.details.reason").value("LOCKED"));
+        put(
+                "/api/v1/users/me/house-style",
+                user,
+                "{\"wall\":\"WALL_BRICK\",\"floor\":\"FLOOR_OAK\"}")
+                .andExpect(status().isBadRequest())
+                        .andExpect(jsonPath("$.details.reason").value("LOCKED"));
         achievements.grant(UUID.fromString(user), "GOOD_START", LocalDateTime.now());
-        get("/api/v1/users/me/cosmetics", user).andExpect(jsonPath("$.unlocked", hasItem("WALL_BRICK")));
-        put("/api/v1/users/me/house-style", user, "{\"wall\":\"WALL_BRICK\",\"floor\":\"FLOOR_OAK\"}")
-                .andExpect(status().isOk()).andExpect(jsonPath("$.houseStyle.wall").value("WALL_BRICK"));
+        get(
+                "/api/v1/users/me/cosmetics",
+                user).andExpect(jsonPath("$.unlocked", hasItem("WALL_BRICK")));
+        put(
+                "/api/v1/users/me/house-style",
+                user,
+                "{\"wall\":\"WALL_BRICK\",\"floor\":\"FLOOR_OAK\"}")
+                .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.houseStyle.wall").value("WALL_BRICK"));
     }
 
     // TC-COS-05: danh mục nằm trong gói CORE (app cần asset_key để vẽ)
     @Test
     void catalogInCore() throws Exception {
-        api.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/v1/content/core")
+        api.perform(MockMvcRequestBuilders.get("/api/v1/content/core")
                         .header("X-Guest-UUID", newUser()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.cosmetics[?(@.code=='WALL_SKY')].priceKp").value(hasItem(60)))
-                .andExpect(jsonPath("$.cosmetics[?(@.code=='HAIR_SPIKY')].assetKey").value(hasItem("spiky")));
+                .andExpect(jsonPath("$.cosmetics[?(@.code=='WALL_SKY')].priceKp")
+                        .value(hasItem(60)))
+                .andExpect(jsonPath("$.cosmetics[?(@.code=='HAIR_SPIKY')].assetKey")
+                        .value(hasItem("spiky")));
     }
 
     // ---------------------------------------------------------------------------------
@@ -191,7 +216,9 @@ class CosmeticFlowTests {
     }
 
     private void achievement(String code) {
-        if (achievementCatalog.existsById(code)) return;
+        if (achievementCatalog.existsById(code)) {
+            return;
+        }
         Achievement a = new Achievement();
         a.setCode(code);
         a.setName(code);
@@ -203,7 +230,13 @@ class CosmeticFlowTests {
         achievementCatalog.save(a);
     }
 
-    private void item(String code, String category, String unlock, int price, String achievement, String asset) {
+    private void item(
+            String code,
+            String category,
+            String unlock,
+            int price,
+            String achievement,
+            String asset) {
         CosmeticItem i = new CosmeticItem();
         i.setCode(code);
         i.setCategory(category);
@@ -224,21 +257,24 @@ class CosmeticFlowTests {
 
     private String newUser() throws Exception {
         String id = UUID.randomUUID().toString();
-        api.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
-                .post("/api/v1/users/onboard").header("X-Guest-UUID", id)).andExpect(status().isOk());
+        api.perform(MockMvcRequestBuilders.post("/api/v1/users/onboard")
+                        .header("X-Guest-UUID", id))
+                .andExpect(status().isOk());
         return id;
     }
 
     private ResultActions get(String url, String user) throws Exception {
-        return api.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get(url).header("X-Guest-UUID", user));
+        return api.perform(MockMvcRequestBuilders.get(url).header("X-Guest-UUID", user));
     }
 
     private ResultActions post(String url, String user) throws Exception {
-        return api.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(url).header("X-Guest-UUID", user));
+        return api.perform(MockMvcRequestBuilders.post(url).header("X-Guest-UUID", user));
     }
 
     private ResultActions put(String url, String user, String body) throws Exception {
-        return api.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put(url)
-                .header("X-Guest-UUID", user).contentType(MediaType.APPLICATION_JSON).content(body));
+        return api.perform(MockMvcRequestBuilders.put(url)
+                .header("X-Guest-UUID", user)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body));
     }
 }

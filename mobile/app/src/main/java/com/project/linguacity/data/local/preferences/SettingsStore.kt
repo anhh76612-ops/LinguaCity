@@ -32,12 +32,15 @@ enum class OrientationSetting(val label: String) {
 data class AppSettings(
     val orientation: OrientationSetting = OrientationSetting.AUTO,
     val reduceMotion: Boolean = false,
-    /** Người chơi bấm "Xem lại hướng dẫn": City hiện lại tour (chỉ phía app, không đổi bước server). */
+    /**
+     * Người chơi bấm "Xem lại hướng dẫn": City hiện lại tour (chỉ phía app, không đổi bước server).
+     */
     val replayTour: Boolean = false
 )
 
 /**
- * Cài đặt cục bộ của thiết bị (DataStore riêng "linguacity_settings"). Không phải Player State nên không
+ * Cài đặt cục bộ của thiết bị (DataStore riêng "linguacity_settings"). Không phải Player State nên
+ * không
  * gửi lên server (khác ngoại hình/kiểu nhà ở M8).
  */
 @Singleton
@@ -49,16 +52,24 @@ class SettingsStore @Inject constructor(@ApplicationContext private val context:
 
     val settings: Flow<AppSettings> = context.settingsStore.data.map { p ->
         AppSettings(
-            orientation = p[orientationKey]?.let { runCatching { OrientationSetting.valueOf(it) }.getOrNull() }
+            orientation = p[orientationKey]?.let {
+                runCatching { OrientationSetting.valueOf(it) }.getOrNull()
+            }
                 ?: OrientationSetting.AUTO,
             reduceMotion = p[reduceMotionKey] ?: false,
             replayTour = p[replayTourKey] ?: false
         )
     }
 
-    suspend fun setOrientation(value: OrientationSetting) = context.settingsStore.edit { it[orientationKey] = value.name }
+    suspend fun setOrientation(value: OrientationSetting) = context.settingsStore.edit {
+        it[orientationKey] = value.name
+    }
 
-    suspend fun setReduceMotion(value: Boolean) = context.settingsStore.edit { it[reduceMotionKey] = value }
+    suspend fun setReduceMotion(value: Boolean) = context.settingsStore.edit {
+        it[reduceMotionKey] = value
+    }
 
-    suspend fun setReplayTour(value: Boolean) = context.settingsStore.edit { it[replayTourKey] = value }
+    suspend fun setReplayTour(value: Boolean) = context.settingsStore.edit {
+        it[replayTourKey] = value
+    }
 }

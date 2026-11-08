@@ -9,25 +9,51 @@ import com.project.linguacity.domain.model.player.CosmeticItem
 import com.project.linguacity.domain.model.player.HouseStyleConfig
 import kotlinx.serialization.json.Json
 
-/** avatar_config / house_style lưu trong Room dạng JSON (giống server). Hỏng hoặc thiếu → mặc định. */
+/**
+ * avatar_config / house_style lưu trong Room dạng JSON (giống server). Hỏng hoặc thiếu → mặc định.
+ */
 object CosmeticJson {
 
     private val json = Json { ignoreUnknownKeys = true }
 
-    fun encodeAvatar(dto: AvatarConfigDto): String = json.encodeToString(AvatarConfigDto.serializer(), dto)
-    fun encodeHouse(dto: HouseStyleDto): String = json.encodeToString(HouseStyleDto.serializer(), dto)
+    fun encodeAvatar(dto: AvatarConfigDto): String = json.encodeToString(
+        AvatarConfigDto.serializer(),
+        dto
+    )
+    fun encodeHouse(dto: HouseStyleDto): String = json.encodeToString(
+        HouseStyleDto.serializer(),
+        dto
+    )
 
     fun decodeAvatar(raw: String?): AvatarConfig =
-        raw?.let { runCatching { json.decodeFromString(AvatarConfigDto.serializer(), it) }.getOrNull() }?.toDomain()
+        raw?.let { runCatching {
+            json.decodeFromString(AvatarConfigDto.serializer(), it)
+        }.getOrNull() }?.toDomain()
             ?: AvatarConfig.DEFAULT
 
     fun decodeHouse(raw: String?): HouseStyleConfig =
-        raw?.let { runCatching { json.decodeFromString(HouseStyleDto.serializer(), it) }.getOrNull() }?.toDomain()
+        raw?.let { runCatching {
+            json.decodeFromString(HouseStyleDto.serializer(), it)
+        }.getOrNull() }?.toDomain()
             ?: HouseStyleConfig.DEFAULT
 }
 
-fun AvatarConfigDto.toDomain() = AvatarConfig(skin, hairStyle, hairColor, shirtColor, pantsColor, accessory)
-fun AvatarConfig.toDto() = AvatarConfigDto(skin, hairStyle, hairColor, shirtColor, pantsColor, accessory)
+fun AvatarConfigDto.toDomain() = AvatarConfig(
+    skin,
+    hairStyle,
+    hairColor,
+    shirtColor,
+    pantsColor,
+    accessory
+)
+fun AvatarConfig.toDto() = AvatarConfigDto(
+    skin,
+    hairStyle,
+    hairColor,
+    shirtColor,
+    pantsColor,
+    accessory
+)
 fun HouseStyleDto.toDomain() = HouseStyleConfig(wall, floor)
 fun HouseStyleConfig.toDto() = HouseStyleDto(wall, floor)
 

@@ -35,14 +35,20 @@ import com.project.linguacity.presentation.city.CityRenderer
 object ComposeCityRenderer : CityRenderer {
 
     @Composable
-    override fun Render(state: CityRenderState, onIntent: (CityMapIntent) -> Unit, modifier: Modifier) {
+    override fun Render(
+        state: CityRenderState,
+        onIntent: (CityMapIntent) -> Unit,
+        modifier: Modifier
+    ) {
         // Bản Compose sẵn sàng ngay khi được vẽ.
         LaunchedEffect(Unit) { onIntent(CityMapIntent.Ready) }
         // Không có hoạt cảnh: "vào/ra" công trình xong ngay lập tức (M7).
         var shownFocus by remember { mutableStateOf<BuildingCode?>(null) }
         LaunchedEffect(state.focus) {
             val focus = state.focus
-            if (focus == shownFocus) return@LaunchedEffect
+            if (focus == shownFocus) {
+                return@LaunchedEffect
+            }
             shownFocus?.let { onIntent(CityMapIntent.BuildingExited(it)) }
             focus?.let { onIntent(CityMapIntent.BuildingEntered(it)) }
             shownFocus = focus
@@ -53,12 +59,18 @@ object ComposeCityRenderer : CityRenderer {
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             state.events.forEach { event ->
-                AssistChip(onClick = { onIntent(CityMapIntent.CityEventTapped(event.id)) }, label = { Text("(!) Sự kiện thành phố") })
+                AssistChip(
+                    onClick = { onIntent(CityMapIntent.CityEventTapped(event.id)) },
+                    label = { Text("(!) Sự kiện thành phố") }
+                )
             }
             state.buildings.chunked(2).forEach { row ->
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    row.forEach { b ->
-                        BuildingTile(b, Modifier.weight(1f)) { onIntent(CityMapIntent.BuildingTapped(b.code)) }
+                    row.forEach { building ->
+                        BuildingTile(
+                            building,
+                            Modifier.weight(1f)
+                        ) { onIntent(CityMapIntent.BuildingTapped(building.code)) }
                     }
                 }
             }
@@ -66,16 +78,21 @@ object ComposeCityRenderer : CityRenderer {
     }
 
     @Composable
-    private fun BuildingTile(b: BuildingView, modifier: Modifier, onClick: () -> Unit) {
+    private fun BuildingTile(building: BuildingView, modifier: Modifier, onClick: () -> Unit) {
         Card(modifier = modifier.aspectRatio(1f).clickable(onClick = onClick)) {
             Column(
                 modifier = Modifier.fillMaxWidth().padding(12.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(b.code.icon, style = MaterialTheme.typography.displayMedium)
-                Text(b.code.displayName, style = MaterialTheme.typography.titleMedium)
-                Text(if (b.isBuilt) "Lv ${b.level}" else "Chưa xây")
-                if (b.upgrading) LinearProgressIndicator(progress = { b.progress }, modifier = Modifier.fillMaxWidth())
+                Text(building.code.icon, style = MaterialTheme.typography.displayMedium)
+                Text(building.code.displayName, style = MaterialTheme.typography.titleMedium)
+                Text(if (building.isBuilt) "Lv ${building.level}" else "Chưa xây")
+                if (building.upgrading) {
+                    LinearProgressIndicator(
+                        progress = { building.progress },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
             }
         }
     }

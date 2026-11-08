@@ -39,15 +39,21 @@ class PlayerRepositoryImpl @Inject constructor(
     override fun observeProfile(): Flow<UserProfile?> = flow {
         emitAll(profiles.observeById(guestIdStore.getOrCreateGuestUuid()))
     }.map { e ->
-        e?.let { UserProfile(it.id, it.knowledgePoints, it.hourglassCount, it.blueprintShards, it.tutorialCompleted,
+        e?.let { UserProfile(it.id, it.knowledgePoints, it.hourglassCount, it.blueprintShards,
+            it.tutorialCompleted,
             it.tutorialStep, it.equippedTitle) }
     }
 
     override fun observeAchievements(): Flow<List<AchievementView>> =
-        combine(dao.observeAchievements(), dao.observeEarned(), observeProfile()) { catalog, earned, profile ->
+        combine(
+            dao.observeAchievements(),
+            dao.observeEarned(),
+            observeProfile()
+        ) { catalog, earned, profile ->
             val have = earned.map { it.code }.toSet()
             catalog.map {
-                AchievementView(it.code, it.name, it.description, it.tier, it.hidden, it.code in have,
+                AchievementView(it.code, it.name, it.description, it.tier, it.hidden,
+                    it.code in have,
                     it.code == profile?.equippedTitle)
             }
         }
@@ -57,7 +63,9 @@ class PlayerRepositoryImpl @Inject constructor(
         save(api.me(guest))
         val earned = api.achievements(guest)
         dao.clearEarned()
-        dao.upsertEarned(earned.items.map { UserAchievementEntity(it.code, IsoTime.parseMillis(it.earnedAt) ?: 0L) })
+        dao.upsertEarned(earned.items.map {
+            UserAchievementEntity(it.code, IsoTime.parseMillis(it.earnedAt) ?: 0L)
+        })
     }
 
     override suspend fun equip(code: String?) {
@@ -71,7 +79,8 @@ class PlayerRepositoryImpl @Inject constructor(
     private suspend fun save(me: PlayerDto) {
         _stats.value = PlayerStats(me.stats.collectedWords, me.stats.streakDays)
         val current = profiles.getById(me.userId)
-        val base = current ?: com.project.linguacity.data.local.user.UserProfileEntity(id = me.userId)
+        val base = current
+            ?: com.project.linguacity.data.local.user.UserProfileEntity(id = me.userId)
         profiles.upsert(
             base.copy(
                 knowledgePoints = me.knowledgePoints,
@@ -81,7 +90,8 @@ class PlayerRepositoryImpl @Inject constructor(
                 tutorialStep = me.tutorialStep,
                 equippedTitle = me.equippedTitle,
                 avatarJson = me.avatar?.let { CosmeticJson.encodeAvatar(it) } ?: base.avatarJson,
-                houseStyleJson = me.houseStyle?.let { CosmeticJson.encodeHouse(it) } ?: base.houseStyleJson
+                houseStyleJson = me.houseStyle?.let { CosmeticJson.encodeHouse(it) }
+                    ?: base.houseStyleJson
             )
         )
     }

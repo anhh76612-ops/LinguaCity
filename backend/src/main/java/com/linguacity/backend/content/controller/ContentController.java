@@ -9,7 +9,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 /**
- * UC_03 Sync Static Content (system-design §10.4.1). Header {@code X-Guest-UUID} bắt buộc như mọi API (§7.2).
+ * UC_03 Sync Static Content (system-design §10.4.1). Header {@code X-Guest-UUID} bắt buộc như mọi
+ * API (§7.2).
  */
 @RestController
 @RequestMapping("/api/v1/content")
@@ -32,9 +33,10 @@ public class ContentController {
     }
 
     @GetMapping("/packs/{buildingCode}/{level}")
-    public Pack pack(@RequestHeader("X-Guest-UUID") UUID guestUuid,
-                     @PathVariable String buildingCode,
-                     @PathVariable int level) {
+    public Pack pack(
+            @RequestHeader("X-Guest-UUID") UUID guestUuid,
+            @PathVariable String buildingCode,
+            @PathVariable int level) {
         return content.pack(buildingCode.toUpperCase(), level);
     }
 }

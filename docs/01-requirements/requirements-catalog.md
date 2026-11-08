@@ -26,7 +26,7 @@
 | :--- | :--- | :--- | :--- | :--- |
 | FR-LEARN-01 | Xem danh sách từ vựng theo công trình/Level | Đọc từ Room, dùng được khi offline | VS2 | ✅ (TC-VS2-09; dấu sưu tầm ở VS3) |
 | FR-LEARN-02 | Xem Flashcard | Từ, nghĩa, IPA, câu ví dụ; offline | VS2 | ✅ (TC-VS2-09) |
-| FR-LEARN-03 | Tham gia bài học | Phiên trên server: 20 câu từ 10 từ; cần online; làm tiếp trong 30 phút (ADR-013) | VS3 | ✅ (TC-VS3-01..16) |
+| FR-LEARN-03 | Tham gia bài học | Phiên trên server: 30 câu từ 20 từ (ADR-015; VS3: 20 câu từ 10 từ); cần online; làm tiếp trong 30 phút (ADR-013) | VS3 | ✅ (TC-VS3-01..16) |
 | FR-LEARN-04 | Nhận kết quả và Knowledge Points | Server chấm từng câu, phản hồi ngay; KP cuối phiên, giảm sau phiên thứ 5 trong ngày | VS3 | ✅ |
 | FR-LEARN-05 | Xem tiến độ thu thập (Collection Progress) | Ví dụ 22/30 từ của Level 1; "sưu tầm" = trả lời đúng lần đầu | VS3 | ✅ |
 
@@ -34,10 +34,10 @@
 
 | Mã | Yêu cầu | Mô tả ngắn | Slice | Trạng thái |
 | :--- | :--- | :--- | :--- | :--- |
-| FR-EXAM-01 | Xem danh sách bài thi tại School | Trạng thái khóa/mở theo `ExamRequirement` | VS4 | ⬜ |
-| FR-EXAM-02 | Bắt đầu thi | Trừ phí đầu vào, tạo snapshot đề | VS4 | ⬜ |
-| FR-EXAM-03 | Nộp bài và nhận kết quả | Server chấm; Pass → Blueprint | VS4 | ⬜ |
-| FR-EXAM-04 | Tiếp tục bài thi dang dở | Resume Attempt `IN_PROGRESS` | VS4 | ⬜ |
+| FR-EXAM-01 | Xem bài thi lên level của công trình | Điều kiện: từ đã sưu tầm của công trình, KP, mảnh, công trình điều kiện; từng điều kiện còn thiếu bao nhiêu (ADR-015) | VS4 | 🟡 Specified |
+| FR-EXAM-02 | Bắt đầu thi | Trừ phí đầu vào, tạo snapshot đề, không gửi đáp án | VS4 | 🟡 Specified |
+| FR-EXAM-03 | Nộp bài và nhận kết quả | Nộp một lần; server chấm + Mastery; đậu ≥ 80% → bản vẽ | VS4 | 🟡 Specified |
+| FR-EXAM-04 | Tiếp tục bài thi dang dở | Resume Attempt `IN_PROGRESS`, không trừ phí lần nữa | VS4 | 🟡 Specified |
 
 ### Bảng 1.4: Người chơi — Thành phố (`FR-CITY`)
 
@@ -45,11 +45,24 @@
 | :--- | :--- | :--- | :--- | :--- |
 | FR-CITY-01 | Xem thành phố với 4 công trình | City View Three.js trong WebView (ADR-010), đường lui Compose | City View / VS5 | 🟡 (dữ liệu giả lập) |
 | FR-CITY-02 | Xem chi tiết công trình | Level hiện tại, chi phí nâng cấp | VS5 | ⬜ |
-| FR-CITY-03 | Nâng cấp công trình | Dùng Blueprint + Knowledge Points; chờ thời gian thực | VS5 | ⬜ |
+| FR-CITY-03 | Nâng cấp công trình | Bản vẽ + mảnh + KP; chờ thời gian thực (ADR-015 §3) | VS5 | 🟡 Specified |
 | FR-CITY-04 | Tua nhanh bằng Hourglass | | VS5+ | ⬜ |
 | FR-CITY-05 | Thu hoạch Knowledge Points từ Housing | | VS5+ | ⬜ |
-| FR-CITY-06 | Giải City Event (Grammar) | Dấu (!) trên bản đồ | Sau MVP | ⬜ |
+| FR-CITY-06 | Giải sự kiện thành phố | Dấu (!) trên bản đồ → cư dân nhờ việc → đố 5 câu từ đã sưu tầm → mảnh + KP (ADR-015 §5) | Đợt 2 | 🟡 Specified |
 | FR-CITY-07 | Vào bên trong công trình | Avatar đi tới cửa, camera zoom; House có nội thất 3D (nhà trống) | VS3+ | 🟡 Specified |
+
+### Bảng 1.4b: Người chơi — Nhiệm vụ, luyện tập, chuỗi (`FR-QUEST`, `FR-PRAC`, `FR-STREAK`)
+
+| Mã | Yêu cầu | Mô tả ngắn | Slice | Trạng thái |
+| :--- | :--- | :--- | :--- | :--- |
+| FR-QUEST-01 | Nhiệm vụ chính tuyến | Chuỗi bước có thứ tự (xây House → học School → xây School → thi → nâng House); bấm Nhận lấy thưởng | Đợt 2 | 🟡 Specified |
+| FR-QUEST-02 | Nhiệm vụ hằng ngày | 3 nhiệm vụ mỗi ngày + thưởng khi xong cả 3; làm mới 0h giờ Việt Nam | Đợt 2 | 🟡 Specified |
+| FR-QUEST-03 | Nguồn mảnh bản vẽ | Mảnh chỉ đến từ nhiệm vụ và sự kiện | Đợt 2 | 🟡 Specified |
+| FR-PRAC-01 | Luyện tập mọi chủ đề | Chọn chủ đề, chế độ Ôn / Hỗn hợp, cỡ 10 hoặc 20 từ | Đợt 2 | 🟡 Specified |
+| FR-PRAC-02 | Giới hạn trong ngày | Ôn 1 lượt, Hỗn hợp 3 lượt, tối đa 20 từ mới mỗi ngày | Đợt 2 | 🟡 Specified |
+| FR-PRAC-03 | Chống cày khi luyện tập | Mỗi từ chỉ thưởng KP và đổi Mastery một lần mỗi ngày | Đợt 2 | 🟡 Specified |
+| FR-STREAK-01 | Chuỗi ngày | Ngày được tính khi có học bài + xong nhiệm vụ; hiện 🔥N trên HUD | Đợt 2 | 🟡 Specified |
+| FR-STREAK-02 | Danh hiệu chuỗi | Mốc 3/10/20/30 ngày, thu hồi khi đứt chuỗi | Đợt 2 | 🟡 Specified |
 
 ### Bảng 1.5: Người chơi — Hướng dẫn (`FR-TUT`)
 

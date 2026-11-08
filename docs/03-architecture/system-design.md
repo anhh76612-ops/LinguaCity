@@ -155,6 +155,13 @@ sequenceDiagram
 > ⬜ Vẽ lại sơ đồ này trong EA (`04_Behavioral_Model`) nếu chưa khớp, export PNG vào `diagrams/images/seq-onboarding.png` cho Chương 5 của báo cáo.
 
 ### 4.1. Luồng Bắt đầu thi sát hạch (Start Exam Flow)
+
+> ⚠️ **Thay bởi §11 (ADR-015, M12).** Đoạn dưới là thiết kế cũ, giữ để tham khảo. Khác biệt chính:
+> - lỗi nghiệp vụ trả 409 kèm `code`, không phải 400;
+> - lượt thi đang dở được vào lại (resume);
+> - nộp bài có cập nhật Mastery;
+> - nâng cấp dùng chung `POST /buildings/{code}/build`.
+
 Đảm bảo tính nguyên tử (Atomic) trong việc trừ tài nguyên đầu vào và cấp phát Snapshot đề thi bảo mật.
 
 ```mermaid
@@ -192,6 +199,13 @@ sequenceDiagram
 ```
 
 ### 4.2. Luồng Nộp bài thi & Chấm điểm (Submit Exam Flow)
+
+> ⚠️ **Thay bởi §11 (ADR-015, M12).** Đoạn dưới là thiết kế cũ, giữ để tham khảo. Khác biệt chính:
+> - lỗi nghiệp vụ trả 409 kèm `code`, không phải 400;
+> - lượt thi đang dở được vào lại (resume);
+> - nộp bài có cập nhật Mastery;
+> - nâng cấp dùng chung `POST /buildings/{code}/build`.
+
 Xử lý chấm điểm tập trung tại Server (Server Authority) để ngăn chặn hack điểm từ Client.
 
 ```mermaid
@@ -235,6 +249,13 @@ sequenceDiagram
 ```
 
 ### 4.3. Luồng Nâng cấp công trình (Upgrade Building Flow)
+
+> ⚠️ **Thay bởi §11 (ADR-015, M12).** Đoạn dưới là thiết kế cũ, giữ để tham khảo. Khác biệt chính:
+> - lỗi nghiệp vụ trả 409 kèm `code`, không phải 400;
+> - lượt thi đang dở được vào lại (resume);
+> - nộp bài có cập nhật Mastery;
+> - nâng cấp dùng chung `POST /buildings/{code}/build`.
+
 
 ```mermaid
 sequenceDiagram
@@ -686,6 +707,13 @@ Toàn bộ các API đều bắt buộc đính kèm Header: `X-Guest-UUID: <UUID
     ```
 
 #### 7.2.4. Lấy danh sách Đề thi (Get Exams)
+
+> ⚠️ **Thay bởi §11 (ADR-015, M12).** Đoạn dưới là thiết kế cũ, giữ để tham khảo. Khác biệt chính:
+> - lỗi nghiệp vụ trả 409 kèm `code`, không phải 400;
+> - lượt thi đang dở được vào lại (resume);
+> - nộp bài có cập nhật Mastery;
+> - nâng cấp dùng chung `POST /buildings/{code}/build`.
+
 *   **HTTP Method & Endpoint:** `GET /api/v1/exams`
 *   **Mục đích:** Trả về danh sách đề thi kèm cờ tính toán động `isAvailable` (được tính bằng cách kiểm tra: Collection Progress >= yêu cầu AND Tài nguyên đủ).
 *   **Response (200 OK):**
@@ -709,6 +737,13 @@ Toàn bộ các API đều bắt buộc đính kèm Header: `X-Guest-UUID: <UUID
     ```
 
 #### 7.2.5. Bắt đầu thi sát hạch (Start Exam)
+
+> ⚠️ **Thay bởi §11 (ADR-015, M12).** Đoạn dưới là thiết kế cũ, giữ để tham khảo. Khác biệt chính:
+> - lỗi nghiệp vụ trả 409 kèm `code`, không phải 400;
+> - lượt thi đang dở được vào lại (resume);
+> - nộp bài có cập nhật Mastery;
+> - nâng cấp dùng chung `POST /buildings/{code}/build`.
+
 *   **HTTP Method & Endpoint:** `POST /api/v1/exams/12/start`
 *   **Mục đích:** Khấu trừ tài nguyên ngay lập tức và sinh Snapshot đề thi bảo mật. Chống Race Condition bằng Partial Unique Index.
 *   **Response (201 Created):**
@@ -731,6 +766,13 @@ Toàn bộ các API đều bắt buộc đính kèm Header: `X-Guest-UUID: <UUID
     ```
 
 #### 7.2.6. Nộp bài thi sát hạch (Submit Exam)
+
+> ⚠️ **Thay bởi §11 (ADR-015, M12).** Đoạn dưới là thiết kế cũ, giữ để tham khảo. Khác biệt chính:
+> - lỗi nghiệp vụ trả 409 kèm `code`, không phải 400;
+> - lượt thi đang dở được vào lại (resume);
+> - nộp bài có cập nhật Mastery;
+> - nâng cấp dùng chung `POST /buildings/{code}/build`.
+
 *   **HTTP Method & Endpoint:** `POST /api/v1/attempts/{attemptId}/submit`
 *   **Mục đích:** Chấm điểm, quyết định Pass/Fail, cộng dồn Bản vẽ thưởng vào kho đồ của người chơi. Yêu cầu nộp đầy đủ số câu của bài thi.
 *   **Request Body:**
@@ -913,7 +955,7 @@ Thành phố đi qua **hai hợp đồng khác nhau**, mỗi cái phục vụ m�
 | `status` | `upgrading` | `upgrading = (status == "UPGRADING")` |
 | `startedAt`, `finishAt`, `serverTime` | `progress` | `serverNow = giờ máy + (serverTime − giờ máy lúc nhận)`; `progress = clamp((serverNow − startedAt) / (finishAt − startedAt), 0, 1)`; `finishAt ≤ startedAt` → 1 |
 | `targetLevel`, `maxLevel` | *(không gửi)* | Dùng cho UI Compose (thẻ công trình), không cần để vẽ. |
-| events (id số hoặc chuỗi) | `events[].id` (chuỗi), `kind` | Id là chuỗi mờ (opaque). Bản đồ tự chọn người dân mang dấu (!), không có toạ độ. |
+| events (id số hoặc chuỗi) | `events[].id` (chuỗi), `kind`, `buildingCode` | Id là chuỗi mờ (opaque). Bản đồ tự chọn người dân mang dấu (!), không có toạ độ. Từ M16: `kind` = `HELP` (cư dân nhờ việc, ADR-015 §5), thêm `buildingCode` tuỳ chọn (vẫn `v: 1`). |
 
 #### 9.2.2. Kotlin → bản đồ: `CityState` v1
 ```json
@@ -1281,3 +1323,250 @@ Mọi API đều cần `X-Guest-UUID`. Lỗi trả `ErrorResponse {code, message
 | FR-TUT-01..05 | UC_02 | `/users/me/tutorial/step`, `/tutorial/placement`, `/buildings/{code}/build`, `/city` | `user_profiles.tutorial_step`, `user_buildings` | `UserProfileEntity`, `UserBuildingEntity` |
 | FR-ACH-01..03 | UC_13 | `/users/me/achievements`, `/users/me/equipped-title` | `achievements`, `user_achievements` | `AchievementEntity`, `UserAchievementEntity` |
 | FR-COS-01..03 | UC_14 | `/users/me/cosmetics`, `/cosmetics/{code}/unlock`, `/users/me/avatar`, `/users/me/house-style` | `cosmetic_items`, `user_cosmetics`, `user_profiles.avatar_config/house_style` | `CosmeticItemEntity` |
+
+---
+
+## CHƯƠNG 11: TIẾN TRÌNH SAU LV1: THI, NÂNG CẤP, NHIỆM VỤ, SỰ KIỆN, LUYỆN TẬP, CHUỖI (đợt 2, M12–M16, 🟡 Proposed)
+
+Chương này là đặc tả chi tiết của [ADR-015](../adr/ADR-015-progression-after-level-one.md).
+- Lỗi nghiệp vụ theo chuẩn §10.4: 409 kèm `code` và `details`; 404 khi không tìm thấy; 410 khi phiên đã hết hạn.
+- Mọi endpoint nằm dưới `/api/v1` và nhận header `X-Guest-UUID`.
+
+### 11.1. Bảng mới và cột mới (V006)
+
+| Bảng / cột | Định nghĩa | Ghi chú |
+| :--- | :--- | :--- |
+| `exam_attempts` | `id BIGSERIAL PK`, `user_id UUID FK`, `exam_id BIGINT FK`, `status` ∈ IN_PROGRESS / PASSED / FAILED, `correct_count INT`, `total_count INT`, `started_at`, `completed_at`, `version BIGINT` | `uq_active_attempt (user_id, exam_id) WHERE status = 'IN_PROGRESS'`. Khác §5.1.15: thêm điểm (xem lại không phải chấm lại) và `version` (chống nộp đôi) |
+| `exam_attempt_questions` | `attempt_id FK ON DELETE CASCADE`, `question_id FK`, `vocabulary_id BIGINT`, `question_order INT`, `answer_given TEXT`, `is_correct BOOLEAN`, `answered_at` | PK `(attempt_id, question_id)`, `UNIQUE (attempt_id, question_order)`. Khác §5.1.16: dùng `answer_given TEXT` thay `answer_payload JSONB`, vì đáp án chỉ là một chuỗi, giống `learning_session_items` |
+| `user_blueprints` | `id BIGSERIAL`, `user_id`, `blueprint_id FK`, `quantity INT ≥ 0` | `UNIQUE (user_id, blueprint_id)` (§5.1.13) |
+| `quests` | `code PK`, `kind` ∈ MAIN / DAILY / BONUS, `title`, `description`, `goal_type`, `goal_ref`, `goal_value > 0`, `reward_kp`, `reward_shards`, `prerequisite_code FK NULL`, `sort_order` | Dữ liệu tĩnh (V007) |
+| `user_quests` | `id BIGSERIAL`, `user_id`, `quest_code FK`, `period_date DATE NULL`, `progress INT`, `completed_at`, `claimed_at` | MAIN có `period_date` NULL: `uq_user_main_quest (user_id, quest_code) WHERE period_date IS NULL`. DAILY / BONUS: `uq_user_daily_quest (user_id, quest_code, period_date) WHERE period_date IS NOT NULL` |
+| `city_event_templates` | `code PK`, `building_code FK → buildings(code)`, `resident_name`, `situation TEXT`, `sort_order` | Dữ liệu tĩnh (V007) |
+| `user_city_events` | `id BIGSERIAL`, `user_id`, `template_code FK`, `spawn_date DATE`, `status` ∈ OPEN / RESOLVED, `session_id UUID NULL FK`, `resolved_at` | `UNIQUE (user_id, template_code, spawn_date)` |
+| `learning_sessions.type` | thêm `PRACTICE_REVIEW`, `PRACTICE_MIXED`, `EVENT` | |
+| `learning_sessions.building_id` | bỏ NOT NULL | Luyện tập và sự kiện không gắn với công trình. Thêm `uq_active_free_session (user_id, type) WHERE status = 'ACTIVE' AND building_id IS NULL` |
+| `user_vocab_progress.last_rewarded_on` | `DATE NULL` | Luyện tập: mỗi từ chỉ thưởng một lần mỗi ngày |
+| `building_levels.required_shards` | `INT NOT NULL DEFAULT 0 ≥ 0` | Số mảnh cần để nâng cấp |
+| `exams.pass_percent` | `INT NOT NULL DEFAULT 80`, 1..100 | |
+| `exam_requirements.required_building_id` / `required_building_level` | `BIGINT NULL FK` / `INT NOT NULL DEFAULT 0` | Điều kiện của nhiệm vụ chính tuyến, ví dụ School Lv1 |
+| `user_profiles.streak_days` / `best_streak` / `streak_last_date` | `INT DEFAULT 0` / `INT DEFAULT 0` / `DATE NULL` | §11.6 |
+| `achievements.revocable` | `BOOLEAN NOT NULL DEFAULT FALSE` | Danh hiệu chuỗi |
+
+### 11.2. API thi (VS4)
+
+**`GET /exams?building={code}`** trả các bài thi của công trình, kèm trạng thái của người chơi:
+```json
+{ "exams": [ {
+  "code": "EXAM_HOUSING_LV2", "buildingCode": "HOUSING", "targetLevel": 2,
+  "questionCount": 10, "passPercent": 80,
+  "requirement": { "requiredCardCount": 45, "requiredKnowledge": 200, "requiredBlueprintShards": 0,
+                   "requiredBuildingCode": "SCHOOL", "requiredBuildingLevel": 1 },
+  "progress": { "collected": 38, "knowledgePoints": 240, "blueprintShards": 1,
+                "requiredBuildingLevel": 0 },
+  "missing": { "collected": 7, "knowledge": 0, "shards": 0, "building": true },
+  "available": false, "passed": false, "activeAttemptId": null } ] }
+```
+- `available`: đủ mọi điều kiện, chưa đậu và không có lượt dở.
+- `passed`: đã có bản vẽ còn dùng được, hoặc công trình đã đạt `targetLevel`.
+
+**`POST /exams/{code}/start`**
+- **201** khi tạo lượt mới; **200** khi trả lại lượt `IN_PROGRESS` đang có (không trừ phí lần nữa).
+- Body trả về:
+
+```json
+{ "attemptId": 17, "examCode": "EXAM_HOUSING_LV2", "status": "IN_PROGRESS",
+  "startedAt": "…", "serverTime": "…", "passPercent": 80,
+  "questions": [ { "order": 1, "questionId": 84,
+                   "question": { "id": 84, "skill": "WRITING", "questionType": "FILL_BLANK", "tier": 3,
+                                 "questionText": "…", "metadata": { "sentence": "…" } } } ],
+  "profile": { "knowledgePoints": 40, "hourglassCount": 0, "blueprintShards": 1 } }
+```
+
+| Lỗi | Khi nào |
+| :--- | :--- |
+| 404 `EXAM_NOT_FOUND` | Không có bài thi với mã này |
+| 409 `ALREADY_PASSED` | Đã đậu bài thi này |
+| 409 `REQUIREMENTS_NOT_MET` | Thiếu điều kiện; `details.missing = {collected, knowledge, shards, building}` |
+| 409 `CONCURRENT_UPDATE` | Hai yêu cầu chạy cùng lúc |
+
+**`GET /exam-attempts/{id}`** trả cùng dạng như `start`, để vào lại lượt thi đang dở.
+
+**`POST /exam-attempts/{id}/submit`**
+- Body gửi lên: `{ "answers": [ { "order": 1, "answer": "landlord" }, … ] }`, phải có đủ mọi câu.
+- **200**, body trả về:
+
+```json
+{ "attemptId": 17, "status": "PASSED", "correct": 9, "total": 10, "scorePercent": 90, "passPercent": 80,
+  "items": [ { "order": 1, "questionText": "…", "given": "landlord", "correctAnswer": "landlord",
+               "isCorrect": true, "explanation": "…" } ],
+  "blueprint": { "code": "BLUEPRINT_HOUSING_LV2", "buildingCode": "HOUSING", "targetLevel": 2, "quantity": 1 },
+  "newAchievements": [], "profile": { … } }
+```
+
+| Lỗi | Khi nào |
+| :--- | :--- |
+| 404 `ATTEMPT_NOT_FOUND` | Không có lượt thi này |
+| 409 `ATTEMPT_CLOSED` | Đã nộp rồi; gọi lại trả 409, không chấm lại |
+| 409 `INCOMPLETE` | Thiếu câu trả lời; `details.missingOrders` |
+| 409 `CONCURRENT_UPDATE` | Hai yêu cầu chạy cùng lúc |
+
+Luật chấm:
+- Chấm bằng `AnswerGrader`, cộng/trừ Mastery 1 cho từ TARGET, và sưu tầm từ khi lần đầu trả lời đúng (giống phiên học).
+- Đậu thì upsert `user_blueprints.quantity + 1` và tính tiến độ nhiệm vụ `EXAM_PASSED`.
+
+### 11.3. Nâng cấp (VS5): `POST /buildings/{code}/build`
+
+| Từ level | Điều kiện | Trừ khi bắt đầu xây |
+| :--- | :--- | :--- |
+| 0 → 1 | `required_collected` từ của gói (công trình, 1) + `knowledge_cost` KP | KP |
+| *n* → *n+1* (*n* ≥ 1) | bản vẽ (công trình, *n+1*) + `required_shards` mảnh + `knowledge_cost` KP | 1 bản vẽ, mảnh, KP |
+
+Lỗi (đều là 409):
+- `BUSY`, `MAX_LEVEL`;
+- `NO_CONTENT`: thiếu cấu hình của level;
+- `NEEDS_BLUEPRINT`, kèm `details.blueprintCode`;
+- `REQUIREMENTS_NOT_MET`, kèm `missingCollected` (chỉ khi xây Lv1), `missingKnowledge`, `missingShards`.
+
+`GET /city` thêm các trường sau:
+- `blueprints: [{code, buildingCode, targetLevel, quantity}]`, chỉ gồm bản vẽ có `quantity > 0`;
+- `events`: các sự kiện thật (§11.5);
+- `profile` (ResourcesDto), để HUD cập nhật mảnh và KP sau khi giải sự kiện;
+- `streak` (§11.6).
+
+### 11.4. Nhiệm vụ
+
+**`GET /quests`**
+```json
+{ "main": [ { "code": "MAIN_BUILD_SCHOOL", "kind": "MAIN", "title": "…", "description": "…",
+              "progress": 0, "goal": 1, "completed": false, "claimed": false,
+              "rewardKp": 50, "rewardShards": 1 } ],
+  "daily": [ { "code": "DAILY_LESSON", "progress": 1, "goal": 1, "completed": true, "claimed": false } ],
+  "dailyBonus": { "code": "DAILY_BONUS", "completed": false, "claimed": false, "rewardKp": 20, "rewardShards": 1 },
+  "streak": { "days": 2, "best": 5, "todayCounted": false, "lessonDone": true, "questDone": false },
+  "resetsAt": "2026-11-08T17:00:00Z" }
+```
+`main` chỉ gồm các bước đã nhận và **một** bước hiện tại (bước đầu tiên chưa nhận, mà bước điều kiện của nó đã xong).
+
+**`POST /quests/{code}/claim`**
+- **200**: `{ "quest": {…}, "profile": {…}, "newAchievements": [] }`.
+- Lỗi: 404 `QUEST_NOT_FOUND`, 409 `NOT_COMPLETED`, 409 `ALREADY_CLAIMED`.
+- Mã `DAILY_BONUS` nhận được khi cả 3 nhiệm vụ hằng ngày đã xong.
+
+Bảng loại mục tiêu:
+
+| `goal_type` | Kiểu | Cách tính tiến độ |
+| :--- | :--- | :--- |
+| `BUILDING_LEVEL` | MAIN, suy ra | Level hiện tại của công trình `goal_ref` |
+| `COLLECTED_WORDS` | MAIN, suy ra | Số từ đã sưu tầm của gói (`goal_ref`, level 1) |
+| `EXAM_PASSED` | MAIN, suy ra | 1 nếu có lượt PASSED của bài thi `goal_ref` |
+| `LESSON_COMPLETED` | DAILY, đếm | +1 mỗi phiên LEARNING / PRACTICE hoàn thành |
+| `NEW_WORDS` | DAILY, đếm | +1 mỗi từ được sưu tầm lần đầu |
+| `EVENT_RESOLVED` | DAILY, đếm | +1 mỗi sự kiện giải xong |
+| `STREAK_CORRECT` | DAILY, đếm | Chuỗi trả lời đúng dài nhất trong ngày (lấy giá trị lớn nhất) |
+| `REVIEW_WORDS` | DAILY, đếm | +1 mỗi câu trả lời cho từ đã sưu tầm từ trước |
+
+### 11.5. Sự kiện thành phố
+**Sinh sự kiện:** chạy khi app gọi `GET /city`.
+- Điều kiện: `tutorialStep = DONE` và người chơi đã sưu tầm ít nhất 5 từ.
+- Server sinh thêm cho đủ `event.per-day` sự kiện của hôm nay.
+- Mẫu sự kiện chọn theo `(người chơi, ngày)`, không trùng nhau trong ngày.
+
+**`events[]` trong `/city`:** `{ "eventId": "evt-42", "buildingCode": "PARK", "residentName": "Bà Lan", "situation": "…", "status": "OPEN" }`. Bridge bản đồ chỉ cần `eventId` và `buildingCode`.
+
+**`POST /events/{id}/start`**
+- **201**: tạo phiên `EVENT` 5 câu, chỉ lấy từ đã sưu tầm.
+- **200**: trả lại phiên đang dở.
+- Body là `SessionDto`, giống phiên học.
+- Lỗi: 404 `EVENT_NOT_FOUND`, 409 `EVENT_RESOLVED`, 409 `NO_CONTENT`.
+
+**Trả lời và kết thúc:** dùng chung `/learning/sessions/{id}/items/{n}/answer` và `/complete`.
+- `CompleteResultDto` thêm hai trường `shardsAwarded`, `eventResolved`.
+- Đúng ít nhất `event.pass-correct` câu: thưởng mảnh + KP, sự kiện chuyển RESOLVED, tính tiến độ `EVENT_RESOLVED`.
+- Phiên `EVENT` không có KP theo từng câu, không có thưởng thêm và không áp hệ số theo số bài trong ngày.
+
+### 11.6. Luyện tập và chuỗi
+**`GET /learning/practice/status`**
+- Trả về `{ review: {used, limit}, mixed: {used, limit}, newWords: {used, limit}, themes: [{code, name, collected, total}], resetsAt }`.
+- `themes` gồm mọi chủ đề có từ trên server.
+
+**`POST /learning/practice`**
+- Body gửi lên: `{ "mode": "REVIEW" | "MIXED", "themeCodes": ["HOUSE"], "wordCount": 10 | 20 }`. `themeCodes` rỗng nghĩa là mọi chủ đề.
+- **201**: tạo `SessionDto` kiểu `PRACTICE_*`. **200**: trả lại phiên đang dở của cùng chế độ.
+- Lỗi:
+  - 409 `DAILY_LIMIT`, kèm `{mode, used, limit, resetsAt}`;
+  - 409 `NO_CONTENT`: chế độ REVIEW mà chưa sưu tầm từ nào;
+  - 400 `INVALID_BODY`.
+
+**Chấm luyện tập:**
+- Mỗi câu vẫn chấm đúng/sai như phiên học.
+- Mastery và KP (`practice.kp-per-correct`) chỉ áp khi từ chưa được thưởng hôm nay (`last_rewarded_on < hôm nay`). Câu trả lời đúng đầu tiên trong ngày ghi `last_rewarded_on = hôm nay`.
+- Từ chưa sưu tầm mà trả lời đúng thì được sưu tầm như thường, và tính vào giới hạn `practice.new-words-per-day`.
+
+**Chuỗi ngày:**
+- **Khi nào kiểm:** sau mỗi `complete` của phiên LEARNING / PRACTICE, và mỗi khi một nhiệm vụ hằng ngày vừa hoàn thành. Nếu hôm nay đủ cả hai điều kiện mà chưa được tính thì tính, rồi trao danh hiệu chuỗi đạt mốc.
+- **Đứt chuỗi:** kiểm khi đọc `/users/me`, `/quests`, `/city`. Xoá `user_achievements` của các danh hiệu `revocable`, và gỡ `equipped_achievement_code` nếu đang đeo danh hiệu đó.
+- **`/users/me`:** `stats` thêm `bestStreak`; `streakDays` giờ là chuỗi theo ADR-015 §7.
+
+### 11.7. Thông số cấu hình mới (`linguacity.balance.*`)
+
+| Khoá | Mặc định | Ghi chú |
+| :--- | :---: | :--- |
+| `words-per-session` | **20** (cũ 10) | Bài học LEARNING |
+| `questions-per-session` | 30 | 20 câu đọc + 10 câu viết |
+| `practice-review-per-day` / `practice-mixed-per-day` | 1 / 3 | |
+| `practice-new-words-per-day` | 20 | Chung cho mọi lượt luyện tập |
+| `practice-kp-per-correct` | 3 | Chỉ tính câu được thưởng |
+| `practice-ttl-minutes` | 30 | |
+| `event-per-day` / `event-questions` / `event-pass-correct` | 3 / 5 / 4 | |
+| `event-reward-kp` / `event-reward-shards` / `event-min-collected` | 15 / 1 / 5 | |
+| `event-ttl-minutes` | 30 | |
+| `daily-quest-count` | 3 | |
+
+Các giá trị sau là **dữ liệu**, đổi bằng migration, không cần build lại server:
+- điểm đậu `exams.pass_percent` và điều kiện thi;
+- `building_levels.required_shards`;
+- thưởng của nhiệm vụ;
+- mốc của danh hiệu chuỗi.
+
+### 11.8. Room v6 (AutoMigration 5 → 6)
+
+> **Đã làm ở M15 (khác bản thiết kế):** Room **giữ v5**. Bảng dưới là phương án ban đầu, để dành
+> khi cần đọc offline các trường mới.
+> - Bản vẽ, sự kiện và chuỗi ngày lấy từ `GET /city` và chỉ giữ trong bộ nhớ (`CityRepositoryImpl.daily`).
+> - Mảnh, KP cập nhật vào profile Room đã có.
+> - `requiredShards`, `passPercent`, điều kiện công trình của bài thi luôn đọc online qua `GET /exams`.
+>
+> Lý do: mọi màn dùng các trường này đều cần mạng (ADR-004), nên migration Room chưa đem lại gì.
+
+| Thay đổi | Ghi chú |
+| :--- | :--- |
+| `BuildingLevelEntity.requiredShards` | `@ColumnInfo(defaultValue = "0")` |
+| `ExamEntity.passPercent` | `defaultValue = "80"` |
+| `ExamRequirementEntity.requiredBuildingCode` / `requiredBuildingLevel` | NULL / `defaultValue = "0"` |
+| `UserBlueprintEntity(blueprintCode PK, quantity)` | Thay toàn bộ mỗi lần `GET /city` |
+| `UserProfileEntity.streakDays`, `bestStreak` | `defaultValue = "0"` |
+
+Không cache trong Room, chỉ dùng khi online: nhiệm vụ, sự kiện, lượt thi, trạng thái luyện tập. Đây đều là trạng thái theo ngày hoặc theo phiên do server quyết định (ADR-004: khi offline chỉ đọc nội dung).
+
+### 11.9. Traceability
+| Yêu cầu | UC | API | Bảng |
+| :--- | :--- | :--- | :--- |
+| FR-EXAM-01 | UC_06 | `GET /exams` | `exams`, `exam_requirements`, `exam_attempts` |
+| FR-EXAM-02, 04 | UC_07 | `POST /exams/{code}/start`, `GET /exam-attempts/{id}` | `exam_attempts`, `exam_attempt_questions` |
+| FR-EXAM-03 | UC_08 | `POST /exam-attempts/{id}/submit` | + `user_blueprints`, `user_vocab_progress` |
+| FR-CITY-03 | UC_10 | `POST /buildings/{code}/build` | `user_buildings`, `user_blueprints`, `building_levels` |
+| FR-QUEST-01..03 | UC_16, UC_17 | `/quests`, `/quests/{code}/claim` | `quests`, `user_quests` |
+| FR-CITY-06 | UC_18 | `/city` (events), `/events/{id}/start` | `city_event_templates`, `user_city_events` |
+| FR-PRAC-01..03 | UC_19 | `/learning/practice`, `/learning/practice/status` | `learning_sessions`, `user_vocab_progress.last_rewarded_on` |
+| FR-STREAK-01..02 | UC_20 | `/users/me`, `/quests` | `user_profiles.streak_*`, `achievements.revocable` |
+
+### 11.10. Chốt các câu hỏi mở của chat test (M14)
+| # | Câu hỏi | Chốt (đã cài ở M14) |
+| :-: | :--- | :--- |
+| Q1 | Thưởng `DAILY_BONUS` | Theo dữ liệu V007: **20 KP + 1 mảnh**. Số trong bảng `quests` là nguồn đúng |
+| Q3 | Lượt luyện tập trừ khi nào | **Khi bắt đầu**: đếm số phiên `PRACTICE_*` tạo trong ngày (`countStartedBetween`), kể cả phiên bỏ dở hay hết hạn. Đang có phiên dở cùng chế độ thì `start` trả lại phiên đó (200), không tính thêm lượt |
+| Q4 | Giới hạn 20 từ mới/ngày chặn ở đâu | **Lúc chọn từ**: một bài Hỗn hợp lấy tối đa `min(wordCount/2, còn lại)` từ mới. Số đã dùng = số từ có `first_seen_at` hôm nay trong các phiên `PRACTICE_MIXED` hôm nay |
+| Q5 | Sự kiện thứ hai khi sự kiện đầu còn dở | `POST /events/{id}/start` cho phiên `EVENT` đang dở của sự kiện khác **hết hạn ngay** rồi mới tạo phiên mới, nên không vướng `uq_active_free_session`. Gọi lại đúng sự kiện đang dở thì trả lại phiên đó (200) |
+| Q7 | Chuỗi tính khi nhiệm vụ xong hay khi nhận | **Khi xong** (`completed_at`), không cần bấm Nhận |
+| Q8 | DILIGENT dùng chung `STREAK_DAYS` | Danh hiệu chuỗi chỉ xét những danh hiệu có `revocable = TRUE`. DILIGENT giữ luật cũ (3 ngày liên tiếp có phiên hoàn thành, vĩnh viễn) |
+| Q10 | Đề thi toàn câu tier 3, đậu 8/10 | **Chờ người dùng duyệt** cùng bảng cân bằng. Đổi được bằng dữ liệu, không cần sửa code: `exams.pass_percent`, hoặc thêm câu tier 1/2 vào `exam_questions` |

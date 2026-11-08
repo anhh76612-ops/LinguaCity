@@ -8,7 +8,9 @@ import java.util.TimeZone
  * Tự viết vì minSdk 24 chưa có java.time.Instant (cần API 26 hoặc desugaring).
  */
 object IsoTime {
-    private val pattern = Regex("""^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d+))?Z$""")
+    private val pattern = Regex(
+        """^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d+))?Z$"""
+    )
 
     fun parseMillis(text: String?): Long? {
         val m = pattern.matchEntire(text ?: return null) ?: return null

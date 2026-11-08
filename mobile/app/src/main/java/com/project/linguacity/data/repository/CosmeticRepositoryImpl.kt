@@ -52,9 +52,12 @@ class CosmeticRepositoryImpl @Inject constructor(
 
     override suspend fun unlock(code: String): CosmeticOutcome = call { api.unlock(it, code) }
 
-    override suspend fun saveAvatar(config: AvatarConfig): CosmeticOutcome = call { api.saveAvatar(it, config.toDto()) }
+    override suspend fun saveAvatar(config: AvatarConfig): CosmeticOutcome = call {
+        api.saveAvatar(it, config.toDto())
+    }
 
-    override suspend fun saveHouse(config: HouseStyleConfig): CosmeticOutcome = call { api.saveHouseStyle(it, config.toDto()) }
+    override suspend fun saveHouse(config: HouseStyleConfig): CosmeticOutcome =
+        call { guestId -> api.saveHouseStyle(guestId, config.toDto()) }
 
     private suspend fun call(block: suspend (String) -> CosmeticsDto): CosmeticOutcome = try {
         save(block(guestIdStore.getOrCreateGuestUuid()))
@@ -67,7 +70,10 @@ class CosmeticRepositoryImpl @Inject constructor(
             "INSUFFICIENT_KP" -> CosmeticOutcome.NotEnoughKp(err.detailInt("missingKnowledge") ?: 0)
             "INVALID_COSMETIC", "NOT_PURCHASABLE" -> CosmeticOutcome.Invalid
             // đã mua ở máy khác / lần trước mất mạng sau khi server ghi: tải lại là đủ
-            "ALREADY_UNLOCKED" -> { runCatching { refresh() }; CosmeticOutcome.Done }
+            "ALREADY_UNLOCKED" -> {
+                runCatching { refresh() }
+                CosmeticOutcome.Done
+            }
             else -> CosmeticOutcome.Failed(err?.message ?: e.message ?: "Lỗi không xác định")
         }
     }

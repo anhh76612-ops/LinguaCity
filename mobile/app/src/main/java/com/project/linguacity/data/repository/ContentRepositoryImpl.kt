@@ -26,7 +26,8 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * UC_03 (system-design §10.3.1). Mỗi gói được ghi trong MỘT transaction: xoá dòng cũ của gói → upsert dòng mới
+ * UC_03 (system-design §10.3.1). Mỗi gói được ghi trong MỘT transaction: xoá dòng cũ của gói →
+ * upsert dòng mới
  * → lưu version (BR-CONTENT-05). Lỗi giữa chừng thì transaction huỷ, gói giữ nguyên bản cũ.
  */
 @Singleton
@@ -56,7 +57,11 @@ class ContentRepositoryImpl @Inject constructor(
 
         queue.forEachIndexed { index, ref ->
             onProgress(SyncProgress(index, queue.size, ref.code))
-            if (ref.code == PackSelector.CORE) saveCore(guest) else savePack(guest, ref.buildingCode!!, ref.level!!)
+            if (ref.code == PackSelector.CORE) saveCore(guest) else savePack(
+                guest,
+                ref.buildingCode!!,
+                ref.level!!
+            )
         }
         onProgress(SyncProgress(queue.size, queue.size, null))
 
@@ -68,8 +73,11 @@ class ContentRepositoryImpl @Inject constructor(
         val core = api.core(guest)
         val rows = core.toRows()
         db.withTransaction {
-            dao.clearThemes(); dao.clearBuildings(); dao.clearBuildingThemes()
-            dao.clearBuildingLevels(); dao.clearBlueprints()
+            dao.clearThemes()
+            dao.clearBuildings()
+            dao.clearBuildingThemes()
+            dao.clearBuildingLevels()
+            dao.clearBlueprints()
             dao.upsertThemes(rows.themes)
             dao.upsertBuildings(rows.buildings)
             dao.upsertBuildingThemes(rows.buildingThemes)
@@ -77,14 +85,30 @@ class ContentRepositoryImpl @Inject constructor(
             dao.upsertBlueprints(rows.blueprints)
             playerDao.clearAchievements()
             playerDao.upsertAchievements(core.achievements.map {
-                AchievementEntity(it.code, it.name, it.description, it.tier, it.hidden, it.sortOrder)
+                AchievementEntity(
+                    it.code,
+                    it.name,
+                    it.description,
+                    it.tier,
+                    it.hidden,
+                    it.sortOrder
+                )
             })
             playerDao.clearCosmetics()
             playerDao.upsertCosmetics(core.cosmetics.map {
-                CosmeticItemEntity(it.code, it.category, it.name, it.unlockType, it.priceKp, it.achievementCode,
-                    it.assetKey, it.sortOrder)
+                CosmeticItemEntity(
+                    it.code,
+                    it.category,
+                    it.name,
+                    it.unlockType,
+                    it.priceKp,
+                    it.achievementCode,
+                    it.assetKey,
+                    it.sortOrder
+                )
             })
-            dao.upsertPackState(ContentPackStateEntity(core.code, core.version, System.currentTimeMillis()))
+            val state = ContentPackStateEntity(core.code, core.version, System.currentTimeMillis())
+            dao.upsertPackState(state)
         }
     }
 
@@ -93,23 +117,34 @@ class ContentRepositoryImpl @Inject constructor(
         val rows = pack.toRows()
         val code = pack.code
         db.withTransaction {
-            dao.deleteVocabularies(code); dao.deleteQuestions(code); dao.deleteQuestionVocabularies(code)
-            dao.deleteExams(code); dao.deleteExamRequirements(code); dao.deleteExamQuestions(code)
+            dao.deleteVocabularies(code)
+            dao.deleteQuestions(code)
+            dao.deleteQuestionVocabularies(code)
+            dao.deleteExams(code)
+            dao.deleteExamRequirements(code)
+            dao.deleteExamQuestions(code)
             dao.upsertVocabularies(rows.vocabularies)
             dao.upsertQuestions(rows.questions)
             dao.upsertQuestionVocabularies(rows.questionVocabularies)
             dao.upsertExams(rows.exams)
             dao.upsertExamRequirements(rows.examRequirements)
             dao.upsertExamQuestions(rows.examQuestions)
-            dao.upsertPackState(ContentPackStateEntity(code, pack.version, System.currentTimeMillis()))
+            val state = ContentPackStateEntity(code, pack.version, System.currentTimeMillis())
+            dao.upsertPackState(state)
         }
     }
 
     override fun observeVocabularies(buildingCode: String, level: Int): Flow<List<Vocabulary>> =
-        dao.observeVocabularies(packCode(buildingCode, level)).map { list -> list.map { it.toDomain() } }
+        dao.observeVocabularies(packCode(
+            buildingCode,
+            level
+        )).map { list -> list.map { it.toDomain() } }
 
     override fun observePackWordIds(): Flow<Map<String, Set<Long>>> =
-        dao.observeVocabularyPacks().map { rows -> rows.groupBy({ it.packCode }, { it.id }).mapValues { it.value.toSet() } }
+        dao.observeVocabularyPacks().map { rows -> rows.groupBy(
+            { it.packCode },
+            { it.id }
+        ).mapValues { it.value.toSet() } }
 
     override fun observeBuildingLevels(): Flow<List<BuildingLevelInfo>> =
         dao.observeBuildingLevels().map { list -> list.map { it.toDomain() } }

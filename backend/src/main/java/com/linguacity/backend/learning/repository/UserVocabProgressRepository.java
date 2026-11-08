@@ -13,13 +13,16 @@ public interface UserVocabProgressRepository extends JpaRepository<UserVocabProg
 
     Optional<UserVocabProgress> findByUserIdAndVocabularyId(UUID userId, Long vocabularyId);
 
-    List<UserVocabProgress> findByUserIdAndVocabularyIdIn(UUID userId, Collection<Long> vocabularyIds);
+    List<UserVocabProgress> findByUserIdAndVocabularyIdIn(
+            UUID userId, Collection<Long> vocabularyIds);
 
-    long countByUserIdAndVocabularyIdInAndCollectedAtIsNotNull(UUID userId, Collection<Long> vocabularyIds);
+    long countByUserIdAndVocabularyIdInAndCollectedAtIsNotNull(
+            UUID userId, Collection<Long> vocabularyIds);
 
     long countByUserIdAndCollectedAtIsNotNull(UUID userId);
 
-    List<UserVocabProgress> findByUserIdAndUpdatedAtAfterOrderByUpdatedAtAsc(UUID userId, LocalDateTime since);
+    List<UserVocabProgress> findByUserIdAndUpdatedAtAfterOrderByUpdatedAtAsc(
+            UUID userId, LocalDateTime since);
 
     List<UserVocabProgress> findByUserIdOrderByUpdatedAtAsc(UUID userId);
 }

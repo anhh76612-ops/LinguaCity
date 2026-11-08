@@ -40,7 +40,8 @@ import com.project.linguacity.ui.loading.LoadingKind
 import com.project.linguacity.ui.motion.sharedCard
 
 /**
- * SCR-07 Flashcard (UC_04): vuốt ngang qua các thẻ, chạm để lật (mặt trước: từ + IPA; mặt sau: nghĩa + ví dụ).
+ * SCR-07 Flashcard (UC_04): vuốt ngang qua các thẻ, chạm để lật (mặt trước: từ + IPA; mặt sau:
+ * nghĩa + ví dụ).
  * Xem thẻ KHÔNG đổi Mastery (BR-LEARN-06). Chạy offline vì chỉ đọc Room.
  */
 @OptIn(ExperimentalFoundationApi::class)
@@ -58,7 +59,10 @@ fun FlashcardScreen(
             DelayedLoading(LoadingKind.CARDS)
             return@Column
         }
-        val pager = rememberPagerState(initialPage = startIndex.coerceIn(0, state.words.lastIndex)) { state.words.size }
+        val pager = rememberPagerState(initialPage = startIndex.coerceIn(
+            0,
+            state.words.lastIndex
+        )) { state.words.size }
         Text(
             "${pager.currentPage + 1} / ${state.words.size}",
             style = MaterialTheme.typography.labelLarge,
@@ -101,18 +105,39 @@ private fun FlipCard(word: Vocabulary) {
             // Qua 90° thì đổi sang mặt sau và lật ngược nội dung lại để chữ không bị soi gương.
             val showBack = rotation > 90f
             Column(
-                Modifier.fillMaxSize().padding(24.dp).graphicsLayer { if (showBack) rotationY = 180f },
+                Modifier.fillMaxSize().padding(24.dp).graphicsLayer {
+                    if (showBack) {
+                        rotationY = 180f
+                    }
+                },
                 verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 if (!showBack) {
-                    Text(word.word, style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Bold)
+                    Text(
+                        word.word,
+                        style = MaterialTheme.typography.displaySmall,
+                        fontWeight = FontWeight.Bold
+                    )
                     word.ipa?.let { Text(it, style = MaterialTheme.typography.titleMedium) }
-                    Text(word.wordType.lowercase(), style = MaterialTheme.typography.labelMedium, fontStyle = FontStyle.Italic)
+                    Text(
+                        word.wordType.lowercase(),
+                        style = MaterialTheme.typography.labelMedium,
+                        fontStyle = FontStyle.Italic
+                    )
                 } else {
-                    Text(word.meaning, style = MaterialTheme.typography.headlineSmall, textAlign = TextAlign.Center)
+                    Text(
+                        word.meaning,
+                        style = MaterialTheme.typography.headlineSmall,
+                        textAlign = TextAlign.Center
+                    )
                     word.examples.forEach {
-                        Text("“$it”", style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center, fontStyle = FontStyle.Italic)
+                        Text(
+                            "“$it”",
+                            style = MaterialTheme.typography.bodyMedium,
+                            textAlign = TextAlign.Center,
+                            fontStyle = FontStyle.Italic
+                        )
                     }
                 }
             }

@@ -21,6 +21,7 @@
 | [ADR-012](ADR-012-content-packs-by-level.md) | Nội dung tĩnh chia gói theo (công trình, Level), tải khi cần, kiểu pull; sẵn `scope` cho lớp học | 🟡 Proposed |
 | [ADR-013](ADR-013-server-learning-session.md) | Phiên học do server quản lý; sưu tầm = đúng lần đầu (sửa ADR-005); chống cày KP | 🟡 Proposed |
 | [ADR-014](ADR-014-secretary-tutorial-placement.md) | Tutorial thư ký + bài kiểm tra trình độ + xây House thật | 🟡 Proposed |
+| [ADR-015](ADR-015-progression-after-level-one.md) | Tiến trình sau Lv1: thi, nâng cấp, nhiệm vụ, sự kiện, luyện tập, chuỗi; bài học 20 từ / 30 câu | 🟡 Proposed |
 
 Nhật ký sự cố: [troubleshooting-log.md](troubleshooting-log.md)
 

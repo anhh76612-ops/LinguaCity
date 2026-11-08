@@ -41,7 +41,8 @@ sealed interface TutorialNav {
 }
 
 /**
- * Điều phối tutorial thư ký (ADR-014). Bước hiện tại luôn lấy từ server (qua Room); ViewModel chỉ chọn
+ * Điều phối tutorial thư ký (ADR-014). Bước hiện tại luôn lấy từ server (qua Room); ViewModel chỉ
+ * chọn
  * kịch bản và gọi đúng API khi người chơi bấm nút của Mai (BR-TUT-01, BR-TUT-02).
  */
 @HiltViewModel
@@ -66,14 +67,23 @@ class TutorialViewModel @Inject constructor(
                 player.observeProfile(),
                 city.city,
                 content.observeBuildingLevels(),
-                combine(content.observePackWordIds(), learning.observeProgress()) { packs, progress ->
-                    packs[packCode(BuildingCode.HOUSING.name, 1)].orEmpty().count { progress[it]?.collected == true }
+                combine(
+                    content.observePackWordIds(),
+                    learning.observeProgress()
+                ) { packs, progress ->
+                    packs[packCode(
+                        BuildingCode.HOUSING.name,
+                        1
+                    )].orEmpty().count { progress[it]?.collected == true }
                 },
                 settings.settings
             ) { profile, cityState, levels, collected, appSettings ->
-                if (profile?.tutorialStep == "DONE" && appSettings.replayTour) return@combine TutorialGuide.replayTour()
+                if (profile?.tutorialStep == "DONE" && appSettings.replayTour) {
+                    return@combine TutorialGuide.replayTour()
+                }
                 val house = cityState.building(BuildingCode.HOUSING)
-                val lv1 = levels.firstOrNull { it.buildingCode == BuildingCode.HOUSING.name && it.level == 1 }
+                val lv1 = levels.firstOrNull { it.buildingCode == BuildingCode.HOUSING.name
+                    && it.level == 1 }
                 profile?.let {
                     TutorialGuide.script(
                         GuideContext(
@@ -88,9 +98,11 @@ class TutorialViewModel @Inject constructor(
                     )
                 }
             }.collect { script ->
-                _state.update { s ->
-                    if (s.script?.id == script?.id) s.copy(script = script) // giữ câu đang đọc
-                    else s.copy(script = script, lineIndex = 0, busy = false)
+                _state.update { current ->
+                    if (current.script?.id == script?.id) {  // giữ câu đang đọc
+                        current.copy(script = script)
+                    }
+                    else current.copy(script = script, lineIndex = 0, busy = false)
                 }
             }
         }
@@ -102,10 +114,15 @@ class TutorialViewModel @Inject constructor(
 
     fun act() {
         val script = _state.value.script ?: return
-        if (_state.value.busy) return
+        if (_state.value.busy) {
+            return
+        }
         when (script.action) {
             GuideAction.NONE -> Unit
-            GuideAction.START_PLACEMENT -> run { player.advanceTutorial("PLACEMENT"); _nav.tryEmit(TutorialNav.Placement) }
+            GuideAction.START_PLACEMENT -> run {
+                player.advanceTutorial("PLACEMENT")
+                _nav.tryEmit(TutorialNav.Placement)
+            }
             GuideAction.RESUME_PLACEMENT -> _nav.tryEmit(TutorialNav.Placement)
             GuideAction.START_LESSON -> _nav.tryEmit(TutorialNav.Lesson(BuildingCode.HOUSING))
             GuideAction.BUILD -> run {
@@ -113,11 +130,15 @@ class TutorialViewModel @Inject constructor(
                     BuildOutcome.Started, BuildOutcome.Busy -> Unit
                     is BuildOutcome.NotMet -> message("Còn thiếu một chút nữa — học thêm bài nhé!")
                     BuildOutcome.Offline -> message("Cần kết nối mạng để xây nhé.")
-                    BuildOutcome.NeedsExam -> runCatching { city.refresh() }
+                    // House đã xây rồi (server coi lần bấm này là nâng cấp): chỉ đọc lại trạng thái
+                    BuildOutcome.NeedsExam,
+                    BuildOutcome.NeedsBlueprint,
+                    BuildOutcome.MaxLevel -> runCatching { city.refresh() }
                     is BuildOutcome.Failed -> message(outcome.message)
                 }
             }
-            // M7 sẽ chèn cảnh avatar đi vào nhà + nội thất 3D trước bước này; M8 thay CUSTOMIZE bằng màn tuỳ biến thật.
+            // M7 sẽ chèn cảnh avatar đi vào nhà + nội thất 3D trước bước này; M8 thay CUSTOMIZE
+            // bằng màn tuỳ biến thật.
             GuideAction.ENTER_HOUSE -> run { player.advanceTutorial("CUSTOMIZE") }
             GuideAction.FINISH_CUSTOMIZE -> run { player.advanceTutorial("TOUR") }
             GuideAction.FINISH_REPLAY -> run { settings.setReplayTour(false) }
@@ -138,7 +159,8 @@ class TutorialViewModel @Inject constructor(
             try {
                 block()
             } catch (e: Exception) {
-                // Server từ chối (vd. bước đã đổi ở máy khác): đọc lại hồ sơ để đồng bộ bước (BR-TUT-01).
+                // Server từ chối (vd. bước đã đổi ở máy khác): đọc lại hồ sơ để đồng bộ bước
+                // (BR-TUT-01).
                 runCatching { player.refresh() }
                 message(friendlyNetworkError(e))
             } finally {

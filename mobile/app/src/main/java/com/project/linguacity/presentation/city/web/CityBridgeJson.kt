@@ -36,8 +36,12 @@ internal object CityBridgeJson {
 
     @Serializable
     private data class AppearanceDto(
-        val skin: String, val hairStyle: String, val hairColor: String,
-        val shirt: String, val pants: String, val accessory: String
+        val skin: String,
+        val hairStyle: String,
+        val hairColor: String,
+        val shirt: String,
+        val pants: String,
+        val accessory: String
     )
 
     @Serializable
@@ -47,36 +51,60 @@ internal object CityBridgeJson {
     @Serializable
     private data class PreviewDto(val v: Int, val player: PlayerDto)
 
-    private fun AvatarLook.dto() = AppearanceDto(skin, hairStyle, hairColor, shirt, pants, accessory)
+    private fun AvatarLook.dto() = AppearanceDto(
+        skin,
+        hairStyle,
+        hairColor,
+        shirt,
+        pants,
+        accessory
+    )
 
     @Serializable
-    private data class BuildingDto(val code: String, val level: Int, val upgrading: Boolean, val progress: Float)
+    private data class BuildingDto(
+        val code: String,
+        val level: Int,
+        val upgrading: Boolean,
+        val progress: Float
+    )
 
     @Serializable
-    private data class EventDto(val id: String, val kind: String)
+    private data class EventDto(val id: String, val kind: String, val buildingCode: String? = null)
 
     @Serializable
-    private data class IntentDto(val type: String, val buildingCode: String? = null, val eventId: String? = null)
+    private data class IntentDto(
+        val type: String,
+        val buildingCode: String? = null,
+        val eventId: String? = null
+    )
 
     fun encodeState(state: CityRenderState): String = json.encodeToString(
         StateDto.serializer(),
         StateDto(
             v = CONTRACT_VERSION,
-            buildings = state.buildings.map { BuildingDto(it.code.name, it.level, it.upgrading, it.progress) },
-            events = state.events.map { EventDto(it.id, it.kind) },
+            buildings = state.buildings.map {
+                BuildingDto(it.code.name, it.level, it.upgrading, it.progress)
+            },
+            events = state.events.map { EventDto(it.id, it.kind, it.buildingCode?.name) },
             player = PlayerDto(state.avatar.dto()),
             houseStyle = HouseDto(state.house.wall, state.house.floor)
         )
     )
 
     fun encodePreview(look: AvatarLook): String =
-        json.encodeToString(PreviewDto.serializer(), PreviewDto(CONTRACT_VERSION, PlayerDto(look.dto())))
+        json.encodeToString(
+            PreviewDto.serializer(),
+            PreviewDto(CONTRACT_VERSION, PlayerDto(look.dto()))
+        )
 
-    private fun code(raw: String?): BuildingCode? = BuildingCode.entries.firstOrNull { it.name == raw }
+    private fun code(raw: String?): BuildingCode? = BuildingCode.entries.firstOrNull {
+        it.name == raw
+    }
 
     /** Dữ liệu từ WebView là dữ liệu bên ngoài: sai định dạng thì trả null, không làm app crash. */
     fun decodeIntent(raw: String): CityMapIntent? {
-        val dto = runCatching { json.decodeFromString(IntentDto.serializer(), raw) }.getOrNull() ?: return null
+        val dto = runCatching { json.decodeFromString(IntentDto.serializer(), raw) }.getOrNull()
+            ?: return null
         return when (dto.type) {
             "Ready" -> CityMapIntent.Ready
             "BuildingTapped" -> BuildingCode.entries
