@@ -1,0 +1,53 @@
+# Quy ước trình bày code: docs/05-implementation/coding-style.md
+root = true
+
+[*]
+charset = utf-8
+indent_style = space
+indent_size = 4
+insert_final_newline = true
+trim_trailing_whitespace = true
+max_line_length = 100
+
+[*.{json,yml,yaml,html}]
+indent_size = 2
+
+[*.md]
+trim_trailing_whitespace = false
+max_line_length = off
+
+[*.{bat,cmd}]
+end_of_line = crlf
+
+[{gradlew,*.sh}]
+end_of_line = lf
+
+[*.java]
+ij_continuation_indent_size = 8
+ij_java_class_brace_style = end_of_line
+ij_java_method_brace_style = end_of_line
+ij_java_else_on_new_line = false
+ij_java_catch_on_new_line = false
+ij_java_if_brace_force = always
+ij_java_for_brace_force = always
+ij_java_while_brace_force = always
+ij_java_keep_simple_methods_in_one_line = false
+ij_java_keep_simple_blocks_in_one_line = false
+ij_java_keep_blank_lines_in_code = 1
+ij_java_keep_blank_lines_in_declarations = 1
+ij_java_wrap_long_lines = false
+
+[*.{kt,kts}]
+ij_continuation_indent_size = 4
+ij_kotlin_keep_blank_lines_in_code = 1
+ij_kotlin_keep_blank_lines_in_declarations = 1
+ij_kotlin_code_style_defaults = KOTLIN_OFFICIAL
+
+[*.{ts,tsx,js}]
+ij_continuation_indent_size = 4
+ij_typescript_keep_blank_lines_in_code = 1
+
+# File sinh tự động hoặc đã chạy trên DB: không định dạng lại
+[{**/schemas/**.json,package-lock.json,database/migration/V00[1-5]__*.sql}]
+max_line_length = off
+trim_trailing_whitespace = false
