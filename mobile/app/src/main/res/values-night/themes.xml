@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Thị trấn ban đêm (dark mode) -->
+<resources>
+    <style name="Theme.LinguaCity" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/lc_night</item>
+    </style>
+
+    <style name="Theme.LinguaCity.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/lc_night</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash</item>
+        <item name="postSplashScreenTheme">@style/Theme.LinguaCity</item>
+    </style>
+</resources>
