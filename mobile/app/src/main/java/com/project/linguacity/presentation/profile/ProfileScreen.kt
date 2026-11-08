@@ -68,12 +68,12 @@ fun ProfileScreen(
     onOpenAchievements: () -> Unit,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
-    val s by viewModel.state.collectAsState()
+    val state by viewModel.state.collectAsState()
     Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)) {
         TextButton(onClick = onBack) { Text("‹ Thành phố") }
-        val p = s.profile
-        if (p == null) {
+        val profile = state.profile
+        if (profile == null) {
             // Skeleton có hình dáng giống màn hồ sơ
             Row(verticalAlignment = Alignment.CenterVertically) {
                 SkeletonBlock(Modifier.size(72.dp), 72.dp)
@@ -98,12 +98,12 @@ fun ProfileScreen(
             Spacer(Modifier.width(16.dp))
             Column {
                 Text(
-                    "Cư dân #${p.id.take(4).uppercase()}",
+                    "Cư dân #${profile.id.take(4).uppercase()}",
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    s.titleName?.let { "🏅 $it" } ?: "Chưa đeo danh hiệu",
+                    state.titleName?.let { "🏅 $it" } ?: "Chưa đeo danh hiệu",
                     style = MaterialTheme.typography.bodyMedium
                 )
                 Text("Ngoại hình nhân vật: sắp có", style = MaterialTheme.typography.labelSmall)
@@ -112,13 +112,14 @@ fun ProfileScreen(
         StatCard(
             1,
             "Tài nguyên",
-            "💡 ${p.knowledgePoints} KP   ⏳ ${p.hourglassCount}   🧩 ${p.blueprintShards}"
+            "💡 ${profile.knowledgePoints} KP   ⏳ ${profile.hourglassCount}   " +
+                "🧩 ${profile.blueprintShards}"
         )
-        StatCard(2, "Từ đã sưu tầm", "${s.stats?.collectedWords ?: s.collectedOffline} từ")
+        StatCard(2, "Từ đã sưu tầm", "${state.stats?.collectedWords ?: state.collectedOffline} từ")
         StatCard(
             3,
             "Chuỗi ngày học",
-            s.stats?.let { "🔥 ${it.streakDays} ngày liên tiếp" } ?: "Cần mạng để cập nhật"
+            state.stats?.let { "🔥 ${it.streakDays} ngày liên tiếp" } ?: "Cần mạng để cập nhật"
         )
         Button(
             onClick = onOpenAchievements,

@@ -52,8 +52,12 @@ class SyncViewModel @Inject constructor(
         _state.value = SyncState(running = true)
         job = viewModelScope.launch {
             try {
-                syncContent { p -> _state.update {
-                    it.copy(done = p.done, total = p.total, currentPack = p.currentPack)
+                syncContent { progress -> _state.update {
+                    it.copy(
+                        done = progress.done,
+                        total = progress.total,
+                        currentPack = progress.currentPack
+                    )
                 } }
                 _state.update { it.copy(running = false, finished = true) }
             } catch (e: Exception) {

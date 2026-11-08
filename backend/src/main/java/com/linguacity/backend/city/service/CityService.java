@@ -67,8 +67,8 @@ public class CityService {
         List<Building> all = buildings.findAllByOrderBySortOrderAsc();
         Map<Long, UserBuilding> rows = ensureRows(userId, all);
 
-        for (UserBuilding ub : rows.values()) {
-            completeIfDue(ub, now);
+        for (UserBuilding userBuilding : rows.values()) {
+            completeIfDue(userBuilding, now);
         }
         Building housing = all.stream().filter(b -> "HOUSING".equals(b.getCode())).findFirst()
                 .orElse(null);
@@ -99,84 +99,85 @@ public class CityService {
                 .orElseThrow(() -> ApiException.notFound(
                         "BUILDING_NOT_FOUND", "Unknown building " + code));
         LocalDateTime now = Times.nowUtc(clock);
-        UserBuilding ub = ensureRows(userId, List.of(building)).get(building.getId());
-        completeIfDue(ub, now);
+        UserBuilding userBuilding = ensureRows(userId, List.of(building)).get(building.getId());
+        completeIfDue(userBuilding, now);
 
-        if (UserBuilding.UPGRADING.equals(ub.getStatus())) {
+        if (UserBuilding.UPGRADING.equals(userBuilding.getStatus())) {
             throw ApiException.conflict("BUSY", "Building is under construction");
         }
-        if (ub.getCurrentLevel() >= 1) {
+        if (userBuilding.getCurrentLevel() >= 1) {
             throw ApiException.conflict(
                     "ALREADY_BUILT", "Building already built; upgrades need an exam (VS4/VS5)");
         }
-        BuildingLevel lv1 = levels.findById(new BuildingLevelId(building.getId(), 1))
+        BuildingLevel levelOne = levels.findById(new BuildingLevelId(building.getId(), 1))
                 .orElseThrow(() -> ApiException.conflict(
                         "NO_CONTENT", "No level 1 config for " + code));
         List<Long> words = content.vocabularyIdsOf(building.getId(), 1);
         long collected = words.isEmpty() ? 0
                 : progress.countByUserIdAndVocabularyIdInAndCollectedAtIsNotNull(userId, words);
-        long missingWords = Math.max(0, lv1.getRequiredCollected() - collected);
-        long missingKp = Math.max(0, lv1.getKnowledgeCost() - profile.getKnowledgePoints());
+        long missingWords = Math.max(0, levelOne.getRequiredCollected() - collected);
+        long missingKp = Math.max(0, levelOne.getKnowledgeCost() - profile.getKnowledgePoints());
         if (missingWords > 0 || missingKp > 0) {
             Map<String, Object> details = new LinkedHashMap<>();
             details.put("collected", collected);
-            details.put("requiredCollected", lv1.getRequiredCollected());
+            details.put("requiredCollected", levelOne.getRequiredCollected());
             details.put("missingCollected", missingWords);
             details.put("knowledgePoints", profile.getKnowledgePoints());
-            details.put("requiredKnowledge", lv1.getKnowledgeCost());
+            details.put("requiredKnowledge", levelOne.getKnowledgeCost());
             details.put("missingKnowledge", missingKp);
             throw new ApiException(
                     HttpStatus.CONFLICT, "REQUIREMENTS_NOT_MET", "Requirements not met", details);
         }
 
-        profile.setKnowledgePoints(profile.getKnowledgePoints() - lv1.getKnowledgeCost());
+        profile.setKnowledgePoints(profile.getKnowledgePoints() - levelOne.getKnowledgeCost());
         users.save(profile);
-        ub.setUnlocked(true);
-        ub.setStatus(UserBuilding.UPGRADING);
-        ub.setTargetLevel(1);
-        ub.setStartedAt(now);
-        ub.setFinishAt(now.plusSeconds(lv1.getConstructionTime()));
-        userBuildings.save(ub);
+        userBuilding.setUnlocked(true);
+        userBuilding.setStatus(UserBuilding.UPGRADING);
+        userBuilding.setTargetLevel(1);
+        userBuilding.setStartedAt(now);
+        userBuilding.setFinishAt(now.plusSeconds(levelOne.getConstructionTime()));
+        userBuildings.save(userBuilding);
         return new BuildResultDto(
-                toDto(ub, building), Times.toInstant(now), ResourcesDto.of(profile));
+                toDto(userBuilding, building), Times.toInstant(now), ResourcesDto.of(profile));
     }
 
     private Map<Long, UserBuilding> ensureRows(UUID userId, List<Building> wanted) {
         Map<Long, UserBuilding> rows = userBuildings.findByUserId(userId).stream()
                 .collect(Collectors.toMap(UserBuilding::getBuildingId, Function.identity()));
-        for (Building b : wanted) {
-            rows.computeIfAbsent(b.getId(), id -> {
-                UserBuilding ub = new UserBuilding();
-                ub.setUserId(userId);
-                ub.setBuildingId(id);
-                return userBuildings.save(ub);
+        for (Building building : wanted) {
+            rows.computeIfAbsent(building.getId(), id -> {
+                UserBuilding userBuilding = new UserBuilding();
+                userBuilding.setUserId(userId);
+                userBuilding.setBuildingId(id);
+                return userBuildings.save(userBuilding);
             });
         }
         return rows;
     }
 
     /** Lazy completion (§7.2.8): công trình UPGRADING có finish_at ≤ now thì hoàn tất. */
-    private void completeIfDue(UserBuilding ub, LocalDateTime now) {
-        if (UserBuilding.UPGRADING.equals(ub.getStatus()) && ub.getFinishAt() != null
-                && !ub.getFinishAt().isAfter(now)) {
-            ub.setCurrentLevel(ub.getTargetLevel());
-            ub.setTargetLevel(null);
-            ub.setStatus(UserBuilding.IDLE);
-            ub.setStartedAt(null);
-            ub.setFinishAt(null);
-            userBuildings.save(ub);
+    private void completeIfDue(UserBuilding userBuilding, LocalDateTime now) {
+        if (UserBuilding.UPGRADING.equals(userBuilding.getStatus())
+                && userBuilding.getFinishAt() != null
+                && !userBuilding.getFinishAt().isAfter(now)) {
+            userBuilding.setCurrentLevel(userBuilding.getTargetLevel());
+            userBuilding.setTargetLevel(null);
+            userBuilding.setStatus(UserBuilding.IDLE);
+            userBuilding.setStartedAt(null);
+            userBuilding.setFinishAt(null);
+            userBuildings.save(userBuilding);
         }
     }
 
-    private BuildingStateDto toDto(UserBuilding ub, Building b) {
+    private BuildingStateDto toDto(UserBuilding userBuilding, Building building) {
         return new BuildingStateDto(
-                b.getId(),
-                b.getCode(),
-                ub.getCurrentLevel(),
-                ub.getTargetLevel(),
-                b.getMaxLevel(),
-                ub.getStatus(),
-                Times.toInstant(ub.getStartedAt()),
-                Times.toInstant(ub.getFinishAt()));
+                building.getId(),
+                building.getCode(),
+                userBuilding.getCurrentLevel(),
+                userBuilding.getTargetLevel(),
+                building.getMaxLevel(),
+                userBuilding.getStatus(),
+                Times.toInstant(userBuilding.getStartedAt()),
+                Times.toInstant(userBuilding.getFinishAt()));
     }
 }

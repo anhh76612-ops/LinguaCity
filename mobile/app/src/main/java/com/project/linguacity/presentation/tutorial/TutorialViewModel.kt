@@ -98,11 +98,11 @@ class TutorialViewModel @Inject constructor(
                     )
                 }
             }.collect { script ->
-                _state.update { s ->
-                    if (s.script?.id == script?.id) {  // giữ câu đang đọc
-                        s.copy(script = script)
+                _state.update { current ->
+                    if (current.script?.id == script?.id) {  // giữ câu đang đọc
+                        current.copy(script = script)
                     }
-                    else s.copy(script = script, lineIndex = 0, busy = false)
+                    else current.copy(script = script, lineIndex = 0, busy = false)
                 }
             }
         }

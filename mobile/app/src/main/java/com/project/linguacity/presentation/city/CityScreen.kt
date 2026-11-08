@@ -151,11 +151,19 @@ fun CityScreen(
             Modifier.align(Alignment.TopStart).statusBarsPadding().padding(12.dp).fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            val p = state.profile
-            AssistChip(onClick = onOpenProfile, label = { Text("💡 ${p?.knowledgePoints ?: 0} KP") },
+            val profile = state.profile
+            AssistChip(onClick = onOpenProfile, label = {
+                Text("💡 ${profile?.knowledgePoints ?: 0} KP")
+            },
                 modifier = Modifier.spotlightTarget(SpotKeys.KP))
-            AssistChip(onClick = onOpenProfile, label = { Text("⏳ ${p?.hourglassCount ?: 0}") })
-            AssistChip(onClick = onOpenProfile, label = { Text("🧩 ${p?.blueprintShards ?: 0}") })
+            AssistChip(
+                onClick = onOpenProfile,
+                label = { Text("⏳ ${profile?.hourglassCount ?: 0}") }
+            )
+            AssistChip(
+                onClick = onOpenProfile,
+                label = { Text("🧩 ${profile?.blueprintShards ?: 0}") }
+            )
             state.equippedTitleName?.let {
                 AssistChip(onClick = onOpenAchievements, label = { Text("🏅 $it") })
             }

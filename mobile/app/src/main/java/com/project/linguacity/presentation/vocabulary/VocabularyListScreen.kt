@@ -80,9 +80,9 @@ fun VocabularyListScreen(
                             Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            val p = state.progress[word.id]
+                            val wordProgress = state.progress[word.id]
                             Text(
-                                if (p?.collected == true) "✅" else "⬜",
+                                if (wordProgress?.collected == true) "✅" else "⬜",
                                 modifier = Modifier.padding(end = 12.dp)
                             )
                             Column(Modifier.weight(1f)) {
@@ -92,18 +92,20 @@ fun VocabularyListScreen(
                                     fontWeight = FontWeight.SemiBold
                                 )
                                 Text(word.meaning, style = MaterialTheme.typography.bodyMedium)
-                                if (p != null) {
+                                if (wordProgress != null) {
                                     LinearProgressIndicator(
-                                        progress = { p.mastery.toFloat() / p.maxMastery },
+                                        progress = {
+                                            wordProgress.mastery.toFloat() / wordProgress.maxMastery
+                                        },
                                         modifier = Modifier.fillMaxWidth(0.6f).padding(top = 6.dp)
                                     )
                                 }
                             }
                             Column(horizontalAlignment = Alignment.End) {
                                 Text(word.ipa ?: "", style = MaterialTheme.typography.bodySmall)
-                                if (p != null) {
+                                if (wordProgress != null) {
                                     Text(
-                                        "${p.mastery}/${p.maxMastery}",
+                                        "${wordProgress.mastery}/${wordProgress.maxMastery}",
                                         style = MaterialTheme.typography.labelSmall
                                     )
                                 }

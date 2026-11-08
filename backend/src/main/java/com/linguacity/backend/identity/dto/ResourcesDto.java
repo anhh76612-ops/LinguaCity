@@ -5,8 +5,10 @@ import com.linguacity.backend.identity.entity.UserProfile;
 /** Tài nguyên hiện tại của người chơi — trả kèm sau mỗi thao tác cộng/trừ để app cập nhật HUD. */
 public record ResourcesDto(int knowledgePoints, int hourglassCount, int blueprintShards) {
 
-    public static ResourcesDto of(UserProfile p) {
+    public static ResourcesDto of(UserProfile profile) {
         return new ResourcesDto(
-                p.getKnowledgePoints(), p.getHourglassCount(), p.getBlueprintShards());
+                profile.getKnowledgePoints(),
+                profile.getHourglassCount(),
+                profile.getBlueprintShards());
     }
 }

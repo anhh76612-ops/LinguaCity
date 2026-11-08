@@ -30,8 +30,10 @@ class SettingsViewModel @Inject constructor(private val store: SettingsStore) : 
         SharingStarted.Eagerly,
         AppSettings()
     )
-    fun orientation(v: OrientationSetting) = viewModelScope.launch { store.setOrientation(v) }
-    fun reduceMotion(v: Boolean) = viewModelScope.launch { store.setReduceMotion(v) }
+    fun orientation(setting: OrientationSetting) = viewModelScope.launch {
+        store.setOrientation(setting)
+    }
+    fun reduceMotion(enabled: Boolean) = viewModelScope.launch { store.setReduceMotion(enabled) }
     fun replayTour() = viewModelScope.launch { store.setReplayTour(true) }
 }
 
@@ -42,7 +44,7 @@ fun SettingsScreen(
     onReplayTour: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
-    val s by viewModel.settings.collectAsState()
+    val settings by viewModel.settings.collectAsState()
     Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)) {
         TextButton(onClick = onBack) { Text("‹ Thành phố") }
@@ -53,12 +55,12 @@ fun SettingsScreen(
                 Text("Xoay màn hình", style = MaterialTheme.typography.titleMedium)
                 OrientationSetting.entries.forEach { o ->
                     Row(Modifier.fillMaxWidth().selectable(
-                        selected = s.orientation == o,
+                        selected = settings.orientation == o,
                         onClick = { viewModel.orientation(o) }
                     )
                         .padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
                         RadioButton(
-                            selected = s.orientation == o,
+                            selected = settings.orientation == o,
                             onClick = { viewModel.orientation(o) }
                         )
                         Text(o.label)
@@ -75,7 +77,7 @@ fun SettingsScreen(
                         style = MaterialTheme.typography.bodySmall
                     )
                 }
-                Switch(checked = s.reduceMotion, onCheckedChange = viewModel::reduceMotion)
+                Switch(checked = settings.reduceMotion, onCheckedChange = viewModel::reduceMotion)
             }
         }
         Card(Modifier.fillMaxWidth().staggeredAppear(2)) {

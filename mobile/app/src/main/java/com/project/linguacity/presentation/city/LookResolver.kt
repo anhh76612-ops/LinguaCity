@@ -15,8 +15,8 @@ object LookResolver {
 
     fun avatar(config: AvatarConfig, catalog: List<CosmeticItem>): AvatarLook {
         val byCode = catalog.associateBy { it.code }
-        fun asset(code: String, c: CosmeticCategory, fallback: String) =
-            byCode[code]?.takeIf { it.category == c }?.assetKey ?: fallback
+        fun asset(code: String, category: CosmeticCategory, fallback: String) =
+            byCode[code]?.takeIf { it.category == category }?.assetKey ?: fallback
         val d = AvatarLook.DEFAULT
         return AvatarLook(
             skin = asset(config.skin, CosmeticCategory.SKIN, d.skin),

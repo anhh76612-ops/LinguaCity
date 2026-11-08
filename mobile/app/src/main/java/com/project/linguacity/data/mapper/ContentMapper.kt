@@ -50,8 +50,8 @@ fun CoreDto.toRows() = CoreRows(
     buildings = buildings.map {
         BuildingEntity(it.id, it.code, it.name, it.maxLevel, it.sortOrder)
     },
-    buildingThemes = buildings.flatMap { b -> b.themeCodes.map {
-        BuildingThemeEntity(b.code, it)
+    buildingThemes = buildings.flatMap { building -> building.themeCodes.map {
+        BuildingThemeEntity(building.code, it)
     } },
     buildingLevels = buildingLevels.map {
         BuildingLevelEntity(

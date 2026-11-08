@@ -69,11 +69,11 @@ class CityViewModel @Inject constructor(
         }
         // M8: ngoại hình + kiểu nhà (mã cosmetic trong Room) → giá trị để vẽ cho bản đồ
         viewModelScope.launch {
-            cosmetics.observe().collect { c ->
+            cosmetics.observe().collect { cosmeticState ->
                 _state.update {
                     it.copy(
-                        avatar = LookResolver.avatar(c.avatar, c.items),
-                        house = LookResolver.house(c.house, c.items)
+                        avatar = LookResolver.avatar(cosmeticState.avatar, cosmeticState.items),
+                        house = LookResolver.house(cosmeticState.house, cosmeticState.items)
                     )
                 }
             }
@@ -94,10 +94,10 @@ class CityViewModel @Inject constructor(
         viewModelScope.launch {
             while (isActive) {
                 delay(TICK_MILLIS)
-                val st = _state.value
-                if (st.city.buildings.any { it.isUpgrading }) {
+                val current = _state.value
+                if (current.city.buildings.any { it.isUpgrading }) {
                     _state.update { it.copy(deviceNowMillis = System.currentTimeMillis()) }
-                    val due = st.render.buildings.any { it.upgrading && it.progress >= 1f }
+                    val due = current.render.buildings.any { it.upgrading && it.progress >= 1f }
                     if (due
                         && System.currentTimeMillis() - lastRefreshMillis > REFRESH_GAP_MILLIS) {
                         refreshQuietly()

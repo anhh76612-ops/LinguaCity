@@ -56,38 +56,38 @@ class LearningRepositoryImpl @Inject constructor(
         itemNo: Int,
         answer: String
     ): AnswerFeedback = call {
-        val r = api.answer(guest(), sessionId, itemNo, AnswerRequestDto(answer))
-        val before = playerDao.progress(r.vocabularyId)
+        val result = api.answer(guest(), sessionId, itemNo, AnswerRequestDto(answer))
+        val before = playerDao.progress(result.vocabularyId)
         playerDao.upsertProgress(
             listOf(
                 UserVocabProgressEntity(
-                    vocabularyId = r.vocabularyId,
-                    masteryScore = r.masteryAfter,
-                    maxMastery = r.maxMastery,
-                    collected = (before?.collected == true) || r.collectedNow,
+                    vocabularyId = result.vocabularyId,
+                    masteryScore = result.masteryAfter,
+                    maxMastery = result.maxMastery,
+                    collected = (before?.collected == true) || result.collectedNow,
                     lastReviewedAtMillis = System.currentTimeMillis()
                 )
             )
         )
-        r.toDomain()
+        result.toDomain()
     }
 
     override suspend fun complete(sessionId: String): LessonResult = call {
-        val r = api.complete(guest(), sessionId)
+        val result = api.complete(guest(), sessionId)
         val id = guest()
         profiles.getById(id)?.let {
             profiles.upsert(
                 it.copy(
-                    knowledgePoints = r.profile.knowledgePoints,
-                    hourglassCount = r.profile.hourglassCount,
-                    blueprintShards = r.profile.blueprintShards,
-                    tutorialStep = r.tutorialStep
+                    knowledgePoints = result.profile.knowledgePoints,
+                    hourglassCount = result.profile.hourglassCount,
+                    blueprintShards = result.profile.blueprintShards,
+                    tutorialStep = result.tutorialStep
                 )
             )
         }
         val now = System.currentTimeMillis()
-        playerDao.upsertEarned(r.newAchievements.map { UserAchievementEntity(it, now) })
-        r.toDomain()
+        playerDao.upsertEarned(result.newAchievements.map { UserAchievementEntity(it, now) })
+        result.toDomain()
     }
 
     override suspend fun refreshProgress() {

@@ -242,54 +242,64 @@ private fun FeedbackPanel(fb: AnswerFeedback, maiLine: String?, last: Boolean, o
 }
 
 @Composable
-private fun ResultView(r: LessonResult, achievementNames: List<String>, onExit: () -> Unit) {
+private fun ResultView(result: LessonResult, achievementNames: List<String>, onExit: () -> Unit) {
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(14.dp)) {
         Spacer(Modifier.height(24.dp))
-        Text(if (r.placement) "Kết quả kiểm tra trình độ" else "Kết quả bài học",
+        Text(if (result.placement) "Kết quả kiểm tra trình độ" else "Kết quả bài học",
             style = MaterialTheme.typography.titleLarge,
             modifier = Modifier.staggeredAppear(0))
-        Text("${r.correct}/${r.total}", style = MaterialTheme.typography.displayMedium,
+        Text("${result.correct}/${result.total}", style = MaterialTheme.typography.displayMedium,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.staggeredAppear(1, stepMillis = 90))
-        Text("Mai: ${MaiLines.forResult(r.correct, r.total)}", textAlign = TextAlign.Center,
+        Text("Mai: ${MaiLines.forResult(result.correct, result.total)}",
+            textAlign = TextAlign.Center,
             modifier = Modifier.staggeredAppear(2, stepMillis = 90))
         Card(Modifier.fillMaxWidth().staggeredAppear(3, stepMillis = 90)) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(
-                    "+${r.kpAwarded} Điểm Tri Thức (KP)",
+                    "+${result.kpAwarded} Điểm Tri Thức (KP)",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold
                 )
-                if (r.kpBase != null && r.kpBonus != null) {
-                    val bonusLabel = if (r.placement) "quà chào mừng" else "thưởng"
+                if (result.kpBase != null && result.kpBonus != null) {
+                    val bonusLabel = if (result.placement) "quà chào mừng" else "thưởng"
                     Text(
-                        "${r.kpBase} + ${r.kpBonus} $bonusLabel",
+                        "${result.kpBase} + ${result.kpBonus} $bonusLabel",
                         style = MaterialTheme.typography.bodySmall
                     )
                 }
-                if ((r.dailyMultiplier ?: 1.0) < 1.0) {
+                if ((result.dailyMultiplier ?: 1.0) < 1.0) {
                     Text(
-                        "Bài thứ ${r.dailySessionIndex} hôm nay: KP còn ×${r.dailyMultiplier}. " +
+                        "Bài thứ ${result.dailySessionIndex} hôm nay: " +
+                            "KP còn ×${result.dailyMultiplier}. " +
                             "Mai vẫn ghi nhận Mastery đầy đủ nhé!",
                         style = MaterialTheme.typography.bodySmall
                     )
                 }
-                Text("Tổng: ${r.knowledgePoints} KP", style = MaterialTheme.typography.bodySmall)
+                Text(
+                    "Tổng: ${result.knowledgePoints} KP",
+                    style = MaterialTheme.typography.bodySmall
+                )
             }
         }
         Card(Modifier.fillMaxWidth().staggeredAppear(4, stepMillis = 90)) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                val collectedText = "${result.collected}/${result.collectionTotal}"
                 Text(
-                    "Bộ sưu tầm Level ${r.collectionLevel}: ${r.collected}/${r.collectionTotal} " +
-                    "thẻ",
+                    "Bộ sưu tầm Level ${result.collectionLevel}: $collectedText thẻ",
                     fontWeight = FontWeight.SemiBold
                 )
-                LinearProgressIndicator(progress = {
-                    if (r.collectionTotal == 0) 0f else r.collected.toFloat() / r.collectionTotal
-                },
-                    modifier = Modifier.fillMaxWidth())
+                val collectedRatio = if (result.collectionTotal == 0) {
+                    0f
+                } else {
+                    result.collected.toFloat() / result.collectionTotal
+                }
+                LinearProgressIndicator(
+                    progress = { collectedRatio },
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
         }
         if (achievementNames.isNotEmpty()) {

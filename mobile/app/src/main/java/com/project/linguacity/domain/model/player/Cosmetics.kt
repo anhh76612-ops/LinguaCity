@@ -33,7 +33,7 @@ data class AvatarConfig(
     val pantsColor: String,
     val accessory: String
 ) {
-    fun codeOf(c: CosmeticCategory): String? = when (c) {
+    fun codeOf(category: CosmeticCategory): String? = when (category) {
         CosmeticCategory.SKIN -> skin
         CosmeticCategory.HAIR_STYLE -> hairStyle
         CosmeticCategory.HAIR_COLOR -> hairColor
@@ -43,7 +43,7 @@ data class AvatarConfig(
         else -> null
     }
 
-    fun with(c: CosmeticCategory, code: String): AvatarConfig = when (c) {
+    fun with(category: CosmeticCategory, code: String): AvatarConfig = when (category) {
         CosmeticCategory.SKIN -> copy(skin = code)
         CosmeticCategory.HAIR_STYLE -> copy(hairStyle = code)
         CosmeticCategory.HAIR_COLOR -> copy(hairColor = code)
@@ -67,13 +67,13 @@ data class AvatarConfig(
 }
 
 data class HouseStyleConfig(val wall: String, val floor: String) {
-    fun codeOf(c: CosmeticCategory): String? = when (c) {
+    fun codeOf(category: CosmeticCategory): String? = when (category) {
         CosmeticCategory.WALL -> wall
         CosmeticCategory.FLOOR -> floor
         else -> null
     }
 
-    fun with(c: CosmeticCategory, code: String): HouseStyleConfig = when (c) {
+    fun with(category: CosmeticCategory, code: String): HouseStyleConfig = when (category) {
         CosmeticCategory.WALL -> copy(wall = code)
         CosmeticCategory.FLOOR -> copy(floor = code)
         else -> this

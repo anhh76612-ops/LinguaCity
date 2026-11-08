@@ -92,29 +92,33 @@ class LessonViewModel @Inject constructor(
     private fun start() {
         _state.update { it.copy(loading = true, problem = null) }
         launchGuarded(retry = { start() }) {
-            val s = if (placement) learning.startPlacement() else learning.startLesson(buildingCode)
-            val correct = s.items.count { it.isCorrect == true }
+            val startedSession = if (placement) {
+                learning.startPlacement()
+            } else {
+                learning.startLesson(buildingCode)
+            }
+            val correct = startedSession.items.count { it.isCorrect == true }
             _state.update {
                 it.copy(
                     loading = false,
-                    session = s,
-                    index = s.firstOpenIndex,
+                    session = startedSession,
+                    index = startedSession.firstOpenIndex,
                     correctSoFar = correct
                 )
             }
-            if (s.firstOpenIndex >= s.items.size) {
+            if (startedSession.firstOpenIndex >= startedSession.items.size) {
                 complete()
             }
         }
     }
 
     private fun submit(answer: String) {
-        val st = _state.value
-        val item = st.current ?: return
-        if (st.submitting || st.feedback != null || answer.isBlank()) {
+        val current = _state.value
+        val item = current.current ?: return
+        if (current.submitting || current.feedback != null || answer.isBlank()) {
             return
         }
-        val session = st.session ?: return
+        val session = current.session ?: return
         _state.update { it.copy(submitting = true, chosen = answer) }
         launchGuarded(retry = { submit(answer) }) {
             try {
@@ -152,9 +156,9 @@ class LessonViewModel @Inject constructor(
     }
 
     private fun next() {
-        val st = _state.value
-        val total = st.session?.items?.size ?: return
-        val nextIndex = st.index + 1
+        val current = _state.value
+        val total = current.session?.items?.size ?: return
+        val nextIndex = current.index + 1
         _state.update {
             it.copy(index = nextIndex, feedback = null, maiLine = null, input = "", chosen = null)
         }

@@ -76,7 +76,7 @@ public class CosmeticService {
     /** Mua món KP. 404 mã lạ · 409 NOT_PURCHASABLE / ALREADY_UNLOCKED / INSUFFICIENT_KP. */
     @Transactional
     public CosmeticsDto unlock(UUID userId, String code) {
-        UserProfile p = profile(userId);
+        UserProfile userProfile = profile(userId);
         CosmeticItem item = items.findById(code)
                 .orElseThrow(() -> ApiException.notFound(
                         "COSMETIC_NOT_FOUND", "Unknown cosmetic: " + code));
@@ -87,18 +87,18 @@ public class CosmeticService {
         if (owned.existsById(id)) {
             throw ApiException.conflict("ALREADY_UNLOCKED", "Cosmetic already unlocked: " + code);
         }
-        int missing = item.getPriceKp() - p.getKnowledgePoints();
+        int missing = item.getPriceKp() - userProfile.getKnowledgePoints();
         if (missing > 0) {
             throw new ApiException(HttpStatus.CONFLICT, "INSUFFICIENT_KP", "Not enough KP",
                     Map.of("priceKp", item.getPriceKp(), "missingKnowledge", missing));
         }
         // @Version trên user_profiles: hai lần mua song song không trừ KP chồng nhau (FR-SYS-05)
-        p.setKnowledgePoints(p.getKnowledgePoints() - item.getPriceKp());
+        userProfile.setKnowledgePoints(userProfile.getKnowledgePoints() - item.getPriceKp());
         UserCosmetic uc = new UserCosmetic();
         uc.setId(id);
         uc.setUnlockedAt(Times.nowUtc(clock));
         owned.save(uc);
-        return toDto(users.save(p));
+        return toDto(users.save(userProfile));
     }
 
     /**
@@ -107,7 +107,7 @@ public class CosmeticService {
      */
     @Transactional
     public CosmeticsDto setAvatar(UUID userId, AvatarConfig body) {
-        UserProfile p = profile(userId);
+        UserProfile userProfile = profile(userId);
         if (body == null) {
             throw invalidBody();
         }
@@ -119,13 +119,13 @@ public class CosmeticService {
         check(byCode, unlocked, "shirtColor", body.shirtColor(), "SHIRT_COLOR");
         check(byCode, unlocked, "pantsColor", body.pantsColor(), "PANTS_COLOR");
         check(byCode, unlocked, "accessory", body.accessory(), "ACCESSORY");
-        p.setAvatarConfig(json.writeValueAsString(body));
-        return toDto(users.save(p));
+        userProfile.setAvatarConfig(json.writeValueAsString(body));
+        return toDto(users.save(userProfile));
     }
 
     @Transactional
     public CosmeticsDto setHouseStyle(UUID userId, HouseStyleConfig body) {
-        UserProfile p = profile(userId);
+        UserProfile userProfile = profile(userId);
         if (body == null) {
             throw invalidBody();
         }
@@ -133,17 +133,17 @@ public class CosmeticService {
         Map<String, CosmeticItem> byCode = byCode();
         check(byCode, unlocked, "wall", body.wall(), "WALL");
         check(byCode, unlocked, "floor", body.floor(), "FLOOR");
-        p.setHouseStyle(json.writeValueAsString(body));
-        return toDto(users.save(p));
+        userProfile.setHouseStyle(json.writeValueAsString(body));
+        return toDto(users.save(userProfile));
     }
 
     /** Cấu hình đã lưu, hoặc mặc định nếu chưa chọn / dữ liệu hỏng. */
-    public AvatarConfig avatarOf(UserProfile p) {
-        return read(p.getAvatarConfig(), AvatarConfig.class, AvatarConfig.DEFAULT);
+    public AvatarConfig avatarOf(UserProfile profile) {
+        return read(profile.getAvatarConfig(), AvatarConfig.class, AvatarConfig.DEFAULT);
     }
 
-    public HouseStyleConfig houseStyleOf(UserProfile p) {
-        return read(p.getHouseStyle(), HouseStyleConfig.class, HouseStyleConfig.DEFAULT);
+    public HouseStyleConfig houseStyleOf(UserProfile profile) {
+        return read(profile.getHouseStyle(), HouseStyleConfig.class, HouseStyleConfig.DEFAULT);
     }
 
     /** FREE + đã mua bằng KP + ACHIEVEMENT mà người chơi đã có danh hiệu. */
@@ -212,12 +212,12 @@ public class CosmeticService {
         }
     }
 
-    private CosmeticsDto toDto(UserProfile p) {
+    private CosmeticsDto toDto(UserProfile profile) {
         return new CosmeticsDto(
-                List.copyOf(unlockedCodes(p.getId())),
-                avatarOf(p),
-                houseStyleOf(p),
-                p.getKnowledgePoints());
+                List.copyOf(unlockedCodes(profile.getId())),
+                avatarOf(profile),
+                houseStyleOf(profile),
+                profile.getKnowledgePoints());
     }
 
     private UserProfile profile(UUID userId) {

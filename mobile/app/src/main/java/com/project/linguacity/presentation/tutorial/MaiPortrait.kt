@@ -140,12 +140,12 @@ private fun DrawScope.face(mood: MaiMood, cx: Float, w: Float, h: Float) {
         ),
             size = Size(w * 0.07f, h * 0.06f))
         MaiMood.HAPPY -> {
-            val p = Path().apply {
+            val path = Path().apply {
                 moveTo(cx - w * 0.08f, mouthY - h * 0.01f)
                 quadraticTo(cx, mouthY + h * 0.08f, cx + w * 0.08f, mouthY - h * 0.01f)
                 close()
             }
-            drawPath(p, Color(0xFFB34A4A))
+            drawPath(path, Color(0xFFB34A4A))
         }
         else -> drawArc(ink, 20f, 140f, false, topLeft = Offset(cx - w * 0.07f, mouthY - h * 0.05f),
             size = Size(w * 0.14f, h * 0.07f), style = stroke)

@@ -232,25 +232,26 @@ public class ContentService {
         }).toList();
     }
 
-    private VocabularyDto toDto(Vocabulary v, Map<Long, String> themeCode) {
+    private VocabularyDto toDto(Vocabulary vocabulary, Map<Long, String> themeCode) {
         return new VocabularyDto(
-                v.getId(),
-                v.getWord(),
-                v.getMeaning(),
-                v.getWordType(),
-                v.getIpa(),
-                stringList(v.getExamples()),
-                v.getImageUrl(),
-                themeCode.get(v.getThemeId()),
-                v.getLevel(),
-                v.getDifficultyRank());
+                vocabulary.getId(),
+                vocabulary.getWord(),
+                vocabulary.getMeaning(),
+                vocabulary.getWordType(),
+                vocabulary.getIpa(),
+                stringList(vocabulary.getExamples()),
+                vocabulary.getImageUrl(),
+                themeCode.get(vocabulary.getThemeId()),
+                vocabulary.getLevel(),
+                vocabulary.getDifficultyRank());
     }
 
     /** Cố ý không đọc answer / acceptedAnswers / explanation (NFR-01). */
-    private QuestionDto toDto(Question q) {
-        return new QuestionDto(q.getId(), q.getContentType(), q.getSkill(), q.getQuestionType(),
-                q.getTier(),
-                q.getQuestionText(), q.getAudioUrl(), node(q.getMetadata()));
+    private QuestionDto toDto(Question question) {
+        return new QuestionDto(question.getId(), question.getContentType(), question.getSkill(),
+                question.getQuestionType(),
+                question.getTier(),
+                question.getQuestionText(), question.getAudioUrl(), node(question.getMetadata()));
     }
 
     private Map<Long, String> buildingCodes() {

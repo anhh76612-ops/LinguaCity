@@ -140,10 +140,10 @@ fun CustomizeScreen(onBack: () -> Unit, viewModel: CustomizeViewModel = hiltView
                     Text("Chưa có danh mục tuỳ biến. Kết nối mạng để tải nội dung mới nhé.",
                         style = MaterialTheme.typography.bodyMedium)
                 }
-                categories.forEach { c ->
-                    val items = state.itemsOf(c)
+                categories.forEach { category ->
+                    val items = state.itemsOf(category)
                     if (items.isNotEmpty()) {
-                        CategoryRow(c, items, state, viewModel::pick)
+                        CategoryRow(category, items, state, viewModel::pick)
                     }
                 }
             }

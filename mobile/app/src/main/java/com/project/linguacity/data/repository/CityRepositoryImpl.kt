@@ -59,10 +59,10 @@ class CityRepositoryImpl @Inject constructor(
     }
 
     override suspend fun build(code: BuildingCode): BuildOutcome = try {
-        val r = api.build(guestIdStore.getOrCreateGuestUuid(), code.name)
-        measureOffset(r.serverTime)
-        dao.upsertBuildings(listOf(r.building.toEntity()))
-        updateProfile { it.copy(knowledgePoints = r.profile.knowledgePoints) }
+        val result = api.build(guestIdStore.getOrCreateGuestUuid(), code.name)
+        measureOffset(result.serverTime)
+        dao.upsertBuildings(listOf(result.building.toEntity()))
+        updateProfile { it.copy(knowledgePoints = result.profile.knowledgePoints) }
         BuildOutcome.Started
     } catch (e: CancellationException) {
         throw e

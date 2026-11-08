@@ -66,11 +66,11 @@ object ComposeCityRenderer : CityRenderer {
             }
             state.buildings.chunked(2).forEach { row ->
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    row.forEach { b ->
+                    row.forEach { building ->
                         BuildingTile(
-                            b,
+                            building,
                             Modifier.weight(1f)
-                        ) { onIntent(CityMapIntent.BuildingTapped(b.code)) }
+                        ) { onIntent(CityMapIntent.BuildingTapped(building.code)) }
                     }
                 }
             }
@@ -78,18 +78,18 @@ object ComposeCityRenderer : CityRenderer {
     }
 
     @Composable
-    private fun BuildingTile(b: BuildingView, modifier: Modifier, onClick: () -> Unit) {
+    private fun BuildingTile(building: BuildingView, modifier: Modifier, onClick: () -> Unit) {
         Card(modifier = modifier.aspectRatio(1f).clickable(onClick = onClick)) {
             Column(
                 modifier = Modifier.fillMaxWidth().padding(12.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(b.code.icon, style = MaterialTheme.typography.displayMedium)
-                Text(b.code.displayName, style = MaterialTheme.typography.titleMedium)
-                Text(if (b.isBuilt) "Lv ${b.level}" else "Chưa xây")
-                if (b.upgrading) {
+                Text(building.code.icon, style = MaterialTheme.typography.displayMedium)
+                Text(building.code.displayName, style = MaterialTheme.typography.titleMedium)
+                Text(if (building.isBuilt) "Lv ${building.level}" else "Chưa xây")
+                if (building.upgrading) {
                     LinearProgressIndicator(
-                        progress = { b.progress },
+                        progress = { building.progress },
                         modifier = Modifier.fillMaxWidth()
                     )
                 }

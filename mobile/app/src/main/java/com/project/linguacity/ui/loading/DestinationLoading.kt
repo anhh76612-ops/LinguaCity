@@ -95,7 +95,7 @@ private fun LoadingArt(kind: LoadingKind) {
         ),
         label = "t"
     )
-    val p = if (reduce) 0.5f else t
+    val phase = if (reduce) 0.5f else t
     val primary = MaterialTheme.colorScheme.primary
     val soft = MaterialTheme.colorScheme.primaryContainer
     when (kind) {
@@ -103,7 +103,7 @@ private fun LoadingArt(kind: LoadingKind) {
             // ba toà nhà mọc lên lần lượt
             val w = size.width / 4
             listOf(0.55f, 0.85f, 0.7f).forEachIndexed { i, hMax ->
-                val grow = ((p * 1.6f - i * 0.25f).coerceIn(0.15f, 1f))
+                val grow = ((phase * 1.6f - i * 0.25f).coerceIn(0.15f, 1f))
                 val h = size.height * hMax * grow
                 drawRoundRect(if (i == 1) primary else soft, Offset(
                     w * 0.4f + i * w * 1.1f,
@@ -115,7 +115,7 @@ private fun LoadingArt(kind: LoadingKind) {
         LoadingKind.CARDS -> Canvas(Modifier.size(110.dp)) {
             // chồng thẻ xoè ra
             for (i in 0..2) {
-                rotate((i - 1) * 18f * p, Offset(size.width / 2, size.height * 0.9f)) {
+                rotate((i - 1) * 18f * phase, Offset(size.width / 2, size.height * 0.9f)) {
                     drawRoundRect(if (i == 1) primary else soft, Offset(
                         size.width * 0.3f,
                         size.height * 0.15f
@@ -125,9 +125,9 @@ private fun LoadingArt(kind: LoadingKind) {
             }
         }
         LoadingKind.MEDAL -> Text("🏅", style = MaterialTheme.typography.displayLarge,
-            modifier = Modifier.graphicsLayer { rotationY = 360f * p })
+            modifier = Modifier.graphicsLayer { rotationY = 360f * phase })
         LoadingKind.PROFILE -> Canvas(Modifier.size(100.dp)) {
-            drawCircle(soft.copy(alpha = 0.4f + 0.6f * p))
+            drawCircle(soft.copy(alpha = 0.4f + 0.6f * phase))
             drawCircle(
                 primary,
                 radius = size.minDimension * 0.18f,
@@ -144,9 +144,9 @@ private fun LoadingArt(kind: LoadingKind) {
             "📖",
             style = MaterialTheme.typography.displayLarge,
             modifier = Modifier.graphicsLayer {
-                translationY = -24f * p
-                scaleX = 0.9f + 0.1f * p
-                scaleY = 0.9f + 0.1f * p
+                translationY = -24f * phase
+                scaleX = 0.9f + 0.1f * phase
+                scaleY = 0.9f + 0.1f * phase
             }
         )
     }

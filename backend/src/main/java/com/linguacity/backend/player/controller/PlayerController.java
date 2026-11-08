@@ -20,6 +20,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeParseException;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -56,8 +57,8 @@ public class PlayerController {
 
     @GetMapping
     public PlayerDto me(@RequestHeader("X-Guest-UUID") UUID guest) {
-        UserProfile p = users.findById(guest).orElseThrow(UserProfileNotFoundException::new);
-        return toDto(p);
+        UserProfile profile = users.findById(guest).orElseThrow(UserProfileNotFoundException::new);
+        return toDto(profile);
     }
 
     @PutMapping("/tutorial/step")
@@ -86,12 +87,12 @@ public class PlayerController {
 
     @GetMapping("/achievements")
     public AchievementsDto achievements(@RequestHeader("X-Guest-UUID") UUID guest) {
-        UserProfile p = users.findById(guest).orElseThrow(UserProfileNotFoundException::new);
-        return new AchievementsDto(p.getEquippedAchievementCode(), achievements.earnedBy(guest)
-                .stream()
+        UserProfile profile = users.findById(guest).orElseThrow(UserProfileNotFoundException::new);
+        List<EarnedDto> earned = achievements.earnedBy(guest).stream()
                 .map(a -> new EarnedDto(
                         a.getId().getAchievementCode(), Times.toInstant(a.getEarnedAt())))
-                .toList());
+                .toList();
+        return new AchievementsDto(profile.getEquippedAchievementCode(), earned);
     }
 
     @PutMapping("/equipped-title")
@@ -100,13 +101,19 @@ public class PlayerController {
         return toDto(achievements.equip(guest, body.code()));
     }
 
-    private PlayerDto toDto(UserProfile p) {
-        long collected = progress.countByUserIdAndCollectedAtIsNotNull(p.getId());
-        int streak = achievements.streakDays(p.getId(), Times.nowUtc(clock));
-        return new PlayerDto(p.getId(), p.getKnowledgePoints(), p.getHourglassCount(),
-                p.getBlueprintShards(),
-                p.getTutorialStep(), p.isTutorialCompleted(), p.getEquippedAchievementCode(),
-                cosmetics.avatarOf(p), cosmetics.houseStyleOf(p),
+    private PlayerDto toDto(UserProfile profile) {
+        long collected = progress.countByUserIdAndCollectedAtIsNotNull(profile.getId());
+        int streak = achievements.streakDays(profile.getId(), Times.nowUtc(clock));
+        return new PlayerDto(
+                profile.getId(),
+                profile.getKnowledgePoints(),
+                profile.getHourglassCount(),
+                profile.getBlueprintShards(),
+                profile.getTutorialStep(),
+                profile.isTutorialCompleted(),
+                profile.getEquippedAchievementCode(),
+                cosmetics.avatarOf(profile),
+                cosmetics.houseStyleOf(profile),
                 new StatsDto(collected, streak));
     }
 }
