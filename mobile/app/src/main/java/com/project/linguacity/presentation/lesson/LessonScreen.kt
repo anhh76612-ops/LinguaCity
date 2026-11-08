@@ -26,6 +26,13 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import kotlinx.coroutines.delay
+import com.project.linguacity.presentation.characters.BoMood
+import com.project.linguacity.presentation.characters.BoPortrait
+import com.project.linguacity.presentation.characters.EchoMood
+import com.project.linguacity.presentation.characters.EchoPortrait
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -147,11 +154,24 @@ private fun ColumnScope.QuestionView(
             previousTier != item.question.tier)
     }
 
+    // S5: Echo canh ở bảng, Bơ ngồi cạnh đáp án. Chưa chọn sau 8 giây thì Echo ngáp, Bơ ra hiệu.
+    var idle by remember(state.index) { mutableStateOf(false) }
+    LaunchedEffect(state.index, state.feedback) {
+        idle = false
+        if (state.feedback == null) {
+            delay(8_000)
+            idle = true
+        }
+    }
+    val tutors = !session.placement
+
     Column(
         Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
+        if (tutors) EchoRow(state.feedback, idle && state.hint == null)
         QuestionBody(
+            hintedOption = state.hint?.option,
             item = item,
             chosen = state.chosen,
             input = state.input,
@@ -161,6 +181,9 @@ private fun ColumnScope.QuestionView(
             onInput = { text -> onIntent(LessonIntent.Input(text)) },
             onSubmit = { onIntent(LessonIntent.Submit) }
         )
+        if (tutors) {
+            BoRow(state, idle) { onIntent(LessonIntent.AskHint) }
+        }
     }
 
     AnimatedVisibility(
@@ -231,6 +254,8 @@ private fun PlacementTip(tier: Int, showMai: Boolean) {
 @Composable
 fun QuestionBody(
     item: LessonItem,
+    /** S5: phương án Bơ đang chỉ (viền vàng nét đứt), có thể nhầm. */
+    hintedOption: String? = null,
     chosen: String?,
     input: String,
     feedback: AnswerFeedback?,
@@ -279,7 +304,9 @@ fun QuestionBody(
 
     if (question.multipleChoice) {
         question.options.forEach { option ->
-            AnswerBrick(option, chosen, feedback, enabled) { onChoose(option) }
+            AnswerBrick(option, chosen, feedback, enabled, hinted = option == hintedOption) {
+                onChoose(option)
+            }
         }
         return
     }
@@ -320,6 +347,7 @@ private fun AnswerBrick(
     chosen: String?,
     feedback: AnswerFeedback?,
     enabled: Boolean,
+    hinted: Boolean = false,
     onClick: () -> Unit
 ) {
     val c = LinguaTheme.colors
@@ -353,6 +381,13 @@ private fun AnswerBrick(
         Modifier
             .fillMaxWidth()
             .graphicsLayer { translationX = shake.value * density }
+            .then(
+                if (hinted && feedback == null) {
+                    Modifier.border(3.dp, c.gold, RoundedCornerShape(18.dp)).padding(3.dp)
+                } else {
+                    Modifier
+                }
+            )
             .clay(face, edge, c.whiteGlow, c.clayShadow, if (isWrongPick) 3.dp else 5.dp, 16.dp, press = press)
             .clickable(
                 interactionSource = interaction, indication = null, enabled = enabled,
@@ -378,6 +413,78 @@ private fun AnswerBrick(
             isRight -> LinguaIcon(LinguaIcons.CheckRound, null, Modifier.size(24.dp))
             isWrongPick -> LinguaIcon(LinguaIcons.Hammer, null, Modifier.size(22.dp))
         }
+    }
+}
+
+/** S5: Giáo sư Echo cạnh bảng phấn, phản ứng theo kết quả. */
+@Composable
+private fun EchoRow(feedback: AnswerFeedback?, yawning: Boolean) {
+    val c = LinguaTheme.colors
+    val (mood, line) = when {
+        feedback?.isCorrect == true -> EchoMood.PLEASED to "Hừm, chấp nhận được."
+        feedback != null -> EchoMood.STERN to "Chưa đúng. Trò đọc kỹ lời giải thích."
+        yawning -> EchoMood.YAWN to "Haaa… (ngáp)"
+        else -> EchoMood.READ to "Trò đọc kỹ đề rồi hẵng chọn."
+    }
+    Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        EchoPortrait(mood, Modifier.size(72.dp), look = Offset(0.4f, 0.8f))
+        SpeechBubble("Echo", line)
+    }
+}
+
+/** S5: Gấu Bơ cạnh đáp án: nhắc bài (tối đa [MAX_HINTS] lần), mừng hoặc xin lỗi sau khi chấm. */
+@Composable
+private fun BoRow(state: LessonUiState, idle: Boolean, onAsk: () -> Unit) {
+    val hint = state.hint
+    val fb = state.feedback
+    val (mood, line) = when {
+        fb != null && hint?.kind == "POINT" && hint.option != fb.correctAnswer ->
+            BoMood.SORRY to "Ối… tại hạ nhìn nhầm. Xin lỗi huynh đài!"
+        fb?.isCorrect == true && hint != null -> BoMood.CHEER to "Thấy chưa! Tại hạ nhắc chuẩn mà!"
+        fb?.isCorrect == true -> BoMood.CHEER to "Huynh giỏi quá, khỏi cần tại hạ nhắc!"
+        fb != null -> BoMood.IDLE to "Không sao, tại hạ cũng hay sai câu này mà."
+        hint?.kind == "POINT" -> BoMood.HINT to "Psst… lão sư không để ý, ô \"${hint.option}\" đó!"
+        hint != null -> BoMood.HINT to buildString {
+            append("Psst… chữ đầu là \"${hint.letter.orEmpty()}\"")
+            hint.meaning?.let { append(", nghĩa là \"$it\"") }
+            append(".")
+        }
+        idle -> BoMood.HINT to "Lão sư ngáp rồi… huynh có cần tại hạ nhắc không?"
+        else -> BoMood.IDLE to "Hehe, tại hạ ngồi đây ăn bánh."
+    }
+    Row(
+        Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.Bottom,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            SpeechBubble("Bơ", line)
+            if (fb == null && hint == null && state.hintsLeft > 0) {
+                JellyButton(
+                    if (state.hinting) "Bơ đang nghĩ…" else "Nhờ Bơ (còn ${state.hintsLeft})",
+                    onAsk,
+                    variant = if (idle) JellyVariant.Gold else JellyVariant.Secondary,
+                    size = JellySize.Mini,
+                    enabled = !state.hinting
+                )
+            }
+        }
+        BoPortrait(mood, Modifier.size(80.dp), look = Offset(-0.3f, -0.7f))
+    }
+}
+
+@Composable
+private fun SpeechBubble(name: String, text: String) {
+    val c = LinguaTheme.colors
+    Column(
+        Modifier
+            .clip(RoundedCornerShape(16.dp))
+            .background(c.board)
+            .border(1.5.dp, c.line, RoundedCornerShape(16.dp))
+            .padding(horizontal = 12.dp, vertical = 8.dp)
+    ) {
+        Text(name, style = MaterialTheme.typography.labelMedium, color = c.woodDark)
+        Text(text, style = MaterialTheme.typography.bodyMedium, color = c.ink)
     }
 }
 

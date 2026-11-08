@@ -28,6 +28,14 @@ interface LearningApi {
         @Body body: AnswerRequestDto
     ): AnswerResultDto
 
+    /** S5: gợi ý của Bơ. */
+    @POST("api/v1/learning/sessions/{id}/items/{itemNo}/hint")
+    suspend fun hint(
+        @Header("X-Guest-UUID") guest: String,
+        @Path("id") id: String,
+        @Path("itemNo") itemNo: Int
+    ): HintDto
+
     @POST("api/v1/learning/sessions/{id}/complete")
     suspend fun complete(
         @Header("X-Guest-UUID") guest: String,
@@ -43,6 +51,14 @@ data class StartSessionRequestDto(val buildingCode: String)
 
 @Serializable
 data class AnswerRequestDto(val answer: String)
+
+@Serializable
+data class HintDto(
+    val kind: String,
+    val option: String? = null,
+    val letter: String? = null,
+    val meaning: String? = null
+)
 
 /** Câu hỏi để hiển thị — server KHÔNG gửi đáp án trước khi nộp (NFR-01). */
 @Serializable

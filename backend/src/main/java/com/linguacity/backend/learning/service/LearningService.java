@@ -220,6 +220,50 @@ public class LearningService {
         return factory.toDto(session, Times.nowUtc(clock));
     }
 
+    /** Bơ chỉ đúng với xác suất này (S5, character bible: "thiên tài cẩu thả"). */
+    static final double HINT_POINT_ACCURACY = 0.75;
+
+    /**
+     * S5: gợi ý của Bơ. Không dùng được trong bài kiểm tra trình độ. Trắc nghiệm: chỉ vào một
+     * phương án (đúng với xác suất {@link #HINT_POINT_ACCURACY}); điền từ: hé chữ cái đầu và nghĩa.
+     * Không lộ đáp án trước khi hỏi: chỉ trả về khi người chơi chủ động xin gợi ý.
+     */
+    @Transactional(readOnly = true)
+    public com.linguacity.backend.learning.dto.LearningDtos.HintDto hint(
+            UUID userId, UUID sessionId, int itemNo) {
+        LearningSession session = own(userId, sessionId);
+        ensureOpen(session, Times.nowUtc(clock));
+        if (session.getType() == SessionType.PLACEMENT) {
+            throw ApiException.conflict("HINT_NOT_ALLOWED", "No hints in placement");
+        }
+        LearningSessionItem item = items.findById(new LearningSessionItemId(sessionId, itemNo))
+                .orElseThrow(() -> ApiException.notFound("ITEM_NOT_FOUND", "No item " + itemNo));
+        if (item.isAnswered()) {
+            throw ApiException.conflict("ALREADY_ANSWERED", "Item " + itemNo + " was already answered");
+        }
+        Question question = questions.findById(item.getQuestionId()).orElseThrow();
+        String meaning = vocabularies.findById(item.getVocabularyId()).map(Vocabulary::getMeaning).orElse(null);
+        String answer = question.getAnswer();
+        java.util.List<String> options = new java.util.ArrayList<>();
+        var meta = views.metadataOf(question);
+        if (meta != null && meta.has("options")) {
+            meta.get("options").forEach(o -> options.add(o.asString()));
+        }
+        if (options != null && options.size() > 1) {
+            java.util.Random random = new java.util.Random();
+            String pick = answer;
+            if (random.nextDouble() >= HINT_POINT_ACCURACY) {
+                java.util.List<String> wrong = options.stream().filter(o -> !o.equalsIgnoreCase(answer)).toList();
+                if (!wrong.isEmpty()) {
+                    pick = wrong.get(random.nextInt(wrong.size()));
+                }
+            }
+            return new com.linguacity.backend.learning.dto.LearningDtos.HintDto("POINT", pick, null, null);
+        }
+        String letter = answer == null || answer.isBlank() ? null : answer.substring(0, 1);
+        return new com.linguacity.backend.learning.dto.LearningDtos.HintDto("LETTER", null, letter, meaning);
+    }
+
     public AnswerResultDto answer(UUID userId, UUID sessionId, int itemNo, String answer) {
         LearningSession session = own(userId, sessionId);
         LocalDateTime now = Times.nowUtc(clock);

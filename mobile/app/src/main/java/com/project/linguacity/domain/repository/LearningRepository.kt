@@ -18,6 +18,9 @@ interface LearningRepository {
     suspend fun startEvent(eventId: Long): LessonSession
     suspend fun session(id: String): LessonSession
     suspend fun answer(sessionId: String, itemNo: Int, answer: String): AnswerFeedback
+
+    /** S5: gợi ý của Bơ cho câu chưa trả lời (server có thể chỉ nhầm, đúng tính cách Bơ). */
+    suspend fun hint(sessionId: String, itemNo: Int): com.project.linguacity.domain.model.learning.BoHint
     suspend fun complete(sessionId: String): LessonResult
 
     /** Kéo toàn bộ tiến độ từ server về Room (FR-SYS-03). */

@@ -48,6 +48,12 @@ public final class LearningDtos {
             int correctCount,
             List<ItemDto> items) {}
 
+    /**
+     * S5: gợi ý của Bơ cho một câu chưa trả lời. kind = POINT (chỉ vào một phương án — có thể chỉ
+     * nhầm), LETTER (hé chữ cái đầu của từ cần điền), MEANING (nghĩa tiếng Việt của từ khoá).
+     */
+    public record HintDto(String kind, String option, String letter, String meaning) {}
+
     public record AnswerResultDto(
             int itemNo,
             boolean isCorrect,
