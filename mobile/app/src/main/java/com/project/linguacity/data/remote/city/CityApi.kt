@@ -1,5 +1,6 @@
 package com.project.linguacity.data.remote.city
 
+import com.project.linguacity.data.remote.progression.StreakDto
 import com.project.linguacity.data.remote.learning.ResourcesDto
 import kotlinx.serialization.Serializable
 import retrofit2.http.GET
@@ -36,7 +37,30 @@ data class BuildingStateDto(
 data class CityDto(
     val serverTime: String,
     val buildings: List<BuildingStateDto>,
-    val tutorialStep: String? = null
+    val tutorialStep: String? = null,
+    val events: List<CityEventDto> = emptyList(),
+    val blueprints: List<OwnedBlueprintDto> = emptyList(),
+    val profile: ResourcesDto? = null,
+    val streak: StreakDto? = null
+)
+
+/** Sự kiện thành phố (ADR-015 §5). */
+@Serializable
+data class CityEventDto(
+    val eventId: String,
+    val id: Long,
+    val buildingCode: String,
+    val residentName: String,
+    val situation: String,
+    val status: String
+)
+
+@Serializable
+data class OwnedBlueprintDto(
+    val code: String,
+    val buildingCode: String? = null,
+    val targetLevel: Int,
+    val quantity: Int
 )
 
 @Serializable

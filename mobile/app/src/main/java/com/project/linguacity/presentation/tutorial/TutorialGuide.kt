@@ -92,7 +92,7 @@ object TutorialGuide {
                     SpotKeys.CARD
                 ),
                 GuideLine(
-                    "Trước khi xây, học một bài ngắn ở đây nhé: 20 câu, Mai ưu tiên những từ bạn " +
+                    "Trước khi xây, học một bài ngắn ở đây nhé: 30 câu, Mai ưu tiên những từ bạn " +
                     "chưa thuộc.",
                     MaiMood.ENCOURAGE,
                     SpotKeys.LEARN

@@ -15,8 +15,6 @@ interface CityRepository {
     /** Tải lại từ server (lazy completion diễn ra ở server, FR-SYS-04). Lỗi mạng ném ra ngoài. */
     suspend fun refresh()
 
-    /** Xây công trình Lv0→1 (BR-TUT-03). Lv1+ cần bài thi (VS4/VS5). */
+    /** Xây level kế tiếp: Lv0→1 cần từ + KP; Lv1+ cần bản vẽ + mảnh + KP (ADR-015 §3). */
     suspend fun build(code: BuildingCode): BuildOutcome
-
-    fun resolveEvent(eventId: String)
 }

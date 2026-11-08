@@ -22,8 +22,11 @@ import androidx.navigation.toRoute
 import com.project.linguacity.presentation.achievements.AchievementsScreen
 import com.project.linguacity.presentation.city.CityScreen
 import com.project.linguacity.presentation.customize.CustomizeScreen
+import com.project.linguacity.presentation.exam.ExamScreen
 import com.project.linguacity.presentation.lesson.LessonScreen
 import com.project.linguacity.presentation.onboarding.OnboardingScreen
+import com.project.linguacity.presentation.practice.PracticeScreen
+import com.project.linguacity.presentation.quest.QuestsScreen
 import com.project.linguacity.presentation.sync.SyncScreen
 import com.project.linguacity.presentation.vocabulary.FlashcardScreen
 import com.project.linguacity.presentation.vocabulary.VocabularyListScreen
@@ -45,11 +48,31 @@ object HomeRoute
 data class VocabularyRoute(val buildingCode: String, val level: Int)
 
 /**
- * SCR-08/09 Bài học. `placement = true` là bài kiểm tra trình độ (ADR-014, M6). LessonViewModel đọc
- * tham số theo tên.
+ * SCR-08/09 Bài học. `placement = true` là bài kiểm tra trình độ (ADR-014, M6); `practiceMode`
+ * khác rỗng là luyện tập (SCR-24); `eventId > 0` là sự kiện thành phố (SCR-25). LessonViewModel
+ * đọc tham số theo tên.
  */
 @Serializable
-data class LessonRoute(val buildingCode: String, val placement: Boolean = false)
+data class LessonRoute(
+    val buildingCode: String = "HOUSING",
+    val placement: Boolean = false,
+    val practiceMode: String = "",
+    val themes: String = "",
+    val wordCount: Int = 20,
+    val eventId: Long = 0L
+)
+
+/** SCR-10/11/12 Thi lên level. ExamViewModel đọc `buildingCode` theo tên. */
+@Serializable
+data class ExamRoute(val buildingCode: String)
+
+/** SCR-23 Nhiệm vụ & Chuỗi. */
+@Serializable
+object QuestsRoute
+
+/** SCR-24 Luyện tập. */
+@Serializable
+object PracticeRoute
 
 /** SCR-18 Bộ sưu tập danh hiệu. */
 @Serializable
@@ -129,12 +152,46 @@ fun AppNavHost(
                         )) },
                         onOpenProfile = { navController.navigate(ProfileRoute) },
                         onOpenSettings = { navController.navigate(SettingsRoute) },
-                        onOpenCustomize = { house -> navController.navigate(CustomizeRoute(house)) }
+                        onOpenCustomize = { house ->
+                            navController.navigate(CustomizeRoute(house))
+                        },
+                        onOpenExam = { code -> navController.navigate(ExamRoute(code.name)) },
+                        onOpenQuests = { navController.navigate(QuestsRoute) },
+                        onOpenPractice = { navController.navigate(PracticeRoute) },
+                        onStartEvent = { id -> navController.navigate(LessonRoute(eventId = id)) }
                     )
                 }
 
                 composable<LessonRoute> {
                     LessonScreen(onExit = { navController.popBackStack() })
+                }
+
+                composable<ExamRoute> { entry ->
+                    val code = entry.toRoute<ExamRoute>().buildingCode
+                    ExamScreen(
+                        onBack = { navController.popBackStack() },
+                        onLearn = {
+                            navController.navigate(LessonRoute(code)) {
+                                popUpTo<ExamRoute> { inclusive = true }
+                            }
+                        },
+                        onUpgraded = { navController.popBackStack(HomeRoute, inclusive = false) }
+                    )
+                }
+
+                composable<QuestsRoute> {
+                    QuestsScreen(onBack = { navController.popBackStack() })
+                }
+
+                composable<PracticeRoute> {
+                    PracticeScreen(
+                        onBack = { navController.popBackStack() },
+                        onStart = { mode, themes, count ->
+                            navController.navigate(
+                                LessonRoute(practiceMode = mode, themes = themes, wordCount = count)
+                            )
+                        }
+                    )
                 }
 
                 composable<AchievementsRoute> {

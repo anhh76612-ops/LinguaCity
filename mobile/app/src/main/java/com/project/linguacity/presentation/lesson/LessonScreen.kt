@@ -292,7 +292,12 @@ private fun ResultView(result: LessonResult, achievementNames: List<String>, onE
     ) {
         Spacer(Modifier.height(24.dp))
         Text(
-            if (result.placement) "Kết quả kiểm tra trình độ" else "Kết quả bài học",
+            when {
+                result.placement -> "Kết quả kiểm tra trình độ"
+                result.isEvent -> "Kết quả giúp cư dân"
+                result.isPractice -> "Kết quả luyện tập"
+                else -> "Kết quả bài học"
+            },
             style = MaterialTheme.typography.titleLarge,
             modifier = Modifier.staggeredAppear(0)
         )
@@ -308,7 +313,11 @@ private fun ResultView(result: LessonResult, achievementNames: List<String>, onE
             modifier = Modifier.staggeredAppear(2, stepMillis = 90)
         )
         KnowledgeCard(result, Modifier.staggeredAppear(3, stepMillis = 90))
-        CollectionCard(result, Modifier.staggeredAppear(4, stepMillis = 90))
+        if (result.isEvent) {
+            EventRewardCard(result, Modifier.staggeredAppear(4, stepMillis = 90))
+        } else if (result.collectionTotal > 0) {
+            CollectionCard(result, Modifier.staggeredAppear(4, stepMillis = 90))
+        }
         NewAchievements(achievementNames, firstIndex = 5)
         Button(onClick = onExit, modifier = Modifier.fillMaxWidth()) { Text("Về thành phố") }
     }
@@ -340,6 +349,23 @@ private fun KnowledgeCard(result: LessonResult, modifier: Modifier) {
                 )
             }
             Text("Tổng: ${result.knowledgePoints} KP", style = MaterialTheme.typography.bodySmall)
+        }
+    }
+}
+
+/** Sự kiện thành phố: đúng đủ số câu thì nhận mảnh bản vẽ (ADR-015 §5). */
+@Composable
+private fun EventRewardCard(result: LessonResult, modifier: Modifier) {
+    Card(modifier.fillMaxWidth()) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            if (result.eventResolved == true) {
+                Text(
+                    "Cảm ơn bạn! +${result.shardsAwarded ?: 0} 🧩 mảnh bản vẽ",
+                    fontWeight = FontWeight.SemiBold
+                )
+            } else {
+                Text("Chưa đủ rồi — thử lại sự kiện này nhé!", fontWeight = FontWeight.SemiBold)
+            }
         }
     }
 }
@@ -412,6 +438,16 @@ private fun ProblemView(
             null
         )
         LessonProblem.INVALID_STEP -> Triple("Chưa tới bước này", message ?: "", null)
+        LessonProblem.DAILY_LIMIT -> Triple(
+            "Hết lượt hôm nay",
+            "Bạn đã dùng hết lượt luyện tập kiểu này hôm nay. Mai mở lại lúc 0 giờ nhé!",
+            null
+        )
+        LessonProblem.CLOSED -> Triple(
+            "Đã xong rồi",
+            "Việc này đã được giải quyết. Quay lại thành phố xem việc khác nhé!",
+            null
+        )
         LessonProblem.OTHER -> Triple(
             "Có lỗi xảy ra",
             message ?: "Thử lại sau ít phút nhé.",

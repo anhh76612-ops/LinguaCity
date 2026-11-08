@@ -1,5 +1,6 @@
 package com.project.linguacity.presentation.city
 
+import com.project.linguacity.domain.model.city.CityEvent
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -68,6 +69,11 @@ fun CityScreen(
     onStartPlacement: () -> Unit = {},
     onOpenProfile: () -> Unit = {},
     onOpenSettings: () -> Unit = {},
+    /** Đợt 2 (ADR-015): thi lên level, nhiệm vụ, luyện tập, giải sự kiện. */
+    onOpenExam: (BuildingCode) -> Unit = {},
+    onOpenQuests: () -> Unit = {},
+    onOpenPractice: () -> Unit = {},
+    onStartEvent: (Long) -> Unit = {},
     /** M8: màn Tuỳ biến; houseTab = mở thẳng tab Nhà (từ nút Trang trí trong nhà). */
     onOpenCustomize: (houseTab: Boolean) -> Unit = {},
     renderer: CityRenderer = WebCityRenderer,
@@ -152,6 +158,7 @@ fun CityScreen(
             horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             val profile = state.profile
+            AssistChip(onClick = onOpenQuests, label = { Text("🔥 ${state.city.streakDays}") })
             AssistChip(onClick = onOpenProfile, label = {
                 Text("💡 ${profile?.knowledgePoints ?: 0} KP")
             },
@@ -186,9 +193,11 @@ fun CityScreen(
                         MenuEntry("titles", "🏅", "Danh hiệu", onOpenAchievements),
                         MenuEntry("customize", "🎨", "Tuỳ biến") { onOpenCustomize(false) },
                         MenuEntry("profile", "👤", "Hồ sơ", onOpenProfile),
+                        MenuEntry("quests", "📜", "Nhiệm vụ", onOpenQuests),
+                        MenuEntry("practice", "🎯", "Luyện tập", onOpenPractice),
                         MenuEntry("settings", "⚙️", "Cài đặt", onOpenSettings)
                     ),
-                    modifier = Modifier.align(Alignment.End).size(width = 220.dp, height = 190.dp),
+                    modifier = Modifier.align(Alignment.End).size(width = 250.dp, height = 240.dp),
                     fabModifier = Modifier.spotlightTarget(SpotKeys.MENU)
                 )
             }
@@ -218,7 +227,19 @@ fun CityScreen(
                     onEnter = { viewModel.onIntent(CityIntent.EnterSelected) },
                     onLearn = { onStartLesson(building.code) },
                     onVocabulary = { onOpenVocabulary(building.code, maxOf(1, building.level)) },
-                    onClose = { viewModel.onIntent(CityIntent.DismissSelection) }
+                    onClose = { viewModel.onIntent(CityIntent.DismissSelection) },
+                    hasBlueprint = state.city.hasBlueprintFor(building.code, building.level + 1),
+                    onExam = { onOpenExam(building.code) }
+                )
+            }
+            state.selectedEvent?.takeIf { state.focus == null }?.let { event ->
+                EventCard(
+                    event = event,
+                    onHelp = {
+                        viewModel.onIntent(CityIntent.DismissEvent)
+                        onStartEvent(event.serverId)
+                    },
+                    onClose = { viewModel.onIntent(CityIntent.DismissEvent) }
                 )
             }
         }
@@ -238,7 +259,9 @@ private fun BuildingCard(
     onEnter: () -> Unit,
     onLearn: () -> Unit,
     onVocabulary: () -> Unit,
-    onClose: () -> Unit
+    onClose: () -> Unit,
+    hasBlueprint: Boolean = false,
+    onExam: () -> Unit = {}
 ) {
     Card(Modifier.fillMaxWidth().spotlightTarget(SpotKeys.CARD)) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -250,6 +273,7 @@ private fun BuildingCard(
             BuildingStatus(building)
             NextLevelInfo(building, next, collected)
             BuildingActions(building, busy, onBuild, onEnter, onLearn, onVocabulary, onClose)
+            UpgradeActions(building, busy, hasBlueprint, onBuild, onExam)
         }
     }
 }
@@ -300,6 +324,47 @@ private fun NextLevelInfo(
             formatDuration(next.constructionTimeSeconds) + wordsNeeded,
         style = MaterialTheme.typography.bodySmall
     )
+}
+
+/**
+ * Lv ≥ 1: có bản vẽ thì "Nâng cấp" (tốn bản vẽ + mảnh + KP), chưa có thì "Thi lên Lv…"
+ * (SCR-10, ADR-015 §2–3).
+ */
+@Composable
+private fun UpgradeActions(
+    building: BuildingView,
+    busy: Boolean,
+    hasBlueprint: Boolean,
+    onUpgrade: () -> Unit,
+    onExam: () -> Unit
+) {
+    if (!building.isBuilt || building.isMaxLevel || building.upgrading) {
+        return
+    }
+    val nextLevel = building.level + 1
+    if (hasBlueprint) {
+        FilledTonalButton(onClick = onUpgrade, enabled = !busy) {
+            Text("📐 Nâng cấp lên Lv $nextLevel")
+        }
+    } else {
+        TextButton(onClick = onExam) { Text("📝 Thi lên Lv $nextLevel") }
+    }
+}
+
+/** SCR-25: cư dân nhờ việc — "Giúp" mở phiên đố 5 câu (ADR-015 §5). */
+@Composable
+private fun EventCard(event: CityEvent, onHelp: () -> Unit, onClose: () -> Unit) {
+    Card(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text("❗ ${event.residentName}", style = MaterialTheme.typography.titleMedium)
+            Text(event.situation, style = MaterialTheme.typography.bodyMedium)
+            Text("Thưởng: +1 🧩 mảnh bản vẽ, +15 KP", style = MaterialTheme.typography.bodySmall)
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Button(onClick = onHelp) { Text("Giúp") }
+                TextButton(onClick = onClose) { Text("Để sau") }
+            }
+        }
+    }
 }
 
 @Composable

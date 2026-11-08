@@ -1,5 +1,6 @@
 package com.project.linguacity.di
 
+import com.project.linguacity.data.remote.progression.ProgressionApi
 import com.project.linguacity.data.remote.city.CityApi
 import com.project.linguacity.data.remote.content.ContentApi
 import com.project.linguacity.data.remote.learning.LearningApi
@@ -66,4 +67,9 @@ object NetworkModule {
     @Provides
     @Singleton
     fun providePlayerApi(retrofit: Retrofit): PlayerApi = retrofit.create(PlayerApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideProgressionApi(retrofit: Retrofit): ProgressionApi =
+        retrofit.create(ProgressionApi::class.java)
 }

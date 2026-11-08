@@ -1,5 +1,7 @@
 package com.project.linguacity.data.repository
 
+import com.project.linguacity.data.remote.progression.ProgressionApi
+import com.project.linguacity.data.remote.progression.PracticeRequestDto
 import com.project.linguacity.data.local.player.PlayerDao
 import com.project.linguacity.data.local.player.UserAchievementEntity
 import com.project.linguacity.data.local.player.UserVocabProgressEntity
@@ -33,6 +35,7 @@ import javax.inject.Singleton
 @Singleton
 class LearningRepositoryImpl @Inject constructor(
     private val api: LearningApi,
+    private val progressionApi: ProgressionApi,
     private val playerApi: PlayerApi,
     private val playerDao: PlayerDao,
     private val profiles: UserProfileDao,
@@ -44,6 +47,19 @@ class LearningRepositoryImpl @Inject constructor(
 
     override suspend fun startPlacement(): LessonSession = call {
         api.placement(guest()).toDomain()
+    }
+
+    override suspend fun startPractice(
+        mode: String,
+        themes: List<String>,
+        wordCount: Int
+    ): LessonSession = call {
+        progressionApi.startPractice(guest(), PracticeRequestDto(mode, themes, wordCount))
+            .toDomain()
+    }
+
+    override suspend fun startEvent(eventId: Long): LessonSession = call {
+        progressionApi.startEvent(guest(), eventId).toDomain()
     }
 
     override suspend fun session(id: String): LessonSession = call { api.get(
@@ -128,6 +144,8 @@ class LearningRepositoryImpl @Inject constructor(
             "SESSION_CLOSED" -> Kind.CLOSED
             "INCOMPLETE" -> Kind.INCOMPLETE
             "NO_CONTENT" -> Kind.NO_CONTENT
+            "DAILY_LIMIT" -> Kind.DAILY_LIMIT
+            "EVENT_RESOLVED", "EVENT_NOT_FOUND" -> Kind.CLOSED
             "INVALID_STEP" -> Kind.INVALID_STEP
             else -> Kind.OTHER
         }

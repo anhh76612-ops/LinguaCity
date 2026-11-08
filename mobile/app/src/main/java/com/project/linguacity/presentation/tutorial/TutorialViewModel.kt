@@ -130,7 +130,10 @@ class TutorialViewModel @Inject constructor(
                     BuildOutcome.Started, BuildOutcome.Busy -> Unit
                     is BuildOutcome.NotMet -> message("Còn thiếu một chút nữa — học thêm bài nhé!")
                     BuildOutcome.Offline -> message("Cần kết nối mạng để xây nhé.")
-                    BuildOutcome.NeedsExam -> runCatching { city.refresh() }
+                    // House đã xây rồi (server coi lần bấm này là nâng cấp): chỉ đọc lại trạng thái
+                    BuildOutcome.NeedsExam,
+                    BuildOutcome.NeedsBlueprint,
+                    BuildOutcome.MaxLevel -> runCatching { city.refresh() }
                     is BuildOutcome.Failed -> message(outcome.message)
                 }
             }

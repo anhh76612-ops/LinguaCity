@@ -9,6 +9,10 @@ package com.project.linguacity.domain.model.city
 data class CityState(
     val buildings: List<BuildingState>,
     val events: List<CityEvent> = emptyList(),
+    /** Bản vẽ đang giữ: (công trình, level đích) → số lượng (ADR-015 §3). */
+    val blueprints: Map<Pair<BuildingCode, Int>, Int> = emptyMap(),
+    /** Chuỗi ngày (ngày hiện tại) — chỉ có khi đã đồng bộ với server. */
+    val streakDays: Int = 0,
     /**
      * Độ lệch đồng hồ = giờ server − giờ máy, đo lúc đồng bộ (serverTime trong response).
      * Mọi phép tính thời gian xây dùng giờ server ước lượng, không tin giờ máy (FR-SYS-04).
@@ -16,6 +20,12 @@ data class CityState(
     val serverOffsetMillis: Long = 0
 ) {
     fun building(code: BuildingCode): BuildingState? = buildings.firstOrNull { it.code == code }
+
+    /** Có bản vẽ để nâng [code] lên level kế tiếp không. */
+    fun hasBlueprintFor(code: BuildingCode, targetLevel: Int): Boolean =
+        (blueprints[code to targetLevel] ?: 0) > 0
+
+    fun event(id: String): CityEvent? = events.firstOrNull { it.id == id }
 
     fun serverNow(deviceNowMillis: Long): Long = deviceNowMillis + serverOffsetMillis
 }
@@ -66,5 +76,10 @@ enum class BuildingCode(val displayName: String, val icon: String) {
 /** Sự kiện thành phố (GDD §3.1). id là chuỗi "mờ": app không suy luận gì từ nó. */
 data class CityEvent(
     val id: String,
-    val kind: String = "GRAMMAR"
+    val kind: String = "HELP",
+    /** Id số để gọi POST /events/{id}/start (ADR-015 §5). */
+    val serverId: Long = 0,
+    val buildingCode: BuildingCode? = null,
+    val residentName: String = "",
+    val situation: String = ""
 )

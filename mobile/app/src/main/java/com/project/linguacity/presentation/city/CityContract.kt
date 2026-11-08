@@ -1,5 +1,6 @@
 package com.project.linguacity.presentation.city
 
+import com.project.linguacity.domain.model.city.CityEvent
 import com.project.linguacity.domain.model.UserProfile
 import com.project.linguacity.domain.model.city.BuildingCode
 import com.project.linguacity.domain.model.city.CityState
@@ -32,7 +33,9 @@ data class CityUiState(
     val inside: BuildingCode? = null,
     /** M7: ngoại hình + kiểu nhà để vẽ. M8 lấy từ hồ sơ (avatar_config, house_style). */
     val avatar: AvatarLook = AvatarLook.DEFAULT,
-    val house: HouseLook = HouseLook.DEFAULT
+    val house: HouseLook = HouseLook.DEFAULT,
+    /** Sự kiện "!" người chơi vừa chạm: hiện thẻ cư dân (SCR-25, ADR-015 §5). */
+    val selectedEvent: CityEvent? = null
 ) {
     /** Đang chạy hoạt cảnh vào/ra: khoá các nút để không gửi lệnh chồng lên nhau. */
     val transitioning: Boolean get() = focus != inside
@@ -65,4 +68,6 @@ sealed interface CityIntent {
     data object EnterSelected : CityIntent
     /** M7: "Ra ngoài" hoặc phím Back khi đang ở trong công trình. */
     data object ExitBuilding : CityIntent
+    /** Đóng thẻ sự kiện mà không giải. */
+    data object DismissEvent : CityIntent
 }

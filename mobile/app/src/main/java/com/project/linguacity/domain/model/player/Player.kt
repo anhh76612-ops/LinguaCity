@@ -20,9 +20,16 @@ data class PlayerStats(val collectedWords: Int, val streakDays: Int)
 /** Kết quả bấm Xây (POST /buildings/{code}/build). */
 sealed interface BuildOutcome {
     data object Started : BuildOutcome
-    data class NotMet(val missingCollected: Int, val missingKnowledge: Int) : BuildOutcome
+    data class NotMet(
+        val missingCollected: Int,
+        val missingKnowledge: Int,
+        val missingShards: Int = 0
+    ) : BuildOutcome
     data object Busy : BuildOutcome
     data object NeedsExam : BuildOutcome
+    /** Nâng cấp cần bản vẽ (thi đậu bài thi lên level, ADR-015 §3). */
+    data object NeedsBlueprint : BuildOutcome
+    data object MaxLevel : BuildOutcome
     data object Offline : BuildOutcome
     data class Failed(val message: String) : BuildOutcome
 }

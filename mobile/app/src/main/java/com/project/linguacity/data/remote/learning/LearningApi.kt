@@ -68,7 +68,7 @@ data class ItemDto(
 data class SessionDto(
     val sessionId: String,
     val type: String,
-    val buildingCode: String,
+    val buildingCode: String? = null,
     val vocabLevel: Int,
     val status: String,
     val startedAt: String,
@@ -114,10 +114,12 @@ data class CompleteResultDto(
     val kpBonus: Int? = null,
     val dailySessionIndex: Int? = null,
     val dailyMultiplier: Double? = null,
-    val collection: CollectionDto,
+    val collection: CollectionDto? = null,
     val newAchievements: List<String> = emptyList(),
     val profile: ResourcesDto,
-    val tutorialStep: String
+    val tutorialStep: String,
+    val shardsAwarded: Int? = null,
+    val eventResolved: Boolean? = null
 )
 
 @Serializable

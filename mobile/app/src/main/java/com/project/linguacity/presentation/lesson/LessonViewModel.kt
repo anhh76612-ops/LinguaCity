@@ -20,7 +20,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /** Lỗi hiện trên màn bài học. OFFLINE có nút Thử lại làm lại đúng việc vừa hỏng. */
-enum class LessonProblem { OFFLINE, EXPIRED, NO_CONTENT, INVALID_STEP, OTHER }
+enum class LessonProblem { OFFLINE, EXPIRED, NO_CONTENT, INVALID_STEP, DAILY_LIMIT, CLOSED, OTHER }
 
 data class LessonUiState(
     val loading: Boolean = true,
@@ -54,8 +54,8 @@ sealed interface LessonIntent {
 }
 
 /**
- * SCR-08/09 (UC_05). Cùng một ViewModel cho phiên học ở công trình và bài kiểm tra trình độ
- * (placement = true).
+ * SCR-08/09 (UC_05). Cùng một ViewModel cho mọi kiểu phiên: bài học ở công trình, bài kiểm
+ * tra trình độ (placement), luyện tập (practiceMode) và sự kiện thành phố (eventId) — ADR-015.
  * Server chấm từng câu; ViewModel chỉ điều khiển luồng hiển thị.
  */
 @HiltViewModel
@@ -67,6 +67,10 @@ class LessonViewModel @Inject constructor(
 
     private val buildingCode: String = savedStateHandle["buildingCode"] ?: "HOUSING"
     private val placement: Boolean = savedStateHandle["placement"] ?: false
+    private val practiceMode: String = savedStateHandle["practiceMode"] ?: ""
+    private val practiceThemes: String = savedStateHandle["themes"] ?: ""
+    private val wordCount: Int = savedStateHandle["wordCount"] ?: 20
+    private val eventId: Long = savedStateHandle["eventId"] ?: 0L
 
     private val _state = MutableStateFlow(LessonUiState())
     val state: StateFlow<LessonUiState> = _state.asStateFlow()
@@ -92,11 +96,7 @@ class LessonViewModel @Inject constructor(
     private fun start() {
         _state.update { it.copy(loading = true, problem = null) }
         launchGuarded(retry = { start() }) {
-            val startedSession = if (placement) {
-                learning.startPlacement()
-            } else {
-                learning.startLesson(buildingCode)
-            }
+            val startedSession = startSession()
             val correct = startedSession.items.count { it.isCorrect == true }
             _state.update {
                 it.copy(
@@ -182,6 +182,17 @@ class LessonViewModel @Inject constructor(
         }
     }
 
+    private suspend fun startSession() = when {
+        eventId > 0 -> learning.startEvent(eventId)
+        practiceMode.isNotEmpty() -> learning.startPractice(
+            practiceMode,
+            practiceThemes.split(",").filter { it.isNotBlank() },
+            wordCount
+        )
+        placement -> learning.startPlacement()
+        else -> learning.startLesson(buildingCode)
+    }
+
     private fun launchGuarded(retry: () -> Unit, block: suspend () -> Unit) {
         viewModelScope.launch {
             try {
@@ -193,6 +204,8 @@ class LessonViewModel @Inject constructor(
                     Kind.EXPIRED -> LessonProblem.EXPIRED
                     Kind.NO_CONTENT -> LessonProblem.NO_CONTENT
                     Kind.INVALID_STEP -> LessonProblem.INVALID_STEP
+                    Kind.DAILY_LIMIT -> LessonProblem.DAILY_LIMIT
+                    Kind.CLOSED -> LessonProblem.CLOSED
                     else -> LessonProblem.OTHER
                 }
                 pending = when (problem) {

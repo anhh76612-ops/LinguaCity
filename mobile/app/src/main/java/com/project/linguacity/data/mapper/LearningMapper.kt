@@ -18,6 +18,7 @@ import kotlinx.serialization.json.jsonPrimitive
 
 fun SessionDto.toDomain() = LessonSession(
     id = sessionId,
+    type = type,
     placement = type == "PLACEMENT",
     buildingCode = buildingCode,
     vocabLevel = vocabLevel,
@@ -57,15 +58,18 @@ fun AnswerResultDto.toDomain() =
     )
 
 fun CompleteResultDto.toDomain() = LessonResult(
+    type = type,
     placement = type == "PLACEMENT",
     correct = correct, total = total, kpAwarded = kpAwarded, kpBase = kpBase, kpBonus = kpBonus,
     dailySessionIndex = dailySessionIndex, dailyMultiplier = dailyMultiplier,
-    collected = collection.collected,
-    collectionTotal = collection.total,
-    collectionLevel = collection.level,
+    collected = collection?.collected ?: 0,
+    collectionTotal = collection?.total ?: 0,
+    collectionLevel = collection?.level ?: 0,
     newAchievements = newAchievements,
     knowledgePoints = profile.knowledgePoints,
-    tutorialStep = tutorialStep
+    tutorialStep = tutorialStep,
+    shardsAwarded = shardsAwarded,
+    eventResolved = eventResolved
 )
 
 fun BuildingStateDto.toEntity() = UserBuildingEntity(

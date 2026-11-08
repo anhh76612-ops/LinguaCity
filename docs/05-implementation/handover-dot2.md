@@ -223,3 +223,60 @@ Lưu ý: **V006 đổi `learning_sessions.building_id` thành cho phép NULL.** 
      - nhận trước khi xong → 409 `NOT_COMPLETED`;
      - `DAILY_BONUS` chỉ nhận được khi cả 3 nhiệm vụ hằng ngày đã xong.
 4. **E2E trên PostgreSQL** (người dùng chạy V006, V007 trước): đi theo luồng ở mục "Kiểm tra cuối" của kế hoạch.
+
+## M15: Mobile (08/11/2026)
+
+**Nhánh:** `feat/m12-progression`. Room giữ v5; ghi chú ở [system-design §11.8](../03-architecture/system-design.md).
+
+### Màn hình mới
+
+| Màn | File | Vào từ |
+| --- | --- | --- |
+| SCR-10/11/12 Thi | `presentation/exam/ExamScreen.kt`, `ExamViewModel.kt` | Thẻ công trình Lv ≥ 1 chưa có bản vẽ: nút "📝 Thi lên Lv N" |
+| SCR-23 Nhiệm vụ & Chuỗi | `presentation/quest/QuestsScreen.kt`, `QuestsViewModel.kt` | Chip 🔥 trên HUD, mục 📜 trong menu nổi |
+| SCR-24 Luyện tập | `presentation/practice/PracticeScreen.kt`, `PracticeViewModel.kt` | Mục 🎯 trong menu nổi |
+| SCR-25 Sự kiện | `EventCard` trong `CityScreen.kt` | Chạm dấu "!" trên bản đồ |
+
+### Luồng
+
+- **Thi:**
+  - SCR-10 hiện checklist (từ, KP, mảnh, công trình cần có).
+  - "Bắt đầu thi" mở hộp xác nhận phí. Nếu đang có lượt dở thì vào lại lượt đó, không hỏi phí.
+  - SCR-11: câu trả lời giữ trong ViewModel tới lúc nộp; "Xem lại" liệt kê câu chưa trả lời; "Nộp bài" chỉ bật khi đủ câu.
+  - SCR-12: đậu thì báo bản vẽ, nút "Về thành phố"; trượt thì nút "Học thêm" (mở LessonRoute của công trình).
+- **Nâng cấp:** có bản vẽ thì thẻ công trình hiện "📐 Nâng cấp lên Lv N", gọi lại `build`. Lỗi `NEEDS_BLUEPRINT` / `MAX_LEVEL` / thiếu mảnh hiện bằng snackbar.
+- **Sự kiện:** thẻ cư dân → "Giúp" mở `LessonRoute(eventId = id)` (phiên 5 câu). Kết quả hiện `EventRewardCard` (mảnh nhận được hoặc "thử lại").
+- **Luyện tập:**
+  - chọn Ôn / Hỗn hợp, chủ đề (rỗng = tất cả), 10 hoặc 20 từ;
+  - mở `LessonRoute(practiceMode, themes, wordCount)`;
+  - số lượt còn lại tải lại mỗi lần màn ON_RESUME;
+  - hết lượt → nút tắt; server trả 409 `DAILY_LIMIT` thì màn bài học hiện "Hết lượt hôm nay".
+- **LessonRoute** thêm tham số mặc định `practiceMode`, `themes`, `wordCount`, `eventId`; `buildingCode` mặc định `HOUSING`.
+- Tiêu đề kết quả: "Kết quả luyện tập" / "Kết quả giúp cư dân". Thẻ bộ sưu tầm ẩn khi `collection = null`.
+- Tutorial: "20 câu" → "30 câu".
+
+### Chat code đã kiểm
+
+- `compileDebugKotlin compileDebugUnitTestKotlin` qua (cần `ANDROID_HOME`, bản ổ C không có `local.properties`).
+- `check_style.py` 0 lỗi.
+- **Chưa chạy test, chưa mở emulator.**
+
+### Việc của chat test
+
+1. **Test cũ có thể đỏ:**
+   - `CityRepository.resolveEvent` đã bỏ;
+   - `BuildOutcome.NotMet` thêm `missingShards` (mặc định 0);
+   - `CityEvent` thêm trường (đều có mặc định);
+   - `LessonSession.buildingCode` thành nullable.
+2. **Test thuần đề xuất:**
+   - `ExamViewModel` với repository giả: `start` có lượt dở → không hỏi phí; `next` ở câu cuối → `reviewing`; `submit` chỉ gửi câu không rỗng; lỗi `INCOMPLETE` → quay về xem lại;
+   - `PracticeUiState.usesLeft` / `canStart` theo từng chế độ;
+   - `QuestsViewModel.claim` chặn bấm hai lần;
+   - mapper `CityRepositoryImpl`: `blueprints` → `hasBlueprintFor`, `events` → `CityEvent.serverId`;
+   - `FloatingMenuTest`: menu giờ có thêm 📜 và 🎯.
+3. **Emulator (sau khi người dùng chạy V006, V007 và backend mới):** chụp SCR-10/11/12/23/24/25.
+
+### Chưa làm
+
+- Gợi ý Mai lần đầu mở Trung tâm thi; nhãn "mất khi đứt chuỗi" ở SCR-18.
+- Lịch chuỗi 7 ngày: API chưa trả lịch sử, màn chỉ hiện hai điều kiện của hôm nay.

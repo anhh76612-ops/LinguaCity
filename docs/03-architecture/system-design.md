@@ -1530,6 +1530,14 @@ Các giá trị sau là **dữ liệu**, đổi bằng migration, không cần b
 
 ### 11.8. Room v6 (AutoMigration 5 → 6)
 
+> **Đã làm ở M15 (khác bản thiết kế):** Room **giữ v5**. Bảng dưới là phương án ban đầu, để dành
+> khi cần đọc offline các trường mới.
+> - Bản vẽ, sự kiện và chuỗi ngày lấy từ `GET /city` và chỉ giữ trong bộ nhớ (`CityRepositoryImpl.daily`).
+> - Mảnh, KP cập nhật vào profile Room đã có.
+> - `requiredShards`, `passPercent`, điều kiện công trình của bài thi luôn đọc online qua `GET /exams`.
+>
+> Lý do: mọi màn dùng các trường này đều cần mạng (ADR-004), nên migration Room chưa đem lại gì.
+
 | Thay đổi | Ghi chú |
 | :--- | :--- |
 | `BuildingLevelEntity.requiredShards` | `@ColumnInfo(defaultValue = "0")` |

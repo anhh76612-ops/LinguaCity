@@ -111,6 +111,7 @@ class CityViewModel @Inject constructor(
         when (intent) {
             is CityIntent.Map -> onMapIntent(intent.intent)
             CityIntent.DismissSelection -> _state.update { it.copy(selected = null) }
+            CityIntent.DismissEvent -> _state.update { it.copy(selectedEvent = null) }
             CityIntent.BuildSelected -> buildSelected()
             CityIntent.MessageShown -> _state.update { it.copy(message = null) }
             CityIntent.EnterSelected -> _state.update {
@@ -146,11 +147,9 @@ class CityViewModel @Inject constructor(
             is CityMapIntent.BuildingExited -> _state.update {
                 it.copy(inside = null, focus = null)
             }
-            is CityMapIntent.CityEventTapped -> {
-                cityRepository.resolveEvent(intent.eventId)
-                _state.update {
-                    it.copy(message = "Sự kiện thành phố: bài ngữ pháp sẽ có ở bản sau")
-                }
+            is CityMapIntent.CityEventTapped -> _state.update {
+                val event = it.city.event(intent.eventId)
+                if (it.focus != null || event == null) it else it.copy(selectedEvent = event)
             }
         }
     }
@@ -171,9 +170,14 @@ class CityViewModel @Inject constructor(
                     if (outcome.missingKnowledge > 0) {
                         add("thêm ${outcome.missingKnowledge} KP")
                     }
+                    if (outcome.missingShards > 0) {
+                        add("thêm ${outcome.missingShards} mảnh bản vẽ")
+                    }
                 }.joinToString(" và ", prefix = "Cần ", postfix = " để xây nhé.")
                 BuildOutcome.Busy -> "${code.displayName} đang được xây."
-                BuildOutcome.NeedsExam -> "Nâng cấp lên Lv2 cần bài thi ở School — sắp có!"
+                BuildOutcome.NeedsExam, BuildOutcome.NeedsBlueprint ->
+                    "Cần bản vẽ: thi đậu bài thi lên level của ${code.displayName} trước nhé."
+                BuildOutcome.MaxLevel -> "${code.displayName} đã đạt level tối đa."
                 BuildOutcome.Offline -> "Cần kết nối mạng để xây."
                 is BuildOutcome.Failed -> outcome.message
             }
