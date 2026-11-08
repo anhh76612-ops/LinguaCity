@@ -96,3 +96,56 @@ Mỗi mốc có một mục bên dưới, mục mới nhất ở cuối.
 ### Ghi chú
 
 ADR-015 đang ở trạng thái **Proposed**. Người dùng duyệt bảng cân bằng (ADR-015 §8, system-design §11.7). Chat code làm tiếp M13 theo bảng này; số liệu nào đổi thì chỉ cần sửa dữ liệu hoặc cấu hình.
+
+---
+
+## M13: Dữ liệu (08/11/2026)
+
+**Nhánh:** `feat/m12-progression`
+
+### File
+
+| File | Nội dung |
+| --- | --- |
+| `database/migration/V006__progression.sql` | Schema theo system-design §11.1 |
+| `database/migration/V007__content_house2_school1.sql` | **Sinh tự động** bởi `database/seed/v007.py` |
+| `database/seed/content_lib.py` | Thư viện sinh SQL dùng chung cho gói từ |
+| `database/seed/housing_level2.py`, `school_level1.py` | 30 + 30 từ |
+
+### Nội dung V007
+
+- **Hai gói mới:**
+  - HOUSING:2: từ 31–60, câu 91–180;
+  - SCHOOL:1: từ 61–90, câu 181–270.
+- **Tăng version:** CORE và HOUSING:1.
+- **Mảnh cần để nâng cấp:** `required_shards` Lv2 = 3, Lv3 = 6.
+- **Bài thi `EXAM_HOUSING_LV2`:**
+  - yêu cầu 45 từ, 200 KP, School Lv1, đậu ≥ 80%;
+  - pool thêm 10 câu (93, 102, …, 174), tổng 20 câu.
+- **Dữ liệu trò chơi:**
+  - 5 nhiệm vụ MAIN + 5 DAILY + `DAILY_BONUS`;
+  - 10 mẫu sự kiện;
+  - 4 danh hiệu chuỗi `STREAK_3/10/20/30` (`revocable`).
+
+### Chat code đã kiểm
+
+- `v007.py` tự kiểm dữ liệu trước khi sinh: đủ 30 từ mỗi gói, không trùng từ, mỗi câu tier 2/3 có đúng một chỗ trống `___`, có đủ 2 câu ví dụ.
+- `check_style.py` 0 lỗi.
+- **Chưa chạy SQL trên PostgreSQL**, vì chat code không có mật khẩu DB.
+
+### Việc của chat test và người dùng
+
+1. **Người dùng chạy hai migration theo thứ tự** (nhớ đặt `$env:PGCLIENTENCODING = "UTF8"` trước):
+   ```powershell
+   & "C:\Program Files\PostgreSQL\17\bin\psql.exe" -U postgres -d linguacity_db -v ON_ERROR_STOP=1 -f database/migration/V006__progression.sql
+   & "C:\Program Files\PostgreSQL\17\bin\psql.exe" -U postgres -d linguacity_db -v ON_ERROR_STOP=1 -f database/migration/V007__content_house2_school1.sql
+   ```
+2. **Đếm sau khi chạy.** Kỳ vọng:
+   - `vocabularies` = 90; `questions` = 270;
+   - `exam_questions` của `EXAM_HOUSING_LV2` = 20;
+   - `quests` = 11; `city_event_templates` = 10; achievements thêm 4;
+   - `content_packs` có HOUSING:2 và SCHOOL:1, CORE và HOUSING:1 tăng version;
+   - `learning_sessions_type_check` nhận được `PRACTICE_REVIEW`.
+3. **Soát nội dung:** đọc lướt 60 từ trong `housing_level2.py` / `school_level1.py`. Kiểm IPA, nghĩa, câu ví dụ, và đáp án trong câu tier 2 / tier 3 có khớp chỗ trống không. Một số câu dùng `___s` / `___d`; đáp án vẫn là dạng gốc, và dạng số nhiều / quá khứ nằm trong `accepted_answers`.
+
+Lưu ý: **V006 đổi `learning_sessions.building_id` thành cho phép NULL.** Test H2 tạo schema từ entity, nên chỉ kiểm được khi M14 sửa entity tương ứng.
