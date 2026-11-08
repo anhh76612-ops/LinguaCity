@@ -1,6 +1,7 @@
 // ROAD (Đường xá · Giao thông) gồm hai phần:
 //  1) buildTransport(level): lô đất góc (+x, +z) — trạm chờ → nhà chờ xe buýt → bến xe.
-//  2) buildStreets(level): mặt đường chung của cả thành phố — đường đất → đường nhựa có vạch → thêm đèn giao thông.
+//  2) buildStreets(level): mặt đường chung của cả thành phố — đường đất → đường nhựa có vạch → thêm
+// đèn giao thông.
 //     Kèm xe cộ chạy trên đường (số xe tăng theo level).
 import * as THREE from 'three';
 import { C } from '../../core/palette';
@@ -9,7 +10,7 @@ import { BLOCK_H, MAP_HALF, ROAD_HALF, WALK } from '../grid';
 import { type Built, bench, bush, dynamic, sign, tree } from './common';
 
 /* ---------- 1) Lô giao thông ----------
-     Hai phía sát đường là -x và -z (cục bộ). Điểm chờ xe nằm sát vỉa hè phía -z. */
+   Hai phía sát đường là -x và -z (cục bộ). Điểm chờ xe nằm sát vỉa hè phía -z. */
 export const BUS_STOP = { x: 0, z: -2.7 };
 
 export function buildTransport(level: number): Built {
@@ -29,7 +30,9 @@ export function buildTransport(level: number): Built {
         // Nhà chờ: mái, vách kính phía sau, ghế dài
         box(g, 3.4, 0.03, 1.7, C.plaza, 0, 0, -2.55);
         box(g, 2.6, 0.08, 1.1, C.roofBlue, 0, 1.6, -2.45);
-        for (const x of [-1.2, 1.2]) box(g, 0.07, 1.6, 0.07, C.metalDark, x, 0, -2.0);
+        for (const x of [-1.2, 1.2]) {
+            box(g, 0.07, 1.6, 0.07, C.metalDark, x, 0, -2.0);
+        }
         box(g, 2.5, 1.2, 0.05, C.glass, 0, 0.35, -1.95);
         bench(g, 0, -2.3, Math.PI);
         // biển đặt trên mái, quay về +z: camera nhìn từ góc (+x, +z) nên mặt này luôn thấy được
@@ -40,7 +43,9 @@ export function buildTransport(level: number): Built {
         if (level === 2) {
             // bãi đỗ xe: vạch kẻ + một xe đỗ
             box(g, 4.0, 0.02, 2.6, '#7b8390', 0.6, 0, 1.6);
-            for (const x of [-1.0, 0.6, 2.2]) box(g, 0.06, 0.03, 2.2, C.line, x, 0, 1.6);
+            for (const x of [-1.0, 0.6, 2.2]) {
+                box(g, 0.06, 0.03, 2.2, C.line, x, 0, 1.6);
+            }
             const car = makeCar(C.carBlue);
             car.position.set(-0.2, 0, 1.6);
             g.add(car);
@@ -56,7 +61,9 @@ export function buildTransport(level: number): Built {
             g.add(st);
             // mái che sân đỗ (cột + tấm mái)
             box(g, 4.8, 0.1, 2.2, C.trim, 0.6, 2.3, -0.1);
-            for (const x of [-1.6, 2.8]) box(g, 0.1, 2.3, 0.1, C.metalDark, x, 0, -1.1);
+            for (const x of [-1.6, 2.8]) {
+                box(g, 0.1, 2.3, 0.1, C.metalDark, x, 0, -1.1);
+            }
             const bus = makeBus();
             bus.rotation.y = Math.PI / 2;
             bus.position.set(0.6, 0, -0.1);
@@ -99,6 +106,13 @@ export function makeBus(): THREE.Group {
 }
 
 /* ---------- 2) Mặt đường + đèn giao thông + xe chạy ---------- */
+/** Một cột đèn giao thông: trục nó điều khiển và hai bóng đèn. */
+interface TrafficLight {
+    axis: 'x' | 'z';
+    red: THREE.MeshStandardMaterial;
+    green: THREE.MeshStandardMaterial;
+}
+
 export type PedestrianProvider = () => { x: number; z: number }[];
 
 interface Vehicle {
@@ -133,7 +147,8 @@ export function buildStreets(level: number, pedestrians: PedestrianProvider): Bu
         for (const s of [-1, 1]) {
             for (let k = -1.7; k <= 1.71; k += 0.42) {
                 box(g, 0.24, 0.012, 0.85, C.line, k, 0, s * WALK);   // băng qua đường dọc (trục z)
-                box(g, 0.85, 0.012, 0.24, C.line, s * WALK, 0, k);   // băng qua đường ngang (trục x)
+                // băng qua đường ngang (trục x)
+                box(g, 0.85, 0.012, 0.24, C.line, s * WALK, 0, k);
             }
         }
     }
@@ -141,21 +156,31 @@ export function buildStreets(level: number, pedestrians: PedestrianProvider): Bu
     // Đèn giao thông (level 3): đường dọc và đường ngang luân phiên xanh/đỏ mỗi 6 giây
     let greenAxis: 'x' | 'z' | null = null;
     if (level >= 3) {
-        const lights: { axis: 'x' | 'z'; red: THREE.MeshStandardMaterial; green: THREE.MeshStandardMaterial }[] = [];
-        const corners: [number, number, 'x' | 'z'][] = [[2.15, 2.15, 'z'], [-2.15, -2.15, 'z'], [2.15, -2.15, 'x'], [-2.15, 2.15, 'x']];
+        const lights: TrafficLight[] = [];
+        const corners: [
+            number, number, 'x' | 'z'
+        ][] = [[2.15, 2.15, 'z'], [-2.15, -2.15, 'z'], [2.15, -2.15, 'x'], [-2.15, 2.15, 'x']];
         for (const [x, z, axis] of corners) {
             const pole = new THREE.Group();
             cyl(pole, 0.04, 0.05, 1.6, C.metalDark, 0, 0, 0, 6);
             box(pole, 0.22, 0.5, 0.18, '#2d3138', 0, 1.45, 0);
-            const red = new THREE.MeshStandardMaterial({ color: '#5a2222', emissive: '#ff3b30', emissiveIntensity: 0 });
-            const green = new THREE.MeshStandardMaterial({ color: '#1f4a2a', emissive: '#34c759', emissiveIntensity: 0 });
-            const rl = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 6), red), gl = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 6), green);
+            const red = new THREE.MeshStandardMaterial({
+                color: '#5a2222', emissive: '#ff3b30', emissiveIntensity: 0
+            });
+            const green = new THREE.MeshStandardMaterial({
+                color: '#1f4a2a', emissive: '#34c759', emissiveIntensity: 0
+            });
+            const rl = new THREE.Mesh(
+                new THREE.SphereGeometry(0.07, 8, 6),
+                red
+            ), gl = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 6), green);
             rl.position.set(0, 1.82, 0.1);
             gl.position.set(0, 1.58, 0.1);
             pole.add(dynamic(rl), dynamic(gl));
             pole.position.set(x, BLOCK_H, z);
             // quay mặt đèn về phía dòng xe nó điều khiển
-            pole.rotation.y = axis === 'z' ? (z > 0 ? 0 : Math.PI) : x > 0 ? Math.PI / 2 : -Math.PI / 2;
+            pole.rotation.y = axis === 'z' ? (z > 0 ? 0 : Math.PI) : x > 0 ? Math.PI / 2
+                : -Math.PI / 2;
             g.add(pole);
             lights.push({ axis, red, green });
         }
@@ -169,15 +194,23 @@ export function buildStreets(level: number, pedestrians: PedestrianProvider): Bu
         });
     }
 
-    /* Xe chạy bên phải đường. Hướng +z dùng làn x = -1, hướng -x dùng làn z = -1, hướng +x dùng làn z = +1. */
+    /* Xe chạy bên phải đường. Hướng +z dùng làn x = -1, hướng -x dùng làn z = -1,
+       hướng +x dùng làn z = +1. */
     const vehicles: Vehicle[] = [];
-    const addVehicle = (obj: THREE.Group, axis: 'x' | 'z', dir: 1 | -1, lane: number, start: number, speed: number, len: number) => {
+    const addVehicle = (
+        obj: THREE.Group, axis: 'x' | 'z', dir: 1 | -1, lane: number, start: number, speed: number,
+        len: number
+    ) => {
         const v = dynamic(new THREE.Group());
         v.add(obj, blobShadow(len * 0.36, len * 0.62));
         obj.children.forEach((c) => (c.castShadow = false)); // bóng thật tắt, dùng bóng giả
-        if (axis === 'z') v.position.set(lane, 0, start);
-        else v.position.set(start, 0, lane);
-        v.rotation.y = axis === 'z' ? (dir > 0 ? 0 : Math.PI) : dir > 0 ? Math.PI / 2 : -Math.PI / 2;
+        if (axis === 'z') {
+            v.position.set(lane, 0, start);
+        } else {
+            v.position.set(start, 0, lane);
+        }
+        v.rotation.y = axis === 'z' ? (dir > 0 ? 0 : Math.PI) : dir > 0 ? Math.PI / 2
+            : -Math.PI / 2;
         g.add(v);
         vehicles.push({ obj: v, axis, dir, speed, len });
     };
@@ -185,7 +218,9 @@ export function buildStreets(level: number, pedestrians: PedestrianProvider): Bu
         addVehicle(makeCar(C.carRed), 'z', 1, -1, -8, 2.4, 1.6);
         addVehicle(makeCar(C.carBlue), 'x', -1, -1, 6, 2.1, 1.6);
     }
-    if (level >= 3) addVehicle(makeBus(), 'x', 1, 1, -9, 1.6, 3.0);
+    if (level >= 3) {
+        addVehicle(makeBus(), 'x', 1, 1, -9, 1.6, 3.0);
+    }
 
     const inBox = (x: number, z: number) => Math.abs(x) < BOX && Math.abs(z) < BOX;
     anims.push((dt) => {
@@ -199,17 +234,30 @@ export function buildStreets(level: number, pedestrians: PedestrianProvider): Bu
 
             let stop = false;
             // 1) nhường người đi bộ đang ở dưới lòng đường, ngay trước mũi xe
-            for (const h of peds) if (Math.hypot(h.x - nx, h.z - nz) < 1.0) { stop = true; break; }
+            for (const h of peds) {
+                if (Math.hypot(h.x - nx, h.z - nz) < 1.0) {
+                    stop = true;
+                    break;
+                }
+            }
             // 2) sắp vào giao lộ: đèn đỏ, hoặc xe khác đang ở trong giao lộ → chờ
             if (!stop && !insideNow && inBox(nx, nz)) {
-                if (greenAxis && greenAxis !== v.axis) stop = true;
-                else if (vehicles.some((o) => o !== v && inBox(o.obj.position.x, o.obj.position.z))) stop = true;
+                if (greenAxis && greenAxis !== v.axis) {
+                    stop = true;
+                } else if (vehicles.some((o) => o !== v
+                    && inBox(o.obj.position.x, o.obj.position.z))) {
+                    stop = true;
+                }
             }
             if (!stop) {
                 const next = along + v.dir * v.speed * dt;
                 // ra khỏi mép bản đồ thì quay lại từ mép bên kia
                 const wrapped = Math.abs(next) > MAP_HALF + 1.5 ? -v.dir * (MAP_HALF + 1.5) : next;
-                if (v.axis === 'z') p.z = wrapped; else p.x = wrapped;
+                if (v.axis === 'z') {
+                    p.z = wrapped;
+                } else {
+                    p.x = wrapped;
+                }
             }
             // ẩn khi xe "rời" bản đồ để không lơ lửng ngoài mép đế
             v.obj.visible = Math.abs(v.axis === 'z' ? p.z : p.x) < MAP_HALF - v.len / 2 + 0.3;

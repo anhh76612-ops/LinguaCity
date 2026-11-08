@@ -20,7 +20,14 @@ export function dynamic<T extends THREE.Object3D>(o: T): T {
 }
 
 /** Hàng rào gỗ thấp từ (x1, z1) đến (x2, z2), cột cách nhau ~0.5. */
-export function fence(g: THREE.Object3D, x1: number, z1: number, x2: number, z2: number, color: string = C.trim): void {
+export function fence(
+    g: THREE.Object3D,
+    x1: number,
+    z1: number,
+    x2: number,
+    z2: number,
+    color: string = C.trim
+): void {
     const len = Math.hypot(x2 - x1, z2 - z1), n = Math.max(1, Math.round(len / 0.5));
     for (let i = 0; i <= n; i++) {
         const t = i / n;
@@ -35,7 +42,9 @@ export function bench(g: THREE.Object3D, x: number, z: number, face: number): vo
     const b = new THREE.Group();
     box(b, 1.0, 0.07, 0.36, C.wood, 0, 0.32, 0);
     box(b, 1.0, 0.3, 0.06, C.wood, 0, 0.42, -0.17);
-    for (const sx of [-0.42, 0.42]) box(b, 0.06, 0.32, 0.32, C.metalDark, sx, 0, 0);
+    for (const sx of [-0.42, 0.42]) {
+        box(b, 0.06, 0.32, 0.32, C.metalDark, sx, 0, 0);
+    }
     b.position.set(x, 0, z);
     b.rotation.y = face;
     g.add(b);
@@ -54,12 +63,20 @@ export function bush(g: THREE.Object3D, x: number, z: number, s = 1): void {
 }
 
 /** Bồn hoa: viền gỗ, đất, vài bông hoa. */
-export function flowerBed(g: THREE.Object3D, x: number, z: number, w: number, d: number, color: string = C.flowerPink): void {
+export function flowerBed(
+    g: THREE.Object3D,
+    x: number,
+    z: number,
+    w: number,
+    d: number,
+    color: string = C.flowerPink
+): void {
     rbox(g, w, 0.18, d, C.wood, x, 0, z, 0.03);
     box(g, w - 0.12, 0.2, d - 0.12, C.soil, x, 0, z);
     const n = Math.max(2, Math.round((w * d) / 0.12));
     for (let i = 0; i < n; i++) {
-        const fx = x + ((i * 0.618) % 1 - 0.5) * (w - 0.3), fz = z + ((i * 0.381 + 0.2) % 1 - 0.5) * (d - 0.3);
+        const fx = x + ((i * 0.618) % 1 - 0.5) * (w - 0.3), fz = z
+            + ((i * 0.381 + 0.2) % 1 - 0.5) * (d - 0.3);
         ball(g, 0.07, i % 3 === 0 ? C.flowerYellow : color, fx, 0.2, fz, 0);
     }
 }
@@ -81,6 +98,9 @@ export function sign(text: string, w: number, h: number, bg: string, fg = '#ffff
     const tex = new THREE.CanvasTexture(cv);
     tex.colorSpace = THREE.SRGBColorSpace;
     tex.anisotropy = 4;
-    const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshStandardMaterial({ map: tex, roughness: 0.9 }));
+    const m = new THREE.Mesh(
+        new THREE.PlaneGeometry(w, h),
+        new THREE.MeshStandardMaterial({ map: tex, roughness: 0.9 })
+    );
     return dynamic(m); // vật liệu riêng (có texture) → không gộp
 }

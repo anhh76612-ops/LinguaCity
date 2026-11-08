@@ -33,7 +33,9 @@ class MainActivity : ComponentActivity() {
         setContent {
             val settings by settingsStore.settings.collectAsState(initial = AppSettings())
             // FR-UI-05: xoay màn hình theo cài đặt, có hiệu lực ngay khi đổi.
-            LaunchedEffect(settings.orientation) { requestedOrientation = settings.orientation.activityValue }
+            LaunchedEffect(settings.orientation) {
+                requestedOrientation = settings.orientation.activityValue
+            }
             CompositionLocalProvider(LocalReduceMotion provides settings.reduceMotion) {
                 LinguaCityTheme {
                     AppNavHost()

@@ -8,7 +8,8 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 
 /**
- * Quy ước thời gian: cột TIMESTAMP trong DB lưu giờ **UTC** dạng LocalDateTime; API trả {@link Instant}.
+ * Quy ước thời gian: cột TIMESTAMP trong DB lưu giờ **UTC** dạng LocalDateTime; API trả {@link
+ * Instant}.
  * "Một ngày" (chống cày KP, chuỗi ngày học) tính theo múi giờ cấu hình (Asia/Ho_Chi_Minh).
  */
 public final class Times {
@@ -31,8 +32,10 @@ public final class Times {
     /** [đầu ngày, đầu ngày hôm sau) của ngày chứa {@code utc} theo {@code zone}, đổi lại về UTC. */
     public static LocalDateTime[] dayRangeUtc(LocalDateTime utc, ZoneId zone) {
         LocalDate day = localDate(utc, zone);
-        LocalDateTime start = day.atStartOfDay(zone).withZoneSameInstant(ZoneOffset.UTC).toLocalDateTime();
-        LocalDateTime end = day.plusDays(1).atStartOfDay(zone).withZoneSameInstant(ZoneOffset.UTC).toLocalDateTime();
+        LocalDateTime start = day.atStartOfDay(zone).withZoneSameInstant(ZoneOffset.UTC)
+                .toLocalDateTime();
+        LocalDateTime end = day.plusDays(1).atStartOfDay(zone).withZoneSameInstant(ZoneOffset.UTC)
+                .toLocalDateTime();
         return new LocalDateTime[]{start, end};
     }
 }

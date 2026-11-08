@@ -22,7 +22,9 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeParseException;
 import java.util.UUID;
 
-/** Thông tin của chính người chơi: hồ sơ, bước tutorial, tiến độ từ, danh hiệu (§10.4.3, §10.4.4). */
+/**
+ * Thông tin của chính người chơi: hồ sơ, bước tutorial, tiến độ từ, danh hiệu (§10.4.3, §10.4.4).
+ */
 @RestController
 @RequestMapping("/api/v1/users/me")
 public class PlayerController {
@@ -35,9 +37,14 @@ public class PlayerController {
     private final CosmeticService cosmetics;
     private final Clock clock;
 
-    public PlayerController(UserProfileRepository users, UserVocabProgressRepository progress, TutorialService tutorial,
-                            LearningService learning, AchievementService achievements, CosmeticService cosmetics,
-                            Clock clock) {
+    public PlayerController(
+            UserProfileRepository users,
+            UserVocabProgressRepository progress,
+            TutorialService tutorial,
+            LearningService learning,
+            AchievementService achievements,
+            CosmeticService cosmetics,
+            Clock clock) {
         this.users = users;
         this.progress = progress;
         this.tutorial = tutorial;
@@ -54,7 +61,8 @@ public class PlayerController {
     }
 
     @PutMapping("/tutorial/step")
-    public PlayerDto step(@RequestHeader("X-Guest-UUID") UUID guest, @RequestBody StepRequest body) {
+    public PlayerDto step(
+            @RequestHeader("X-Guest-UUID") UUID guest, @RequestBody StepRequest body) {
         if (body.step() == null) {
             throw new ApiException(HttpStatus.BAD_REQUEST, "INVALID_BODY", "step is required");
         }
@@ -69,7 +77,8 @@ public class PlayerController {
             try {
                 sinceUtc = LocalDateTime.ofInstant(Instant.parse(since), ZoneOffset.UTC);
             } catch (DateTimeParseException e) {
-                throw new ApiException(HttpStatus.BAD_REQUEST, "INVALID_PARAMETER", "Invalid since");
+                throw new ApiException(
+                        HttpStatus.BAD_REQUEST, "INVALID_PARAMETER", "Invalid since");
             }
         }
         return learning.progressSince(guest, sinceUtc);
@@ -78,20 +87,24 @@ public class PlayerController {
     @GetMapping("/achievements")
     public AchievementsDto achievements(@RequestHeader("X-Guest-UUID") UUID guest) {
         UserProfile p = users.findById(guest).orElseThrow(UserProfileNotFoundException::new);
-        return new AchievementsDto(p.getEquippedAchievementCode(), achievements.earnedBy(guest).stream()
-                .map(a -> new EarnedDto(a.getId().getAchievementCode(), Times.toInstant(a.getEarnedAt())))
+        return new AchievementsDto(p.getEquippedAchievementCode(), achievements.earnedBy(guest)
+                .stream()
+                .map(a -> new EarnedDto(
+                        a.getId().getAchievementCode(), Times.toInstant(a.getEarnedAt())))
                 .toList());
     }
 
     @PutMapping("/equipped-title")
-    public PlayerDto equip(@RequestHeader("X-Guest-UUID") UUID guest, @RequestBody EquipRequest body) {
+    public PlayerDto equip(
+            @RequestHeader("X-Guest-UUID") UUID guest, @RequestBody EquipRequest body) {
         return toDto(achievements.equip(guest, body.code()));
     }
 
     private PlayerDto toDto(UserProfile p) {
         long collected = progress.countByUserIdAndCollectedAtIsNotNull(p.getId());
         int streak = achievements.streakDays(p.getId(), Times.nowUtc(clock));
-        return new PlayerDto(p.getId(), p.getKnowledgePoints(), p.getHourglassCount(), p.getBlueprintShards(),
+        return new PlayerDto(p.getId(), p.getKnowledgePoints(), p.getHourglassCount(),
+                p.getBlueprintShards(),
                 p.getTutorialStep(), p.isTutorialCompleted(), p.getEquippedAchievementCode(),
                 cosmetics.avatarOf(p), cosmetics.houseStyleOf(p),
                 new StatsDto(collected, streak));

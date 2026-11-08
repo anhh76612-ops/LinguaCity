@@ -16,7 +16,7 @@ Kiểm tra tự động: `python tools/check_style.py` (xem [mục 7](#7-công-c
 | Dòng nối tiếp (một lệnh ngắt thành nhiều dòng) thụt thêm **4** (Kotlin, TS) hoặc **8** (Java) | |
 | Dấu `{` **cùng dòng** với câu lệnh mở khối (kiểu K&R) — chuẩn chung của cả Java, Kotlin và TS | `} else {`, `} catch (e) {` cùng dòng với `}` |
 | Cách đều quanh toán tử `=`, `+`, `-`, `*`, `/`, `==`, `&&`, `->`, `?:` … và **sau** dấu phẩy | Ngoại lệ: `i++`, `!flag`, `a..b`, `obj.field`, `a?.b` |
-| Dòng trống tách các **khối logic**: khai báo → kiểm tra điều kiện → xử lý → trả kết quả | Tối đa **1** dòng trống liên tiếp; 1 dòng trống giữa hai thành viên của lớp |
+| Dòng trống tách các **khối logic**: khai báo → kiểm tra điều kiện → xử lý → trả kết quả | Tối đa **1** dòng trống liên tiếp; 1 dòng trống giữa hai thành viên của lớp. Python theo PEP 8: 2 dòng trống giữa các hàm cấp cao |
 | Không để khoảng trắng cuối dòng; file kết thúc bằng một dòng trống | |
 
 ```java
@@ -72,7 +72,11 @@ public BuildResultDto build(UUID userId, String code) {
 - Kotlin được dùng `if` **dạng biểu thức** ngắn trên một dòng (`val label = if (built) "Lv $level" else "Chưa xây"`).
   Còn `if` dạng câu lệnh thì theo quy tắc như Java.
 - **Tối đa 100 ký tự mỗi dòng** (Murach: 78–100).
-  Ngoại lệ: dòng `import` / `package`, URL dài trong comment, chuỗi dữ liệu trong file seed / migration.
+  Ngoại lệ:
+  - dòng `import` / `package`;
+  - URL dài trong comment;
+  - chuỗi dữ liệu trong file seed / migration;
+  - chuỗi JSON mẫu trong test, vì tách ra sẽ khó đối chiếu với dữ liệu thật.
 - Cách ngắt dòng dài:
   - ngắt **sau** dấu phẩy;
   - ngắt **trước** toán tử (`&&`, `+`, `?:`, `.`);

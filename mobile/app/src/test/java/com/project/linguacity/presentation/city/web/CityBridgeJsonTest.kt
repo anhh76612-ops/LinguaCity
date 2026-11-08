@@ -83,7 +83,8 @@ class CityBridgeJsonTest {
             CityMapIntent.BuildingExited(BuildingCode.SCHOOL),
             CityBridgeJson.decodeIntent("""{"type":"BuildingExited","buildingCode":"SCHOOL"}""")
         )
-        assertNull(CityBridgeJson.decodeIntent("""{"type":"BuildingEntered","buildingCode":"CASTLE"}"""))
+        val unknownBuilding = """{"type":"BuildingEntered","buildingCode":"CASTLE"}"""
+        assertNull(CityBridgeJson.decodeIntent(unknownBuilding))
         assertNull(CityBridgeJson.decodeIntent("""{"type":"BuildingExited"}"""))
     }
 

@@ -6,6 +6,7 @@ import com.linguacity.backend.identity.entity.UserProfile;
 public record ResourcesDto(int knowledgePoints, int hourglassCount, int blueprintShards) {
 
     public static ResourcesDto of(UserProfile p) {
-        return new ResourcesDto(p.getKnowledgePoints(), p.getHourglassCount(), p.getBlueprintShards());
+        return new ResourcesDto(
+                p.getKnowledgePoints(), p.getHourglassCount(), p.getBlueprintShards());
     }
 }

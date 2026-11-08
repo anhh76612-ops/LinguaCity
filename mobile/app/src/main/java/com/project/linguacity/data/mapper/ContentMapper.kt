@@ -19,7 +19,8 @@ import com.project.linguacity.domain.model.content.PackRef
 import com.project.linguacity.domain.model.content.Vocabulary
 
 /*
- * DTO (mạng) → Entity (Room) → Domain. Tách khỏi Repository để test được trên JVM (ContentMapperTest)
+ * DTO (mạng) → Entity (Room) → Domain. Tách khỏi Repository để test được trên JVM
+ * (ContentMapperTest)
  * — đúng gợi ý M-05 của handover VS2.
  */
 
@@ -46,10 +47,20 @@ fun PackRefDto.toDomain() = PackRef(code, buildingCode, level, version)
 
 fun CoreDto.toRows() = CoreRows(
     themes = themes.map { ThemeEntity(it.id, it.code, it.name, it.description) },
-    buildings = buildings.map { BuildingEntity(it.id, it.code, it.name, it.maxLevel, it.sortOrder) },
-    buildingThemes = buildings.flatMap { b -> b.themeCodes.map { BuildingThemeEntity(b.code, it) } },
+    buildings = buildings.map {
+        BuildingEntity(it.id, it.code, it.name, it.maxLevel, it.sortOrder)
+    },
+    buildingThemes = buildings.flatMap { b -> b.themeCodes.map {
+        BuildingThemeEntity(b.code, it)
+    } },
     buildingLevels = buildingLevels.map {
-        BuildingLevelEntity(it.buildingCode, it.level, it.knowledgeCost, it.constructionTimeSeconds, it.requiredCollected)
+        BuildingLevelEntity(
+            it.buildingCode,
+            it.level,
+            it.knowledgeCost,
+            it.constructionTimeSeconds,
+            it.requiredCollected
+        )
     },
     blueprints = blueprints.map { BlueprintEntity(it.id, it.code, it.buildingCode, it.targetLevel) }
 )
@@ -59,14 +70,24 @@ fun PackDto.toRows(): PackRows {
     return PackRows(
         vocabularies = vocabularies.map {
             VocabularyEntity(
-                id = it.id, word = it.word, meaning = it.meaning, wordType = it.wordType, ipa = it.ipa,
-                examples = it.examples, imageUrl = it.imageUrl, themeCode = it.themeCode, level = it.level,
+                id = it.id,
+                word = it.word,
+                meaning = it.meaning,
+                wordType = it.wordType,
+                ipa = it.ipa,
+                examples = it.examples,
+                imageUrl = it.imageUrl,
+                themeCode = it.themeCode,
+                level = it.level,
                 difficultyRank = it.difficultyRank, packCode = pack
             )
         },
         questions = questions.map {
             QuestionEntity(
-                id = it.id, contentType = it.contentType, skill = it.skill, questionType = it.questionType,
+                id = it.id,
+                contentType = it.contentType,
+                skill = it.skill,
+                questionType = it.questionType,
                 tier = it.tier, questionText = it.questionText, audioUrl = it.audioUrl,
                 metadata = it.metadata?.toString(), packCode = pack
             )
@@ -75,7 +96,15 @@ fun PackDto.toRows(): PackRows {
             QuestionVocabularyEntity(it.questionId, it.vocabularyId, it.relationType, pack)
         },
         exams = exams.map {
-            ExamEntity(it.id, it.code, it.buildingCode, it.targetLevel, it.blueprintCode, it.questionCount, pack)
+            ExamEntity(
+                it.id,
+                it.code,
+                it.buildingCode,
+                it.targetLevel,
+                it.blueprintCode,
+                it.questionCount,
+                pack
+            )
         },
         examRequirements = exams.map {
             ExamRequirementEntity(
@@ -83,11 +112,29 @@ fun PackDto.toRows(): PackRows {
                 it.requirement.requiredBlueprintShards, pack
             )
         },
-        examQuestions = exams.flatMap { e -> e.questionIds.map { ExamQuestionEntity(e.id, it, pack) } }
+        examQuestions = exams.flatMap { e -> e.questionIds.map {
+            ExamQuestionEntity(e.id, it, pack)
+        } }
     )
 }
 
-fun VocabularyEntity.toDomain() = Vocabulary(id, word, meaning, wordType, ipa, examples, themeCode, level, difficultyRank)
+fun VocabularyEntity.toDomain() = Vocabulary(
+    id,
+    word,
+    meaning,
+    wordType,
+    ipa,
+    examples,
+    themeCode,
+    level,
+    difficultyRank
+)
 
 fun BuildingLevelEntity.toDomain() =
-    BuildingLevelInfo(buildingCode, level, knowledgeCost, constructionTimeSeconds, requiredCollected)
+    BuildingLevelInfo(
+        buildingCode,
+        level,
+        knowledgeCost,
+        constructionTimeSeconds,
+        requiredCollected
+    )

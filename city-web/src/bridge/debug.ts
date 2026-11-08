@@ -7,9 +7,15 @@ import { ACCESSORIES, type CityState, DEFAULT_APPEARANCE, DEFAULT_HOUSE_STYLE, F
 
 export interface DebugCommands { enter(code: string): boolean; exit(): boolean }
 
-export function setupDebug(getState: () => CityState, setState: (s: CityState) => void, cmd?: DebugCommands): GUI {
+export function setupDebug(
+    getState: () => CityState,
+    setState: (s: CityState) => void,
+    cmd?: DebugCommands
+): GUI {
     const gui = new GUI({ title: 'CityState (giả lập)' });
-    if (innerWidth < 900) gui.close(); // màn nhỏ: thu gọn để không che bản đồ
+    if (innerWidth < 900) {  // màn nhỏ: thu gọn để không che bản đồ
+        gui.close();
+    }
 
     const model: Record<string, number | boolean> = {};
     const push = () => {
@@ -32,17 +38,28 @@ export function setupDebug(getState: () => CityState, setState: (s: CityState) =
         model[`${code}.upgrading`] = !!b.upgrading;
         model[`${code}.progress`] = b.progress ?? 0;
         const f = gui.addFolder(`${LOTS[code].icon} ${LOTS[code].name}`);
-        f.add(model, `${code}.level`, 0, MAX_LEVEL, 1).name('Level (0 = chưa xây)').onFinishChange(push);
+        f.add(
+            model,
+            `${code}.level`,
+            0,
+            MAX_LEVEL,
+            1
+        ).name('Level (0 = chưa xây)').onFinishChange(push);
         f.add(model, `${code}.upgrading`).name('Đang nâng cấp').onChange(push);
         f.add(model, `${code}.progress`, 0, 1, 0.05).name('Tiến độ').onChange(push);
-        if (code !== 'HOUSING') f.close();
+        if (code !== 'HOUSING') {
+            f.close();
+        }
     }
 
     let n = 1;
     const actions = {
         addEvent: () => {
             const s = getState();
-            setState({ ...s, events: [...s.events, { id: `evt-debug-${Date.now()}-${n++}`, kind: 'GRAMMAR' }] });
+            setState({
+                ...s,
+                events: [...s.events, { id: `evt-debug-${Date.now()}-${n++}`, kind: 'GRAMMAR' }]
+            });
         },
         clearEvents: () => setState({ ...getState(), events: [] }),
     };
@@ -53,7 +70,11 @@ export function setupDebug(getState: () => CityState, setState: (s: CityState) =
     // Người chơi (M7): ngoại hình, kiểu nhà, vào/ra công trình — đi qua đúng API mà app dùng
     const look = { ...(getState().player?.appearance ?? DEFAULT_APPEARANCE) };
     const house = { ...(getState().houseStyle ?? DEFAULT_HOUSE_STYLE) };
-    const pushLook = () => setState({ ...getState(), player: { appearance: { ...look } }, houseStyle: { ...house } });
+    const pushLook = () => setState({
+        ...getState(),
+        player: { appearance: { ...look } },
+        houseStyle: { ...house }
+    });
     const pl = gui.addFolder('Người chơi (M7)');
     pl.addColor(look, 'skin').name('Da').onFinishChange(pushLook);
     pl.add(look, 'hairStyle', HAIR_STYLES).name('Kiểu tóc').onChange(pushLook);

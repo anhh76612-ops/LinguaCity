@@ -36,6 +36,7 @@ KOTLIN_IF_PATTERN = re.compile(r"^\s*(?:\}\s*)?(if|else if)\s*\(")
 URL_PATTERN = re.compile(r"https?://")
 IMPORT_PATTERN = re.compile(r"^\s*(import|package)\b")
 SEED_DATA_PATTERN = re.compile(r"^\s*[(\[\"']")
+TEST_DATA_PATTERN = re.compile(r'^\s*(\"|\+\s*\")')
 
 def collect_files():
     """Liệt kê các file thuộc phạm vi, bỏ thư mục build và file sinh tự động."""
@@ -115,10 +116,29 @@ def condition_end(code, start):
                 return index + 1
     return -1
 
+TYPE_MEMBER = re.compile(r"^\s*(readonly\s+)?[\w$]+\??\s*(\([^)]*\))?\s*:\s*\S.*$")
+
+
+def mask_type_literals(code):
+    """Xoá các khối `{ a: T; b(): U }` (kiểu đối tượng của TS): dấu `;` trong đó không phải lệnh."""
+    result = code
+    while True:
+        changed = False
+        for match in re.finditer(r"\{([^{}]*)\}", result):
+            members = [m for m in match.group(1).split(";") if m.strip()]
+            if members and all(TYPE_MEMBER.match(m) and "=" not in m for m in members):
+                result = result[:match.start()] + "T" + result[match.end():]
+                changed = True
+                break
+        if not changed:
+            return result
+
+
 def has_multiple_statements(code):
     """Có `;` mà phía sau còn lệnh khác trên cùng dòng (trừ vòng for kiểu C)."""
     if re.match(r"^\s*for\s*\(", code):
         return False
+    code = mask_type_literals(code)
     stripped = code.rstrip()
     if stripped.endswith(";"):
         stripped = stripped[:-1]
@@ -138,6 +158,8 @@ def check_file(path):
     state = {"block_comment": False, "raw_string": None, "python": suffix == ".py"}
     # Dòng dữ liệu (chuỗi câu ví dụ, giải thích) trong script seed được phép dài
     is_seed_data = "database/seed" in path.as_posix()
+    # Dữ liệu mẫu (JSON) trong test cũng được phép dài, tách ra sẽ khó so với dữ liệu thật
+    is_test = "/src/test/" in path.as_posix()
     blank_run = 0
     codes = []
     for number, raw in enumerate(lines, start=1):
@@ -151,12 +173,13 @@ def check_file(path):
             IMPORT_PATTERN.match(line)
             or URL_PATTERN.search(line)
             or (is_seed_data and SEED_DATA_PATTERN.match(line))
+            or (is_test and (state["raw_string"] or TEST_DATA_PATTERN.match(line)))
         )
         if too_long and not allowed_long:
             problems.append((number, "LONG", f"dài {len(line)} ký tự (> {MAX_LINE})"))
 
         blank_run = blank_run + 1 if line.strip() == "" else 0
-        if blank_run == 2:
+        if blank_run == 2 and suffix != ".py":  # Python theo PEP 8: 2 dòng trống giữa các hàm
             problems.append((number, "BLANKS", "quá 1 dòng trống liên tiếp"))
 
         was_in_string = state["raw_string"] is not None

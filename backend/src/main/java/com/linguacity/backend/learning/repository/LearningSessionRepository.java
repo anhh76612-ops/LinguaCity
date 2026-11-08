@@ -17,16 +17,29 @@ public interface LearningSessionRepository extends JpaRepository<LearningSession
     Optional<LearningSession> findFirstByUserIdAndBuildingIdAndTypeAndStatus(
             UUID userId, Long buildingId, SessionType type, SessionStatus status);
 
-    Optional<LearningSession> findFirstByUserIdAndTypeAndStatus(UUID userId, SessionType type, SessionStatus status);
+    Optional<LearningSession> findFirstByUserIdAndTypeAndStatus(
+            UUID userId, SessionType type, SessionStatus status);
 
-    long countByUserIdAndTypeAndStatusAndCompletedAtGreaterThanEqualAndCompletedAtLessThan(
-            UUID userId, SessionType type, SessionStatus status, LocalDateTime from, LocalDateTime to);
+    /** Số phiên đã hoàn thành trong khoảng [from, to) — đếm phiên thứ mấy trong ngày (§10.6). */
+    @Query("select count(s) from LearningSession s where s.userId = :user and s.type = :type"
+            + " and s.status = :status and s.completedAt >= :from and s.completedAt < :to")
+    long countCompletedBetween(
+            @Param("user") UUID userId,
+            @Param("type") SessionType type,
+            @Param("status") SessionStatus status,
+            @Param("from") LocalDateTime from,
+            @Param("to") LocalDateTime to);
 
-    @Query("select s.correctCount from LearningSession s where s.type = :type and s.status = :status and s.id <> :exclude")
-    List<Integer> correctCountsOfOthers(@Param("type") SessionType type, @Param("status") SessionStatus status,
-                                        @Param("exclude") UUID exclude);
+    @Query("select s.correctCount from LearningSession s"
+            + " where s.type = :type and s.status = :status and s.id <> :exclude")
+    List<Integer> correctCountsOfOthers(
+            @Param("type") SessionType type,
+            @Param("status") SessionStatus status,
+            @Param("exclude") UUID exclude);
 
-    @Query("select s.completedAt from LearningSession s where s.userId = :user and s.status = :status and s.completedAt >= :since")
-    List<LocalDateTime> completedAtSince(@Param("user") UUID user, @Param("status") SessionStatus status,
+    @Query("select s.completedAt from LearningSession s"
+            + " where s.userId = :user and s.status = :status and s.completedAt >= :since")
+    List<LocalDateTime> completedAtSince(@Param("user") UUID user,
+            @Param("status") SessionStatus status,
                                          @Param("since") LocalDateTime since);
 }

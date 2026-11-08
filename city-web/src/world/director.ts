@@ -1,16 +1,18 @@
 /* "Đạo diễn" hoạt cảnh vào/ra công trình (M7, UC_15).
 
-         city ──enter(code)──▶ entering ──xong──▶ inside ──exit()──▶ exiting ──xong──▶ city
-                                                            │                                     │
-                                                            └ emit BuildingEntered                └ emit BuildingExited
+     city ──enter(code)──▶ entering ──xong──▶ inside ──exit()──▶ exiting ──xong──▶ city
+                              │                                     │
+                              └ emit BuildingEntered                └ emit BuildingExited
 
-     enter(code):
-         1. Avatar đi bộ (nhanh) tới cổng rồi tới cửa; camera bám theo và phóng to dần.
-         2. Housing Lv ≥ 1: camera lao vào cửa + màn mờ → đổi sang cảnh nội thất 3D → avatar bước vào phòng.
-                Công trình khác (và lô đất trống): dừng lại ở góc nhìn cận cảnh, app tự mở màn Compose.
-     exit(): làm ngược lại rồi trả camera về đúng chỗ người chơi đang xem trước khi vào.
+   enter(code):
+     1. Avatar đi bộ (nhanh) tới cổng rồi tới cửa; camera bám theo và phóng to dần.
+     2. Housing Lv ≥ 1: camera lao vào cửa + màn mờ → đổi sang cảnh nội thất 3D → avatar bước vào
+     phòng.
+        Công trình khác (và lô đất trống): dừng lại ở góc nhìn cận cảnh, app tự mở màn Compose.
+   exit(): làm ngược lại rồi trả camera về đúng chỗ người chơi đang xem trước khi vào.
 
-     Đạo diễn chỉ lo HÌNH ẢNH. Vào được hay không, vào để làm gì là việc của app (bản đồ không giữ nghiệp vụ). */
+   Đạo diễn chỉ lo HÌNH ẢNH. Vào được hay không, vào để làm gì là việc của app
+   (bản đồ không giữ nghiệp vụ). */
 import * as THREE from 'three';
 import { camera, placeCamera, scene, target } from '../core/renderer';
 import { onUpdate, setView } from '../core/loop';
@@ -25,7 +27,9 @@ import type { CityIntent } from '../bridge/cityState';
 export type DirectorMode = 'city' | 'entering' | 'inside' | 'exiting';
 
 /** Nút trên vỉa hè trước lối vào của từng lô (people/nav.ts). */
-const GATE: Record<BuildingCode, string> = { HOUSING: 'HOUSING.gate', SCHOOL: 'SCHOOL.gate', PARK: 'PARK.gateZ', ROAD: 'ROAD.gate' };
+const GATE: Record<BuildingCode, string> = {
+    HOUSING: 'HOUSING.gate', SCHOOL: 'SCHOOL.gate', PARK: 'PARK.gateZ', ROAD: 'ROAD.gate'
+};
 
 const FOLLOW_ZOOM = 2.3;   // phóng to khi bám theo avatar
 const DOOR_ZOOM = 3.8;     // lao vào cửa
@@ -63,7 +67,9 @@ export class Director {
     }
 
     async enter(code: BuildingCode): Promise<boolean> {
-        if (this.mode !== 'city') return false;
+        if (this.mode !== 'city') {
+            return false;
+        }
         this.mode = 'entering';
         this.building = code;
         this.saved.target.copy(target);
@@ -73,12 +79,28 @@ export class Director {
         // 1) đi tới cổng rồi tới cửa, camera bám theo
         this.follow = true;
         const gate = NODES[GATE[code]];
-        const path = route(nearestNode(this.player.x, this.player.z), GATE[code]).map((id) => ({ x: NODES[id][0], z: NODES[id][1] }));
+        const path = route(
+            nearestNode(this.player.x, this.player.z),
+            GATE[code]
+        ).map((id) => ({ x: NODES[id][0], z: NODES[id][1] }));
         const door = this.city.doorOf(code);
-        if (door) path.push(door);
-        else path.push({ x: gate[0], z: gate[1] });
+        if (door) {
+            path.push(door);
+        } else {
+            path.push({ x: gate[0], z: gate[1] });
+        }
         let len = 0;
-        for (let i = 0, px = this.player.x, pz = this.player.z; i < path.length; px = path[i].x, pz = path[i].z, i++) len += Math.hypot(path[i].x - px, path[i].z - pz);
+        for (
+            let i = 0,
+            px = this.player.x,
+            pz = this.player.z;
+            i < path.length;
+            px = path[i].x,
+            pz = path[i].z,
+            i++
+        ) {
+            len += Math.hypot(path[i].x - px, path[i].z - pz);
+        }
         await this.player.walkTo(path, Math.max(WALK_SPEED, len / MAX_WALK_S));
         this.follow = false;
 
@@ -98,8 +120,11 @@ export class Director {
             // dừng ở góc nhìn cận cảnh của lô; có cửa thì avatar "bước vào" (ẩn đi)
             const c = lotCenter(code);
             this.goal = { x: c.x, y: 1, z: c.z, zoom: FOLLOW_ZOOM, rate: 4 };
-            if (door) this.player.visible = false;
-            else this.player.act('idle', 999);
+            if (door) {
+                this.player.visible = false;
+            } else {
+                this.player.act('idle', 999);
+            }
             await wait(500);
         }
         this.mode = 'inside';
@@ -108,7 +133,9 @@ export class Director {
     }
 
     async exit(): Promise<boolean> {
-        if (this.mode !== 'inside' || !this.building) return false;
+        if (this.mode !== 'inside' || !this.building) {
+            return false;
+        }
         const code = this.building;
         this.mode = 'exiting';
 
@@ -122,12 +149,20 @@ export class Director {
         }
         const door = this.city.doorOf(code);
         const gate = NODES[GATE[code]];
-        if (door) this.player.placeAt(door.x, door.z, 0);
+        if (door) {
+            this.player.placeAt(door.x, door.z, 0);
+        }
         this.player.visible = true;
         // camera lùi về chỗ cũ trong lúc avatar đi ra cổng
-        this.goal = { x: this.saved.target.x, y: this.saved.target.y, z: this.saved.target.z, zoom: this.saved.zoom, rate: 3.2 };
+        this.goal = {
+            x: this.saved.target.x, y: this.saved.target.y, z: this.saved.target.z,
+            zoom: this.saved.zoom, rate: 3.2
+        };
         await this.fade(false);
-        await Promise.all([this.player.walkTo([{ x: gate[0], z: gate[1] }], WALK_SPEED), wait(700)]);
+        await Promise.all([
+            this.player.walkTo([{ x: gate[0], z: gate[1] }], WALK_SPEED),
+            wait(700)
+        ]);
 
         this.player.busy = false;
         this.player.act('wave', 1.2);
@@ -147,16 +182,22 @@ export class Director {
             this.goal = { x: this.player.x, y: 0.8, z: this.player.z, zoom: FOLLOW_ZOOM, rate: 3 };
         }
         const g = this.goal;
-        if (!g) return;
-        const k = 1 - Math.exp(-dt * g.rate); // nội suy mũ: nhanh lúc đầu, chậm dần, không phụ thuộc FPS
+        if (!g) {
+            return;
+        }
+        // nội suy mũ: nhanh lúc đầu, chậm dần, không phụ thuộc FPS
+        const k = 1 - Math.exp(-dt * g.rate);
         target.x += (g.x - target.x) * k;
         target.y += (g.y - target.y) * k;
         target.z += (g.z - target.z) * k;
         camera.zoom += (g.zoom - camera.zoom) * k;
         camera.updateProjectionMatrix();
         placeCamera();
-        const done = Math.abs(g.zoom - camera.zoom) < 0.002 && target.distanceTo(new THREE.Vector3(g.x, g.y, g.z)) < 0.005;
-        if (done && !this.follow && this.mode !== 'entering') this.goal = null;
+        const done = Math.abs(g.zoom - camera.zoom) < 0.002
+            && target.distanceTo(new THREE.Vector3(g.x, g.y, g.z)) < 0.005;
+        if (done && !this.follow && this.mode !== 'entering') {
+            this.goal = null;
+        }
     }
 }
 

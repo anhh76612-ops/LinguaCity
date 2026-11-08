@@ -1,13 +1,13 @@
 /* Bố cục bản đồ (nhìn từ trên xuống, đơn vị = 1 ô):
 
-                z = -12 ┌────────────┬────┬────────────┐
-                                │  HOUSING   │    │   SCHOOL   │      Hai con đường cắt nhau ở giữa (|x| < 2, |z| < 2).
-                                │  (-6.5,-6.5)│ đường│ (6.5,-6.5) │      Mỗi góc là một khối nhà (block) nâng cao 0.1,
-                                ├────────────┼────┼────────────┤      viền ngoài là vỉa hè rộng 1 ô, bên trong là lô đất 7×7.
-                                │   PARK     │    │   ROAD     │
-                                │  (-6.5,6.5) │    │ (6.5,6.5)  │      Camera nhìn từ góc (+x, +z) nên HOUSING ở xa nhất:
-                z = 12  └────────────┴────┴────────────┘      nhà cao đặt ở đó không che công trình khác.
-                            x = -12                     x = 12
+z = -12 ┌────────────┬────┬────────────┐
+        │  HOUSING   │    │   SCHOOL   │    Hai con đường cắt nhau ở giữa (|x| < 2, |z| < 2).
+        │  (-6.5,-6.5)│ đường│ (6.5,-6.5) │    Mỗi góc là một khối nhà (block) nâng cao 0.1,
+        ├────────────┼────┼────────────┤    viền ngoài là vỉa hè rộng 1 ô, bên trong là lô đất 7×7.
+        │   PARK     │    │   ROAD     │
+        │  (-6.5,6.5) │    │ (6.5,6.5)  │    Camera nhìn từ góc (+x, +z) nên HOUSING ở xa nhất:
+z = 12  └────────────┴────┴────────────┘    nhà cao đặt ở đó không che công trình khác.
+      x = -12                     x = 12
 */
 export const MAP_HALF = 12;     // bản đồ từ -12 đến 12 theo cả x và z
 export const ROAD_HALF = 2;     // đường: |x| < 2 hoặc |z| < 2 (hai làn, mỗi làn rộng 2)

@@ -15,7 +15,9 @@ data class LessonSession(
     val isActive: Boolean get() = status == "ACTIVE"
 
     /** Câu đầu tiên chưa nộp; bằng [items].size nếu đã nộp hết. */
-    val firstOpenIndex: Int get() = items.indexOfFirst { !it.answered }.let { if (it < 0) items.size else it }
+    val firstOpenIndex: Int get() = items.indexOfFirst { !it.answered }.let {
+        if (it < 0) items.size else it
+    }
 }
 
 data class LessonItem(
@@ -67,9 +69,23 @@ data class LessonResult(
     val tutorialStep: String
 )
 
-data class VocabProgress(val vocabularyId: Long, val mastery: Int, val maxMastery: Int, val collected: Boolean)
+data class VocabProgress(
+    val vocabularyId: Long,
+    val mastery: Int,
+    val maxMastery: Int,
+    val collected: Boolean
+)
 
 /** Lỗi nghiệp vụ của phiên học — ViewModel quyết định hiện gì cho từng loại. */
 class LearningException(val kind: Kind, message: String? = null) : Exception(message) {
-    enum class Kind { OFFLINE, EXPIRED, ALREADY_ANSWERED, CLOSED, INCOMPLETE, NO_CONTENT, INVALID_STEP, OTHER }
+    enum class Kind {
+        OFFLINE,
+        EXPIRED,
+        ALREADY_ANSWERED,
+        CLOSED,
+        INCOMPLETE,
+        NO_CONTENT,
+        INVALID_STEP,
+        OTHER
+    }
 }

@@ -56,7 +56,8 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideLearningApi(retrofit: Retrofit): LearningApi = retrofit.create(LearningApi::class.java)
+    fun provideLearningApi(retrofit: Retrofit): LearningApi =
+        retrofit.create(LearningApi::class.java)
 
     @Provides
     @Singleton

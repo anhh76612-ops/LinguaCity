@@ -21,8 +21,10 @@ class UserRepositoryImpl @Inject constructor(
         val response = try {
             onboardingApi.onboardUser(guestUuid)
         } catch (offline: IOException) {
-            // ADR-004 / FR-SYS-03: mất mạng nhưng máy đã có hồ sơ → vào game bằng bản cache để đọc offline
-            // (flashcard, danh sách từ). Lần đầu chưa có hồ sơ thì vẫn báo lỗi như cũ (BR-CONTENT-08).
+            // ADR-004 / FR-SYS-03: mất mạng nhưng máy đã có hồ sơ → vào game bằng bản cache để đọc
+            // offline
+            // (flashcard, danh sách từ). Lần đầu chưa có hồ sơ thì vẫn báo lỗi như cũ
+            // (BR-CONTENT-08).
             val cached = userProfileDao.getById(guestUuid) ?: throw offline
             return cached.toDomain()
         }

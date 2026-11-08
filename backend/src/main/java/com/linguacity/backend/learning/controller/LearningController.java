@@ -22,8 +22,10 @@ public class LearningController {
     @PostMapping("/learning/sessions")
     public ResponseEntity<SessionDto> start(@RequestHeader("X-Guest-UUID") UUID guest,
                                             @RequestBody StartSessionRequest body) {
-        LearningService.Started started = learning.start(guest, body.buildingCode() == null ? "" : body.buildingCode());
-        return ResponseEntity.status(started.created() ? HttpStatus.CREATED : HttpStatus.OK).body(started.session());
+        LearningService.Started started = learning.start(
+                guest, body.buildingCode() == null ? "" : body.buildingCode());
+        return ResponseEntity.status(started.created() ? HttpStatus.CREATED : HttpStatus.OK)
+                .body(started.session());
     }
 
     @GetMapping("/learning/sessions/{id}")
@@ -38,13 +40,15 @@ public class LearningController {
     }
 
     @PostMapping("/learning/sessions/{id}/complete")
-    public CompleteResultDto complete(@RequestHeader("X-Guest-UUID") UUID guest, @PathVariable UUID id) {
+    public CompleteResultDto complete(
+            @RequestHeader("X-Guest-UUID") UUID guest, @PathVariable UUID id) {
         return learning.complete(guest, id);
     }
 
     @PostMapping("/tutorial/placement")
     public ResponseEntity<SessionDto> placement(@RequestHeader("X-Guest-UUID") UUID guest) {
         LearningService.Started started = learning.startPlacement(guest);
-        return ResponseEntity.status(started.created() ? HttpStatus.CREATED : HttpStatus.OK).body(started.session());
+        return ResponseEntity.status(started.created() ? HttpStatus.CREATED : HttpStatus.OK)
+                .body(started.session());
     }
 }

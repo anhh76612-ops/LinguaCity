@@ -37,8 +37,17 @@ class VocabularyViewModel @Inject constructor(
     private val buildingCode: String = checkNotNull(savedStateHandle["buildingCode"])
     private val level: Int = checkNotNull(savedStateHandle["level"])
 
-    val state: StateFlow<VocabularyState> = combine(content.observeVocabularies(buildingCode, level), learning.observeProgress()) { words, progress ->
-        VocabularyState(loading = false, buildingCode = buildingCode, level = level, words = words, progress = progress)
+    val state: StateFlow<VocabularyState> = combine(
+        content.observeVocabularies(buildingCode, level),
+        learning.observeProgress()
+    ) { words, progress ->
+        VocabularyState(
+            loading = false,
+            buildingCode = buildingCode,
+            level = level,
+            words = words,
+            progress = progress
+        )
     }
         .stateIn(
             viewModelScope,

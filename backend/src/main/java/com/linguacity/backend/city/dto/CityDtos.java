@@ -12,11 +12,13 @@ public final class CityDtos {
     private CityDtos() {
     }
 
-    public record BuildingStateDto(Long buildingId, String code, int currentLevel, Integer targetLevel, int maxLevel,
+    public record BuildingStateDto(Long buildingId, String code, int currentLevel,
+            Integer targetLevel, int maxLevel,
                                    String status, Instant startedAt, Instant finishAt) {}
 
     public record CityDto(Instant serverTime, List<BuildingStateDto> buildings, List<Object> events,
                           TutorialStep tutorialStep) {}
 
-    public record BuildResultDto(BuildingStateDto building, Instant serverTime, ResourcesDto profile) {}
+    public record BuildResultDto(
+            BuildingStateDto building, Instant serverTime, ResourcesDto profile) {}
 }

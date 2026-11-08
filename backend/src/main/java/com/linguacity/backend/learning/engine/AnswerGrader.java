@@ -4,7 +4,8 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * Chấm câu trả lời (ADR-013): bỏ khoảng trắng đầu/cuối, gộp khoảng trắng giữa, không phân biệt hoa/thường;
+ * Chấm câu trả lời (ADR-013): bỏ khoảng trắng đầu/cuối, gộp khoảng trắng giữa, không phân biệt
+ * hoa/thường;
  * so với đáp án chuẩn hoặc một trong {@code accepted_answers}.
  * Ghi chú tương lai (future-expansion §6): câu gần đúng ("tickets") sẽ do AI chấm.
  */

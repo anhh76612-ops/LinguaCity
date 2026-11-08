@@ -32,7 +32,8 @@ import kotlinx.coroutines.delay
 
 /**
  * SCR-16 Overlay thư ký Mai (ADR-014): làm tối màn hình, khoanh sáng phần tử [GuideLine.target],
- * chân dung Mai + hộp thoại chữ chạy. Mọi thao tác trong tutorial đi qua nút của Mai, nên overlay chặn chạm
+ * chân dung Mai + hộp thoại chữ chạy. Mọi thao tác trong tutorial đi qua nút của Mai, nên overlay
+ * chặn chạm
  * ra ngoài (người chơi không lạc bước).
  */
 @Composable
@@ -48,17 +49,28 @@ fun SecretaryOverlay(state: TutorialUiState, onNext: () -> Unit, onAct: () -> Un
 
     BoxWithConstraints(
         Modifier.fillMaxSize()
-            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { }
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null
+            ) { }
     ) {
         val screenHeightPx = constraints.maxHeight.toFloat()
-        Canvas(Modifier.fillMaxSize().graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)) {
+        Canvas(Modifier.fillMaxSize()
+            .graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)) {
             drawRect(Color.Black.copy(alpha = 0.55f))
             if (hole != null) {
                 val pad = 10.dp.toPx()
                 val topLeft = Offset(hole.left - pad, hole.top - pad)
                 val sz = Size(hole.width + 2 * pad, hole.height + 2 * pad)
-                drawRoundRect(Color.Transparent, topLeft, sz, CornerRadius(18.dp.toPx()), blendMode = BlendMode.Clear)
-                drawRoundRect(Color(0xFFFFD54F).copy(alpha = 0.5f + 0.5f * pulse), topLeft, sz, CornerRadius(18.dp.toPx()),
+                drawRoundRect(
+                    Color.Transparent,
+                    topLeft,
+                    sz,
+                    CornerRadius(18.dp.toPx()),
+                    blendMode = BlendMode.Clear
+                )
+                drawRoundRect(Color(0xFFFFD54F).copy(alpha = 0.5f + 0.5f * pulse), topLeft, sz,
+                    CornerRadius(18.dp.toPx()),
                     style = Stroke(width = (3 + 2 * pulse).dp.toPx()))
             }
         }
@@ -69,7 +81,11 @@ fun SecretaryOverlay(state: TutorialUiState, onNext: () -> Unit, onAct: () -> Un
             Modifier.align(if (alignTop) Alignment.TopCenter else Alignment.BottomCenter)
                 .statusBarsPadding().navigationBarsPadding().padding(16.dp)
         ) {
-            AnimatedVisibility(true, enter = fadeIn() + slideInVertically { it / 3 }, exit = fadeOut()) {
+            AnimatedVisibility(
+                true,
+                enter = fadeIn() + slideInVertically { it / 3 },
+                exit = fadeOut()
+            ) {
                 Row(verticalAlignment = Alignment.Bottom) {
                     MaiPortrait(line.mood, Modifier.size(96.dp))
                     Spacer(Modifier.width(8.dp))
@@ -81,10 +97,20 @@ fun SecretaryOverlay(state: TutorialUiState, onNext: () -> Unit, onAct: () -> Un
 }
 
 @Composable
-private fun RowScope.DialogBox(script: GuideScript, state: TutorialUiState, line: GuideLine, onNext: () -> Unit, onAct: () -> Unit) {
-    // Chữ chạy từng ký tự; chạm vào hộp thoại để hiện hết ngay. Tắt hiệu ứng (FR-UI-05) → hiện hết luôn.
+private fun RowScope.DialogBox(
+    script: GuideScript,
+    state: TutorialUiState,
+    line: GuideLine,
+    onNext: () -> Unit,
+    onAct: () -> Unit
+) {
+    // Chữ chạy từng ký tự; chạm vào hộp thoại để hiện hết ngay. Tắt hiệu ứng (FR-UI-05) → hiện hết
+    // luôn.
     val reduceMotion = com.project.linguacity.ui.motion.LocalReduceMotion.current
-    var shown by remember(script.id, state.lineIndex) { mutableIntStateOf(if (reduceMotion) line.text.length else 0) }
+    var shown by remember(
+        script.id,
+        state.lineIndex
+    ) { mutableIntStateOf(if (reduceMotion) line.text.length else 0) }
     LaunchedEffect(script.id, state.lineIndex) {
         while (shown < line.text.length) {
             delay(22)
@@ -94,17 +120,36 @@ private fun RowScope.DialogBox(script: GuideScript, state: TutorialUiState, line
     val done = shown >= line.text.length
     Card(
         Modifier.weight(1f).clickable { if (!done) shown = line.text.length },
-        shape = RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp, bottomEnd = 18.dp, bottomStart = 4.dp)
+        shape = RoundedCornerShape(
+            topStart = 18.dp,
+            topEnd = 18.dp,
+            bottomEnd = 18.dp,
+            bottomStart = 4.dp
+        )
     ) {
         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text("Mai · Thư ký thành phố", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold,
+            Text("Mai · Thư ký thành phố", style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary)
-            Text(line.text.take(shown), style = MaterialTheme.typography.bodyLarge, modifier = Modifier.heightIn(min = 48.dp))
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
-                Text("${state.lineIndex + 1}/${script.lines.size}", style = MaterialTheme.typography.labelSmall)
+            Text(
+                line.text.take(shown),
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.heightIn(min = 48.dp)
+            )
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    "${state.lineIndex + 1}/${script.lines.size}",
+                    style = MaterialTheme.typography.labelSmall
+                )
                 Spacer(Modifier.weight(1f))
                 when {
-                    !done -> TextButton(onClick = { shown = line.text.length }) { Text("Bỏ qua chữ") }
+                    !done -> TextButton(onClick = { shown = line.text.length }) {
+                        Text("Bỏ qua chữ")
+                    }
                     !state.isLastLine -> Button(onClick = onNext) { Text("Tiếp") }
                     script.actionLabel != null -> Button(onClick = onAct, enabled = !state.busy) {
                         Text(if (state.busy) "Đợi chút…" else script.actionLabel)

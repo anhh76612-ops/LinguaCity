@@ -50,7 +50,8 @@ val LocalReduceMotion = compositionLocalOf { false }
 fun motionMillis(base: Int): Int = if (LocalReduceMotion.current) 0 else base
 
 /**
- * Motion choreography: phần tử thứ [index] mờ dần + trượt lên, trễ [stepMillis] × index so với phần tử trước.
+ * Motion choreography: phần tử thứ [index] mờ dần + trượt lên, trễ [stepMillis] × index so với phần
+ * tử trước.
  * Giới hạn trễ tối đa ~12 phần tử để danh sách dài không phải chờ lâu.
  */
 fun Modifier.staggeredAppear(index: Int, stepMillis: Int = 50): Modifier = composed {
@@ -63,8 +64,16 @@ fun Modifier.staggeredAppear(index: Int, stepMillis: Int = 50): Modifier = compo
         }
     }
     val duration = if (reduce) 0 else 320
-    val alpha by animateFloatAsState(if (visible) 1f else 0f, tween(duration), label = "appearAlpha")
-    val offsetDp by animateFloatAsState(if (visible) 0f else 18f, tween(duration), label = "appearOffset")
+    val alpha by animateFloatAsState(
+        if (visible) 1f else 0f,
+        tween(duration),
+        label = "appearAlpha"
+    )
+    val offsetDp by animateFloatAsState(
+        if (visible) 0f else 18f,
+        tween(duration),
+        label = "appearOffset"
+    )
     graphicsLayer {
         this.alpha = alpha
         translationY = offsetDp * density
@@ -94,7 +103,8 @@ fun Modifier.shimmer(): Modifier = composed {
 
 @Composable
 fun SkeletonBlock(modifier: Modifier = Modifier, height: Dp = 16.dp) {
-    Box(modifier.height(height).clip(RoundedCornerShape(8.dp)).background(MaterialTheme.colorScheme.surfaceVariant).shimmer())
+    Box(modifier.height(height).clip(RoundedCornerShape(8.dp))
+        .background(MaterialTheme.colorScheme.surfaceVariant).shimmer())
 }
 
 /** Bộ khung có hình dáng giống một danh sách thẻ (dòng tiêu đề + 2 dòng chữ). */
@@ -104,10 +114,14 @@ fun SkeletonList(rows: Int = 6, modifier: Modifier = Modifier, withAvatar: Boole
         repeat(rows) {
             Row(
                 Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp))
-                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)).padding(14.dp),
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f))
+                        .padding(14.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                if (withAvatar) Box(Modifier.size(40.dp).clip(CircleShape).background(Color.Transparent).shimmer())
+                if (withAvatar) {
+                    Box(Modifier.size(40.dp).clip(CircleShape).background(Color.Transparent)
+                        .shimmer())
+                }
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     SkeletonBlock(Modifier.fillMaxWidth(0.45f), 18.dp)
                     SkeletonBlock(Modifier.fillMaxWidth(0.8f), 12.dp)

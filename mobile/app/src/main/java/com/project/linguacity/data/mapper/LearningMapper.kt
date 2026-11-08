@@ -25,7 +25,9 @@ fun SessionDto.toDomain() = LessonSession(
     expiresAtMillis = IsoTime.parseMillis(expiresAt),
     totalCount = totalCount,
     correctCount = correctCount,
-    items = items.map { LessonItem(it.itemNo, it.vocabularyId, it.answered, it.isCorrect, it.question.toDomain()) }
+    items = items.map {
+        LessonItem(it.itemNo, it.vocabularyId, it.answered, it.isCorrect, it.question.toDomain())
+    }
 )
 
 fun QuestionViewDto.toDomain(): LessonQuestion {
@@ -43,18 +45,34 @@ fun QuestionViewDto.toDomain(): LessonQuestion {
 }
 
 fun AnswerResultDto.toDomain() =
-    AnswerFeedback(itemNo, isCorrect, correctAnswer, explanation, masteryAfter, maxMastery, collectedNow, streak)
+    AnswerFeedback(
+        itemNo,
+        isCorrect,
+        correctAnswer,
+        explanation,
+        masteryAfter,
+        maxMastery,
+        collectedNow,
+        streak
+    )
 
 fun CompleteResultDto.toDomain() = LessonResult(
     placement = type == "PLACEMENT",
     correct = correct, total = total, kpAwarded = kpAwarded, kpBase = kpBase, kpBonus = kpBonus,
     dailySessionIndex = dailySessionIndex, dailyMultiplier = dailyMultiplier,
-    collected = collection.collected, collectionTotal = collection.total, collectionLevel = collection.level,
-    newAchievements = newAchievements, knowledgePoints = profile.knowledgePoints, tutorialStep = tutorialStep
+    collected = collection.collected,
+    collectionTotal = collection.total,
+    collectionLevel = collection.level,
+    newAchievements = newAchievements,
+    knowledgePoints = profile.knowledgePoints,
+    tutorialStep = tutorialStep
 )
 
 fun BuildingStateDto.toEntity() = UserBuildingEntity(
-    buildingCode = code, buildingId = buildingId, currentLevel = currentLevel, targetLevel = targetLevel,
+    buildingCode = code,
+    buildingId = buildingId,
+    currentLevel = currentLevel,
+    targetLevel = targetLevel,
     maxLevel = maxLevel, status = status,
     startedAtMillis = IsoTime.parseMillis(startedAt), finishAtMillis = IsoTime.parseMillis(finishAt)
 )

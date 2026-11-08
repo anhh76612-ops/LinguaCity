@@ -28,7 +28,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * Thành phố của người chơi: GET /city (lazy completion theo giờ server, FR-SYS-04) và xây Lv0→1 (ADR-014).
+ * Thành phố của người chơi: GET /city (lazy completion theo giờ server, FR-SYS-04) và xây Lv0→1
+ * (ADR-014).
  * Nâng cấp Lv1→2 trở đi cần bài thi + bản vẽ (VS4/VS5), chưa làm ở đây.
  */
 @Service
@@ -43,9 +44,14 @@ public class CityService {
     private final ContentService content;
     private final Clock clock;
 
-    public CityService(UserBuildingRepository userBuildings, BuildingRepository buildings, BuildingLevelRepository levels,
-                       UserProfileRepository users, UserVocabProgressRepository progress, ContentService content,
-                       Clock clock) {
+    public CityService(
+            UserBuildingRepository userBuildings,
+            BuildingRepository buildings,
+            BuildingLevelRepository levels,
+            UserProfileRepository users,
+            UserVocabProgressRepository progress,
+            ContentService content,
+            Clock clock) {
         this.userBuildings = userBuildings;
         this.buildings = buildings;
         this.levels = levels;
@@ -64,10 +70,12 @@ public class CityService {
         for (UserBuilding ub : rows.values()) {
             completeIfDue(ub, now);
         }
-        Building housing = all.stream().filter(b -> "HOUSING".equals(b.getCode())).findFirst().orElse(null);
+        Building housing = all.stream().filter(b -> "HOUSING".equals(b.getCode())).findFirst()
+                .orElse(null);
         if (housing != null && profile.getTutorialStep() == TutorialStep.BUILD_HOUSE
                 && rows.get(housing.getId()).getCurrentLevel() >= 1) {
-            profile.setTutorialStep(TutorialStep.ENTER_HOUSE); // ADR-014: House xây xong → bước vào nhà
+            // ADR-014: House xây xong → bước vào nhà
+            profile.setTutorialStep(TutorialStep.ENTER_HOUSE);
             users.save(profile);
         }
         List<BuildingStateDto> dtos = all.stream().map(b -> toDto(rows.get(b.getId()), b)).toList();
@@ -88,7 +96,8 @@ public class CityService {
     public BuildResultDto build(UUID userId, String code) {
         UserProfile profile = users.findById(userId).orElseThrow(UserProfileNotFoundException::new);
         Building building = buildings.findByCode(code.toUpperCase(Locale.ROOT))
-                .orElseThrow(() -> ApiException.notFound("BUILDING_NOT_FOUND", "Unknown building " + code));
+                .orElseThrow(() -> ApiException.notFound(
+                        "BUILDING_NOT_FOUND", "Unknown building " + code));
         LocalDateTime now = Times.nowUtc(clock);
         UserBuilding ub = ensureRows(userId, List.of(building)).get(building.getId());
         completeIfDue(ub, now);
@@ -97,12 +106,15 @@ public class CityService {
             throw ApiException.conflict("BUSY", "Building is under construction");
         }
         if (ub.getCurrentLevel() >= 1) {
-            throw ApiException.conflict("ALREADY_BUILT", "Building already built; upgrades need an exam (VS4/VS5)");
+            throw ApiException.conflict(
+                    "ALREADY_BUILT", "Building already built; upgrades need an exam (VS4/VS5)");
         }
         BuildingLevel lv1 = levels.findById(new BuildingLevelId(building.getId(), 1))
-                .orElseThrow(() -> ApiException.conflict("NO_CONTENT", "No level 1 config for " + code));
+                .orElseThrow(() -> ApiException.conflict(
+                        "NO_CONTENT", "No level 1 config for " + code));
         List<Long> words = content.vocabularyIdsOf(building.getId(), 1);
-        long collected = words.isEmpty() ? 0 : progress.countByUserIdAndVocabularyIdInAndCollectedAtIsNotNull(userId, words);
+        long collected = words.isEmpty() ? 0
+                : progress.countByUserIdAndVocabularyIdInAndCollectedAtIsNotNull(userId, words);
         long missingWords = Math.max(0, lv1.getRequiredCollected() - collected);
         long missingKp = Math.max(0, lv1.getKnowledgeCost() - profile.getKnowledgePoints());
         if (missingWords > 0 || missingKp > 0) {
@@ -113,7 +125,8 @@ public class CityService {
             details.put("knowledgePoints", profile.getKnowledgePoints());
             details.put("requiredKnowledge", lv1.getKnowledgeCost());
             details.put("missingKnowledge", missingKp);
-            throw new ApiException(HttpStatus.CONFLICT, "REQUIREMENTS_NOT_MET", "Requirements not met", details);
+            throw new ApiException(
+                    HttpStatus.CONFLICT, "REQUIREMENTS_NOT_MET", "Requirements not met", details);
         }
 
         profile.setKnowledgePoints(profile.getKnowledgePoints() - lv1.getKnowledgeCost());
@@ -124,7 +137,8 @@ public class CityService {
         ub.setStartedAt(now);
         ub.setFinishAt(now.plusSeconds(lv1.getConstructionTime()));
         userBuildings.save(ub);
-        return new BuildResultDto(toDto(ub, building), Times.toInstant(now), ResourcesDto.of(profile));
+        return new BuildResultDto(
+                toDto(ub, building), Times.toInstant(now), ResourcesDto.of(profile));
     }
 
     private Map<Long, UserBuilding> ensureRows(UUID userId, List<Building> wanted) {
@@ -143,7 +157,8 @@ public class CityService {
 
     /** Lazy completion (§7.2.8): công trình UPGRADING có finish_at ≤ now thì hoàn tất. */
     private void completeIfDue(UserBuilding ub, LocalDateTime now) {
-        if (UserBuilding.UPGRADING.equals(ub.getStatus()) && ub.getFinishAt() != null && !ub.getFinishAt().isAfter(now)) {
+        if (UserBuilding.UPGRADING.equals(ub.getStatus()) && ub.getFinishAt() != null
+                && !ub.getFinishAt().isAfter(now)) {
             ub.setCurrentLevel(ub.getTargetLevel());
             ub.setTargetLevel(null);
             ub.setStatus(UserBuilding.IDLE);
@@ -154,7 +169,14 @@ public class CityService {
     }
 
     private BuildingStateDto toDto(UserBuilding ub, Building b) {
-        return new BuildingStateDto(b.getId(), b.getCode(), ub.getCurrentLevel(), ub.getTargetLevel(), b.getMaxLevel(),
-                ub.getStatus(), Times.toInstant(ub.getStartedAt()), Times.toInstant(ub.getFinishAt()));
+        return new BuildingStateDto(
+                b.getId(),
+                b.getCode(),
+                ub.getCurrentLevel(),
+                ub.getTargetLevel(),
+                b.getMaxLevel(),
+                ub.getStatus(),
+                Times.toInstant(ub.getStartedAt()),
+                Times.toInstant(ub.getFinishAt()));
     }
 }

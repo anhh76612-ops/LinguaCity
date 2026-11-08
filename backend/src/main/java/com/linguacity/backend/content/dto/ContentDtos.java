@@ -8,7 +8,8 @@ import java.time.Instant;
 import java.util.List;
 
 /**
- * DTO của API nội dung (system-design §10.4.1). Không có trường nào chứa đáp án (NFR-01, BR-CONTENT-07).
+ * DTO của API nội dung (system-design §10.4.1). Không có trường nào chứa đáp án (NFR-01,
+ * BR-CONTENT-07).
  */
 public final class ContentDtos {
 
@@ -22,7 +23,13 @@ public final class ContentDtos {
 
     public record ThemeDto(Long id, String code, String name, String description) {}
 
-    public record BuildingDto(Long id, String code, String name, int maxLevel, int sortOrder, List<String> themeCodes) {}
+    public record BuildingDto(
+            Long id,
+            String code,
+            String name,
+            int maxLevel,
+            int sortOrder,
+            List<String> themeCodes) {}
 
     public record BuildingLevelDto(String buildingCode, int level, int knowledgeCost,
                                    long constructionTimeSeconds, int requiredCollected) {}
@@ -31,7 +38,8 @@ public final class ContentDtos {
 
     /** Danh hiệu: danh hiệu Ẩn không gửi {@code description} (BR-ACH-02). */
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    public record AchievementDto(String code, String name, String description, String tier, boolean hidden,
+    public record AchievementDto(String code, String name, String description, String tier,
+            boolean hidden,
                                  int sortOrder) {}
 
     /** cosmetics: danh mục món tuỳ biến (V005, M8). */
@@ -44,16 +52,26 @@ public final class ContentDtos {
                                 String difficultyRank) {}
 
     /** Câu hỏi để hiển thị: KHÔNG có answer, acceptedAnswers, explanation. */
-    public record QuestionDto(Long id, String contentType, String skill, String questionType, int tier,
+    public record QuestionDto(Long id, String contentType, String skill, String questionType,
+            int tier,
                               String questionText, String audioUrl, JsonNode metadata) {}
 
     public record QuestionVocabularyDto(Long questionId, Long vocabularyId, String relationType) {}
 
-    public record ExamRequirementDto(int requiredCardCount, int requiredKnowledge, int requiredBlueprintShards) {}
+    public record ExamRequirementDto(
+            int requiredCardCount, int requiredKnowledge, int requiredBlueprintShards) {}
 
-    public record ExamDto(Long id, String code, String buildingCode, int targetLevel, String blueprintCode,
-                          int questionCount, ExamRequirementDto requirement, List<Long> questionIds) {}
+    public record ExamDto(
+            Long id,
+            String code,
+            String buildingCode,
+            int targetLevel,
+            String blueprintCode,
+            int questionCount,
+            ExamRequirementDto requirement,
+            List<Long> questionIds) {}
 
-    public record Pack(String code, int version, List<VocabularyDto> vocabularies, List<QuestionDto> questions,
+    public record Pack(String code, int version, List<VocabularyDto> vocabularies,
+            List<QuestionDto> questions,
                        List<QuestionVocabularyDto> questionVocabularies, List<ExamDto> exams) {}
 }

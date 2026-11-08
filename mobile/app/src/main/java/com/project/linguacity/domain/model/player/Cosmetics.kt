@@ -55,7 +55,14 @@ data class AvatarConfig(
 
     companion object {
         /** Trùng AvatarConfig.DEFAULT phía server. */
-        val DEFAULT = AvatarConfig("SKIN_2", "HAIR_SHORT", "HAIR_BROWN", "SHIRT_TEAL", "PANTS_NAVY", "ACC_NONE")
+        val DEFAULT = AvatarConfig(
+            "SKIN_2",
+            "HAIR_SHORT",
+            "HAIR_BROWN",
+            "SHIRT_TEAL",
+            "PANTS_NAVY",
+            "ACC_NONE"
+        )
     }
 }
 
@@ -89,7 +96,13 @@ data class CosmeticsState(
     fun isUnlocked(item: CosmeticItem): Boolean = item.unlockType == "FREE" || item.code in unlocked
 
     companion object {
-        val EMPTY = CosmeticsState(emptyList(), emptySet(), AvatarConfig.DEFAULT, HouseStyleConfig.DEFAULT, 0)
+        val EMPTY = CosmeticsState(
+            emptyList(),
+            emptySet(),
+            AvatarConfig.DEFAULT,
+            HouseStyleConfig.DEFAULT,
+            0
+        )
     }
 }
 

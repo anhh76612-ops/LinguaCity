@@ -51,11 +51,13 @@ class LearningEngineTests {
                 new Candidate(1, false, true, 9, now.minusDays(1)),      // đã sưu tầm, mạnh
                 new Candidate(2, false, true, 2, now.minusDays(1)),      // đã sưu tầm, yếu
                 new Candidate(3, false, false, 0, null),                 // chưa sưu tầm
-                new Candidate(4, false, false, 0, now.minusMinutes(3)),  // chưa sưu tầm nhưng vừa ôn
+                // chưa sưu tầm nhưng vừa ôn
+                new Candidate(4, false, false, 0, now.minusMinutes(3)),
                 new Candidate(5, true, true, 0, now.minusDays(2)),       // từ ôn Level cũ
                 new Candidate(6, false, false, 1, now.minusHours(1))     // chưa sưu tầm, Mastery 1
         );
-        List<Long> chosen = WordSelector.select(pool, 4, now, Duration.ofMinutes(10), new Random(1));
+        List<Long> chosen = WordSelector.select(
+                pool, 4, now, Duration.ofMinutes(10), new Random(1));
         assertEquals(List.of(3L, 6L, 2L, 1L), chosen);
 
         // Không đủ từ "nguội" thì mới dùng tới từ vừa ôn và từ ôn Level cũ

@@ -26,15 +26,20 @@ import static org.mockito.Mockito.when;
 class AchievementServiceTests {
 
     private final LearningSessionRepository sessions = mock(LearningSessionRepository.class);
-    private final AchievementService service = new AchievementService(mock(AchievementRepository.class),
-            mock(UserAchievementRepository.class), sessions, mock(UserProfileRepository.class), new BalanceProperties());
+    private final AchievementService service = new AchievementService(
+            mock(AchievementRepository.class),
+            mock(UserAchievementRepository.class),
+            sessions,
+            mock(UserProfileRepository.class),
+            new BalanceProperties());
 
     // TC-ACH-02
     @Test
     void withFiftySamplesTopEntrantMeansBetterThanNinetyPercent() {
         List<Integer> others = new ArrayList<>(Collections.nCopies(45, 20)); // 45 bài được 20/30
         others.addAll(Collections.nCopies(5, 29));                          // 5 bài được 29/30
-        when(sessions.correctCountsOfOthers(eq(SessionType.PLACEMENT), eq(SessionStatus.COMPLETED), any()))
+        when(sessions.correctCountsOfOthers(
+                eq(SessionType.PLACEMENT), eq(SessionStatus.COMPLETED), any()))
                 .thenReturn(others);
 
         assertTrue(service.isTopEntrant(placement(25)));  // cao hơn 45/50 = 90% → đạt
@@ -44,7 +49,8 @@ class AchievementServiceTests {
 
     @Test
     void belowFiftySamplesUsesTheFixedThreshold() {
-        when(sessions.correctCountsOfOthers(any(), any(), any())).thenReturn(Collections.nCopies(49, 10));
+        when(sessions.correctCountsOfOthers(
+                any(), any(), any())).thenReturn(Collections.nCopies(49, 10));
         assertTrue(service.isTopEntrant(placement(27)));
         assertFalse(service.isTopEntrant(placement(26))); // cao hơn mọi người nhưng chưa đủ mẫu
     }
@@ -54,7 +60,8 @@ class AchievementServiceTests {
         UUID user = UUID.randomUUID();
         // 08/11 10:00 VN = 03:00Z. Phiên lúc 07/11 23:30 VN (16:30Z) vẫn tính là ngày 07/11.
         LocalDateTime now = LocalDateTime.of(2026, 11, 8, 3, 0);
-        when(sessions.completedAtSince(eq(user), eq(SessionStatus.COMPLETED), any())).thenReturn(List.of(
+        when(sessions.completedAtSince(
+                eq(user), eq(SessionStatus.COMPLETED), any())).thenReturn(List.of(
                 LocalDateTime.of(2026, 11, 8, 1, 0),    // 08/11
                 LocalDateTime.of(2026, 11, 7, 16, 30),  // 07/11 23:30 VN
                 LocalDateTime.of(2026, 11, 6, 2, 0),    // 06/11

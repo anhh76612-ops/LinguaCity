@@ -54,7 +54,8 @@ sealed interface LessonIntent {
 }
 
 /**
- * SCR-08/09 (UC_05). Cùng một ViewModel cho phiên học ở công trình và bài kiểm tra trình độ (placement = true).
+ * SCR-08/09 (UC_05). Cùng một ViewModel cho phiên học ở công trình và bài kiểm tra trình độ
+ * (placement = true).
  * Server chấm từng câu; ViewModel chỉ điều khiển luồng hiển thị.
  */
 @HiltViewModel
@@ -93,15 +94,26 @@ class LessonViewModel @Inject constructor(
         launchGuarded(retry = { start() }) {
             val s = if (placement) learning.startPlacement() else learning.startLesson(buildingCode)
             val correct = s.items.count { it.isCorrect == true }
-            _state.update { it.copy(loading = false, session = s, index = s.firstOpenIndex, correctSoFar = correct) }
-            if (s.firstOpenIndex >= s.items.size) complete()
+            _state.update {
+                it.copy(
+                    loading = false,
+                    session = s,
+                    index = s.firstOpenIndex,
+                    correctSoFar = correct
+                )
+            }
+            if (s.firstOpenIndex >= s.items.size) {
+                complete()
+            }
         }
     }
 
     private fun submit(answer: String) {
         val st = _state.value
         val item = st.current ?: return
-        if (st.submitting || st.feedback != null || answer.isBlank()) return
+        if (st.submitting || st.feedback != null || answer.isBlank()) {
+            return
+        }
         val session = st.session ?: return
         _state.update { it.copy(submitting = true, chosen = answer) }
         launchGuarded(retry = { submit(answer) }) {
@@ -111,15 +123,29 @@ class LessonViewModel @Inject constructor(
                     it.copy(
                         submitting = false,
                         feedback = fb,
-                        maiLine = MaiLines.forAnswer(fb.isCorrect, fb.streak, fb.collectedNow, item.itemNo),
+                        maiLine = MaiLines.forAnswer(
+                            fb.isCorrect,
+                            fb.streak,
+                            fb.collectedNow,
+                            item.itemNo
+                        ),
                         correctSoFar = it.correctSoFar + if (fb.isCorrect) 1 else 0
                     )
                 }
             } catch (e: LearningException) {
                 if (e.kind == Kind.ALREADY_ANSWERED) {
-                    // Câu đã được nộp trước đó (vd. mất mạng sau khi server đã nhận): đọc lại phiên, sang câu kế.
+                    // Câu đã được nộp trước đó (vd. mất mạng sau khi server đã nhận): đọc lại
+                    // phiên, sang câu kế.
                     val fresh = learning.session(session.id)
-                    _state.update { it.copy(submitting = false, session = fresh, index = fresh.firstOpenIndex, input = "", chosen = null) }
+                    _state.update {
+                        it.copy(
+                            submitting = false,
+                            session = fresh,
+                            index = fresh.firstOpenIndex,
+                            input = "",
+                            chosen = null
+                        )
+                    }
                 } else throw e
             }
         }
@@ -129,8 +155,12 @@ class LessonViewModel @Inject constructor(
         val st = _state.value
         val total = st.session?.items?.size ?: return
         val nextIndex = st.index + 1
-        _state.update { it.copy(index = nextIndex, feedback = null, maiLine = null, input = "", chosen = null) }
-        if (nextIndex >= total) complete()
+        _state.update {
+            it.copy(index = nextIndex, feedback = null, maiLine = null, input = "", chosen = null)
+        }
+        if (nextIndex >= total) {
+            complete()
+        }
     }
 
     private fun complete() {
@@ -142,7 +172,8 @@ class LessonViewModel @Inject constructor(
                 ?.associate { it.code to it.name } ?: emptyMap()
             _state.update {
                 it.copy(completing = false, result = result,
-                    newAchievementNames = result.newAchievements.map { code -> names[code] ?: code })
+                    newAchievementNames = result.newAchievements.map { code -> names[code]
+                        ?: code })
             }
         }
     }
@@ -162,11 +193,22 @@ class LessonViewModel @Inject constructor(
                 }
                 pending = when (problem) {
                     LessonProblem.OFFLINE -> retry
-                    LessonProblem.EXPIRED -> { { _state.update { LessonUiState() }; start() } }
+                    LessonProblem.EXPIRED -> {
+                        {
+                            _state.update { LessonUiState() }
+                            start()
+                        }
+                    }
                     else -> null
                 }
                 _state.update {
-                    it.copy(loading = false, submitting = false, completing = false, problem = problem, problemMessage = e.message)
+                    it.copy(
+                        loading = false,
+                        submitting = false,
+                        completing = false,
+                        problem = problem,
+                        problemMessage = e.message
+                    )
                 }
             }
         }

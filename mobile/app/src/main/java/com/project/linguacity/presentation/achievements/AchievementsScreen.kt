@@ -21,16 +21,27 @@ fun AchievementsScreen(onBack: () -> Unit, viewModel: AchievementsViewModel = hi
     val items by viewModel.items.collectAsState()
     val message by viewModel.message.collectAsState()
     val snackbar = remember { SnackbarHostState() }
-    LaunchedEffect(message) { message?.let { snackbar.showSnackbar(it); viewModel.messageShown() } }
+    LaunchedEffect(message) {
+        message?.let { text ->
+            snackbar.showSnackbar(text)
+            viewModel.messageShown()
+        }
+    }
 
     Scaffold(snackbarHost = { SnackbarHost(snackbar) }) { padding ->
         Column(Modifier.fillMaxSize().padding(padding).padding(16.dp)) {
             TextButton(onClick = onBack) { Text("‹ Thành phố") }
             Text("Danh hiệu", style = MaterialTheme.typography.titleLarge)
-            Text("${items.count { it.earned }}/${items.size} đã có", style = MaterialTheme.typography.bodySmall)
+            Text(
+                "${items.count { it.earned }}/${items.size} đã có",
+                style = MaterialTheme.typography.bodySmall
+            )
             if (items.isEmpty()) {
                 SkeletonList(rows = 6, modifier = Modifier.padding(top = 12.dp), withAvatar = true)
-            } else LazyColumn(Modifier.padding(top = 12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            } else LazyColumn(
+                Modifier.padding(top = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
                 var order = 0
                 listOf("EASY" to "Dễ", "HARD" to "Khó", "HIDDEN" to "Ẩn").forEach { (tier, label) ->
                     val group = items.filter { it.tier == tier }
@@ -38,11 +49,14 @@ fun AchievementsScreen(onBack: () -> Unit, viewModel: AchievementsViewModel = hi
                         val headerIndex = order++
                         item(key = tier) {
                             Text(label, style = MaterialTheme.typography.titleMedium,
-                                modifier = Modifier.padding(top = 8.dp).staggeredAppear(headerIndex))
+                                modifier = Modifier.padding(top = 8.dp)
+                                    .staggeredAppear(headerIndex))
                         }
                         group.forEach { a ->
                             val i = order++
-                            item(key = a.code) { Box(Modifier.staggeredAppear(i)) { AchievementRow(a, onEquip = viewModel::equip) } }
+                            item(key = a.code) { Box(Modifier.staggeredAppear(i)) {
+                                AchievementRow(a, onEquip = viewModel::equip)
+                            } }
                         }
                     }
                 }
@@ -60,14 +74,17 @@ private fun AchievementRow(a: AchievementView, onEquip: (String?) -> Unit) {
                 Text(a.displayName, fontWeight = FontWeight.SemiBold)
                 Text(
                     when {
-                        a.hidden && !a.earned -> "Danh hiệu ẩn — chỉ lộ diện khi bạn vô tình đạt được."
+                        a.hidden
+                            && !a.earned -> "Danh hiệu ẩn — chỉ lộ diện khi bạn vô tình đạt được."
                         else -> a.description ?: ""
                     },
                     style = MaterialTheme.typography.bodySmall
                 )
             }
             if (a.earned) {
-                if (a.equipped) TextButton(onClick = { onEquip(null) }) { Text("Tháo") }
+                if (a.equipped) {
+                    TextButton(onClick = { onEquip(null) }) { Text("Tháo") }
+                }
                 else TextButton(onClick = { onEquip(a.code) }) { Text("Đeo") }
             }
         }

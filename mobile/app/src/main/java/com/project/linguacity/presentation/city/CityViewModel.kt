@@ -51,31 +51,46 @@ class CityViewModel @Inject constructor(
         }
         // Chi phí xây/nâng cấp từng Level: đọc từ Room (gói CORE).
         viewModelScope.launch {
-            contentRepository.observeBuildingLevels().collect { levels -> _state.update { it.copy(levels = levels) } }
+            contentRepository.observeBuildingLevels().collect { levels ->
+                _state.update { it.copy(levels = levels) }
+            }
         }
         viewModelScope.launch {
-            player.observeProfile().collect { profile -> _state.update { it.copy(profile = profile) } }
+            player.observeProfile().collect { profile ->
+                _state.update { it.copy(profile = profile) }
+            }
         }
         viewModelScope.launch {
             player.observeAchievements().collect { list ->
-                _state.update { it.copy(equippedTitleName = list.firstOrNull { a -> a.equipped }?.name) }
+                _state.update {
+                    it.copy(equippedTitleName = list.firstOrNull { a -> a.equipped }?.name)
+                }
             }
         }
         // M8: ngoại hình + kiểu nhà (mã cosmetic trong Room) → giá trị để vẽ cho bản đồ
         viewModelScope.launch {
             cosmetics.observe().collect { c ->
                 _state.update {
-                    it.copy(avatar = LookResolver.avatar(c.avatar, c.items), house = LookResolver.house(c.house, c.items))
+                    it.copy(
+                        avatar = LookResolver.avatar(c.avatar, c.items),
+                        house = LookResolver.house(c.house, c.items)
+                    )
                 }
             }
         }
         // Số từ đã sưu tầm theo từng gói — để thẻ công trình nói rõ còn thiếu bao nhiêu từ.
         viewModelScope.launch {
-            combine(contentRepository.observePackWordIds(), learning.observeProgress()) { packs, progress ->
-                packs.mapValues { (_, ids) -> ids.count { progress[it]?.collected == true } to ids.size }
+            combine(
+                contentRepository.observePackWordIds(),
+                learning.observeProgress()
+            ) { packs, progress ->
+                packs.mapValues {
+                    (_, ids) -> ids.count { progress[it]?.collected == true } to ids.size
+                }
             }.collect { collection -> _state.update { it.copy(collection = collection) } }
         }
-        // Đồng hồ hiển thị: mỗi giây tính lại tiến độ; khi đã tới giờ xong thì hỏi server (lazy completion).
+        // Đồng hồ hiển thị: mỗi giây tính lại tiến độ; khi đã tới giờ xong thì hỏi server (lazy
+        // completion).
         viewModelScope.launch {
             while (isActive) {
                 delay(TICK_MILLIS)
@@ -83,7 +98,10 @@ class CityViewModel @Inject constructor(
                 if (st.city.buildings.any { it.isUpgrading }) {
                     _state.update { it.copy(deviceNowMillis = System.currentTimeMillis()) }
                     val due = st.render.buildings.any { it.upgrading && it.progress >= 1f }
-                    if (due && System.currentTimeMillis() - lastRefreshMillis > REFRESH_GAP_MILLIS) refreshQuietly()
+                    if (due
+                        && System.currentTimeMillis() - lastRefreshMillis > REFRESH_GAP_MILLIS) {
+                        refreshQuietly()
+                    }
                 }
             }
         }
@@ -97,7 +115,9 @@ class CityViewModel @Inject constructor(
             CityIntent.MessageShown -> _state.update { it.copy(message = null) }
             CityIntent.EnterSelected -> _state.update {
                 val code = it.selected
-                if (code == null || it.focus != null || it.render.building(code)?.isBuilt != true) it
+                if (code == null || it.focus != null || it.render.building(code)?.isBuilt != true) {
+                    it
+                }
                 else it.copy(focus = code, selected = null)
             }
             CityIntent.ExitBuilding -> _state.update {
@@ -114,29 +134,43 @@ class CityViewModel @Inject constructor(
     private fun onMapIntent(intent: CityMapIntent) {
         when (intent) {
             // Ready lần nữa = bản đồ vừa tải lại: nó đang ở ngoài phố.
-            CityMapIntent.Ready -> _state.update { it.copy(mapReady = true, focus = null, inside = null) }
-            is CityMapIntent.BuildingTapped -> _state.update { if (it.focus != null) it else it.copy(selected = intent.code) }
+            CityMapIntent.Ready -> _state.update {
+                it.copy(mapReady = true, focus = null, inside = null)
+            }
+            is CityMapIntent.BuildingTapped -> _state.update {
+                if (it.focus != null) it else it.copy(selected = intent.code)
+            }
             is CityMapIntent.BuildingEntered -> _state.update {
                 if (it.focus == intent.code) it.copy(inside = intent.code, selected = null) else it
             }
-            is CityMapIntent.BuildingExited -> _state.update { it.copy(inside = null, focus = null) }
+            is CityMapIntent.BuildingExited -> _state.update {
+                it.copy(inside = null, focus = null)
+            }
             is CityMapIntent.CityEventTapped -> {
                 cityRepository.resolveEvent(intent.eventId)
-                _state.update { it.copy(message = "Sự kiện thành phố: bài ngữ pháp sẽ có ở bản sau") }
+                _state.update {
+                    it.copy(message = "Sự kiện thành phố: bài ngữ pháp sẽ có ở bản sau")
+                }
             }
         }
     }
 
     private fun buildSelected() {
         val code = _state.value.selected ?: return
-        if (_state.value.building) return
+        if (_state.value.building) {
+            return
+        }
         _state.update { it.copy(building = true) }
         viewModelScope.launch {
             val message = when (val outcome = cityRepository.build(code)) {
                 BuildOutcome.Started -> "Bắt đầu xây ${code.displayName}!"
                 is BuildOutcome.NotMet -> buildList {
-                    if (outcome.missingCollected > 0) add("sưu tầm thêm ${outcome.missingCollected} từ")
-                    if (outcome.missingKnowledge > 0) add("thêm ${outcome.missingKnowledge} KP")
+                    if (outcome.missingCollected > 0) {
+                        add("sưu tầm thêm ${outcome.missingCollected} từ")
+                    }
+                    if (outcome.missingKnowledge > 0) {
+                        add("thêm ${outcome.missingKnowledge} KP")
+                    }
                 }.joinToString(" và ", prefix = "Cần ", postfix = " để xây nhé.")
                 BuildOutcome.Busy -> "${code.displayName} đang được xây."
                 BuildOutcome.NeedsExam -> "Nâng cấp lên Lv2 cần bài thi ở School — sắp có!"
@@ -147,11 +181,15 @@ class CityViewModel @Inject constructor(
         }
     }
 
-    /** Tải lại thành phố + hồ sơ + tiến độ từ (FR-SYS-03). Lỗi mạng bỏ qua: đã có bản trong Room. */
+    /**
+     * Tải lại thành phố + hồ sơ + tiến độ từ (FR-SYS-03). Lỗi mạng bỏ qua: đã có bản trong Room.
+     */
     private fun refreshQuietly() {
         lastRefreshMillis = System.currentTimeMillis()
         viewModelScope.launch {
-            runCatching { cityRepository.refresh() }.onFailure { Log.w(TAG, "Bỏ qua tải thành phố: ${it.message}") }
+            runCatching { cityRepository.refresh() }.onFailure {
+                Log.w(TAG, "Bỏ qua tải thành phố: ${it.message}")
+            }
             runCatching { player.refresh() }
             runCatching { learning.refreshProgress() }
             runCatching { cosmetics.refresh() }
@@ -162,7 +200,11 @@ class CityViewModel @Inject constructor(
     private fun syncQuietly() {
         viewModelScope.launch {
             runCatching { syncContent() }
-                .onSuccess { if (it.downloaded.isNotEmpty()) Log.i(TAG, "Đã tải gói mới: ${it.downloaded}") }
+                .onSuccess {
+                    if (it.downloaded.isNotEmpty()) {
+                        Log.i(TAG, "Đã tải gói mới: ${it.downloaded}")
+                    }
+                }
                 .onFailure { Log.w(TAG, "Bỏ qua đồng bộ nền: ${it.message}") }
         }
     }

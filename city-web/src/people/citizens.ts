@@ -1,10 +1,10 @@
 /* Người dân: mỗi người là một "máy trạng thái" đơn giản.
 
-         think ──chọn việc──▶ walk ──tới nơi──▶ do (ngồi ghế, đọc sách, chờ xe…) ──hết giờ──▶ think
-                                                        │
-                                                        └─tới cửa nhà/trường──▶ inside (ẩn đi vài giây) ──▶ bước ra ──▶ think
+     think ──chọn việc──▶ walk ──tới nơi──▶ do (ngồi ghế, đọc sách, chờ xe…) ──hết giờ──▶ think
+                            │
+                            └─tới cửa nhà/trường──▶ inside (ẩn đi vài giây) ──▶ bước ra ──▶ think
 
-     Số người dân tăng theo level của HOUSING. Người có Sự kiện thành phố mang dấu (!) trên đầu. */
+   Số người dân tăng theo level của HOUSING. Người có Sự kiện thành phố mang dấu (!) trên đầu. */
 import * as THREE from 'three';
 import { onUpdate } from '../core/loop';
 import { scene } from '../core/renderer';
@@ -27,7 +27,10 @@ const angleDiff = (a: number, b: number) => Math.atan2(Math.sin(b - a), Math.cos
 
 export class Citizen {
     readonly rig: Rig;
-    x = 0; z = 0; yaw = 0; targetYaw = 0;
+    x = 0;
+    z = 0;
+    yaw = 0;
+    targetYaw = 0;
     phase: Phase = 'think';
     anim: Anim = 'idle';
     timer = 0;                      // thời gian còn lại của việc đang làm
@@ -40,7 +43,9 @@ export class Citizen {
     private pose: Pose = restPose();
     speed = rand(1.0, 1.35);
     private stepPh = rand(0, 6);
-    private lookY = 0; private lookT = 0; private blinkT = rand(1, 4);
+    private lookY = 0;
+    private lookT = 0;
+    private blinkT = rand(1, 4);
     private seed = Math.random() * 100;
 
     /** Độ cao mặt đất tại (x, z). Trong nhà (M7) nền phẳng nên người chơi thay bằng () => 0. */
@@ -51,14 +56,19 @@ export class Citizen {
         this.rig = makeChibi(opts.look ?? randomLook(seeded(seed)));
         this.rig.root.scale.setScalar(SCALE);
         this.rig.root.userData.citizen = this;
-        if (opts.speed) this.speed = opts.speed;
+        if (opts.speed) {
+            this.speed = opts.speed;
+        }
         (opts.parent ?? scene).add(this.rig.root);
     }
 
-    get visible(): boolean { return this.rig.root.visible; }
+    get visible(): boolean {
+        return this.rig.root.visible;
+    }
 
     placeAt(x: number, z: number): void {
-        this.x = x; this.z = z;
+        this.x = x;
+        this.z = z;
         this.rig.root.position.set(x, this.ground(x, z), z);
     }
 
@@ -73,22 +83,32 @@ export class Citizen {
         this.phase = 'do';
         this.anim = anim;
         this.timer = seconds;
-        if (face !== undefined) this.targetYaw = face;
+        if (face !== undefined) {
+            this.targetYaw = face;
+        }
     }
 
     update(dt: number, t: number): void {
-        if (this.phase === 'walk') this.step(dt);
+        if (this.phase === 'walk') {
+            this.step(dt);
+        }
         else if (this.phase === 'do' || this.phase === 'inside') {
             this.timer -= dt;
             if (this.timer <= 0) {
-                if (this.phase === 'inside') this.rig.root.visible = true;
+                if (this.phase === 'inside') {
+                    this.rig.root.visible = true;
+                }
                 const cb = this.onArrive; // việc kế tiếp sau khi làm xong (nếu có)
                 this.onArrive = null;
                 this.phase = 'think';
-                if (cb) cb();
+                if (cb) {
+                    cb();
+                }
             }
         }
-        if (!this.rig.root.visible) return;
+        if (!this.rig.root.visible) {
+            return;
+        }
 
         // quay mặt mượt về hướng đích
         this.yaw += angleDiff(this.yaw, this.targetYaw) * Math.min(1, dt * 9);
@@ -99,8 +119,13 @@ export class Citizen {
         r.position.y += (this.ground(this.x, this.z) - r.position.y) * Math.min(1, dt * 14);
 
         // nhìn quanh và chớp mắt cho "sống"
-        if ((this.lookT -= dt) < 0) { this.lookT = rand(1.5, 4); this.lookY = Math.random() < 0.5 ? 0 : rand(-0.6, 0.6); }
-        if ((this.blinkT -= dt) < 0) this.blinkT = rand(2, 5);
+        if ((this.lookT -= dt) < 0) {
+            this.lookT = rand(1.5, 4);
+            this.lookY = Math.random() < 0.5 ? 0 : rand(-0.6, 0.6);
+        }
+        if ((this.blinkT -= dt) < 0) {
+            this.blinkT = rand(2, 5);
+        }
         const blink = this.blinkT < 0.12 ? 0.15 : 1;
         this.rig.eyes.forEach((e) => (e.scale.y = blink));
 
@@ -109,18 +134,26 @@ export class Citizen {
         const target = poseFor(anim, t + this.seed, this.stepPh, this.lookY);
         applyPose(this.rig, this.pose, target, dt, anim === 'sit');
 
-        if (this.marker) this.marker.position.y = 1.55 + Math.sin(t * 4 + this.seed) * 0.06;
+        if (this.marker) {
+            this.marker.position.y = 1.55 + Math.sin(t * 4 + this.seed) * 0.06;
+        }
     }
 
     private step(dt: number): void {
         const tgt = this.path[0];
-        if (!tgt) { this.arrive(); return; }
+        if (!tgt) {
+            this.arrive();
+            return;
+        }
         const dx = tgt.x - this.x, dz = tgt.z - this.z, d = Math.hypot(dx, dz), s = this.speed * dt;
         this.stepPh += s * 7.5; // pha bước chân tỉ lệ với quãng đường: chân không "trượt"
         if (d <= s) {
-            this.x = tgt.x; this.z = tgt.z;
+            this.x = tgt.x;
+            this.z = tgt.z;
             this.path.shift();
-            if (!this.path.length) this.arrive();
+            if (!this.path.length) {
+                this.arrive();
+            }
         } else {
             this.x += (dx / d) * s;
             this.z += (dz / d) * s;
@@ -133,7 +166,9 @@ export class Citizen {
         this.anim = 'idle';
         const cb = this.onArrive;
         this.onArrive = null;
-        if (cb) cb();
+        if (cb) {
+            cb();
+        }
     }
 
     dispose(): void {
@@ -150,7 +185,9 @@ export class Citizens {
     constructor(private city: City) {
         onUpdate((dt, t) => {
             for (const c of [...this.list]) {
-                if (c.phase === 'think') this.decide(c);
+                if (c.phase === 'think') {
+                    this.decide(c);
+                }
                 c.update(dt, t);
             }
         });
@@ -158,10 +195,15 @@ export class Citizens {
 
     /** Người đang ở dưới lòng đường: xe sẽ nhường. */
     onRoad(): P2[] {
-        return this.list.filter((c) => c.visible && !onBlock(c.x, c.z)).map((c) => ({ x: c.x, z: c.z }));
+        return this.list.filter((c) => c.visible && !onBlock(c.x, c.z)).map((c) => ({
+            x: c.x, z: c.z
+        }));
     }
 
-    /** Đặt số người dân mong muốn. Thêm thì người mới bước ra từ nhà; bớt thì người thừa đi về nhà rồi biến mất. */
+    /**
+     * Đặt số người dân mong muốn. Thêm thì người mới bước ra từ nhà; bớt thì người thừa đi về nhà
+     * rồi biến mất.
+     */
     setCount(n: number, initial = false): void {
         const active = this.list.filter((c) => !c.leaving);
         for (let i = active.length; i < n; i++) {
@@ -180,7 +222,8 @@ export class Citizens {
         // bớt: ưu tiên người không mang sự kiện
         const extra = active.length - n;
         if (extra > 0) {
-            active.sort((a, b) => Number(!!a.eventId) - Number(!!b.eventId)).slice(0, extra).forEach((c) => (c.leaving = true));
+            active.sort((a, b) => Number(!!a.eventId) - Number(!!b.eventId)).slice(0, extra)
+                .forEach((c) => (c.leaving = true));
         }
     }
 
@@ -197,11 +240,16 @@ export class Citizens {
         }
         const have = new Set(this.list.map((c) => c.eventId).filter(Boolean));
         for (const e of events) {
-            if (have.has(e.id)) continue;
+            if (have.has(e.id)) {
+                continue;
+            }
             // chọn người đang ở ngoài đường, không mang sự kiện, không sắp dọn đi
             const free = this.list.filter((c) => !c.eventId && !c.leaving && c.visible);
-            const c = free[Math.floor(Math.random() * free.length)] ?? this.list.find((x) => !x.eventId && !x.leaving);
-            if (!c) continue;
+            const c = free[Math.floor(Math.random() * free.length)]
+                ?? this.list.find((x) => !x.eventId && !x.leaving);
+            if (!c) {
+                continue;
+            }
             c.eventId = e.id;
             c.marker = makeMarker();
             c.marker.userData.eventId = e.id;
@@ -216,7 +264,9 @@ export class Citizens {
 
     /** Chạm vào một người không có sự kiện: họ vẫy tay chào. */
     greet(c: Citizen): void {
-        if (c.phase === 'walk' || c.anim === 'sit') return;
+        if (c.phase === 'walk' || c.anim === 'sit') {
+            return;
+        }
         const resume = c.onArrive;
         c.doFor('wave', 1.5);
         c.onArrive = resume;
@@ -224,16 +274,29 @@ export class Citizens {
 
     /* ---------- Chọn việc tiếp theo ---------- */
     private decide(c: Citizen): void {
-        if (c.spot) { this.leaveSpot(c); return; }
-        if (c.leaving) { this.goInside(c, 'HOUSING', () => this.remove(c)); return; }
+        if (c.spot) {
+            this.leaveSpot(c);
+            return;
+        }
+        if (c.leaving) {
+            this.goInside(c, 'HOUSING', () => this.remove(c));
+            return;
+        }
 
         const r = Math.random();
         const canEnter = !c.eventId; // người mang (!) ở ngoài để người chơi còn chạm được
-        if (canEnter && r < 0.16) return this.goInside(c, 'HOUSING');
-        if (canEnter && r < 0.36) return this.goInside(c, 'SCHOOL');
+        if (canEnter && r < 0.16) {
+            return this.goInside(c, 'HOUSING');
+        }
+        if (canEnter && r < 0.36) {
+            return this.goInside(c, 'SCHOOL');
+        }
         if (r < 0.72) {
-            const spot = this.freeSpot(r < 0.58 ? (s) => s.node.startsWith('PARK') : (s) => s.node === 'ROAD.gate');
-            if (spot) return this.goSpot(c, spot);
+            const spot = this.freeSpot(r < 0.58 ? (s) => s.node.startsWith('PARK')
+                : (s) => s.node === 'ROAD.gate');
+            if (spot) {
+                return this.goSpot(c, spot);
+            }
         }
         this.stroll(c);
     }
@@ -241,13 +304,18 @@ export class Citizens {
     private pathTo(c: Citizen, node: NodeId, end?: P2): P2[] {
         const ids = route(nearestNode(c.x, c.z), node);
         const pts = ids.map((id) => ({ x: NODES[id][0], z: NODES[id][1] }));
-        if (end) pts.push(end);
+        if (end) {
+            pts.push(end);
+        }
         return pts;
     }
 
     private stroll(c: Citizen): void {
         const node = STROLL_NODES[Math.floor(Math.random() * STROLL_NODES.length)];
-        c.walk(this.pathTo(c, node), () => c.doFor(Math.random() < 0.25 ? 'talk' : 'idle', rand(0.8, 3)));
+        c.walk(
+            this.pathTo(c, node),
+            () => c.doFor(Math.random() < 0.25 ? 'talk' : 'idle', rand(0.8, 3))
+        );
     }
 
     private freeSpot(filter: (s: Spot) => boolean): Spot | null {
@@ -264,7 +332,10 @@ export class Citizens {
     private goSpot(c: Citizen, s: Spot): void {
         s.by = c;
         c.spot = s;
-        c.walk(this.pathTo(c, s.node, { x: s.x, z: s.z }), () => c.doFor(s.act, rand(5, 12), s.face));
+        c.walk(
+            this.pathTo(c, s.node, { x: s.x, z: s.z }),
+            () => c.doFor(s.act, rand(5, 12), s.face)
+        );
     }
 
     private leaveSpot(c: Citizen): void {
@@ -278,8 +349,16 @@ export class Citizens {
     /** Đi tới cửa công trình, "vào trong" (ẩn) vài giây, rồi bước ra. */
     private goInside(c: Citizen, code: BuildingCode, then?: () => void): void {
         const door = this.city.doorOf(code);
-        // Không có cửa (ví dụ lô đất trống): người sắp "dọn đi" thì biến mất luôn, người khác đi dạo.
-        if (!door) { if (then) then(); else this.stroll(c); return; }
+        // Không có cửa (ví dụ lô đất trống): người sắp "dọn đi" thì biến mất luôn, người khác đi
+        // dạo.
+        if (!door) {
+            if (then) {
+                then();
+            } else {
+                this.stroll(c);
+            }
+            return;
+        }
         c.walk(this.pathTo(c, `${code}.gate`, door), () => {
             c.rig.root.visible = false;
             c.phase = 'inside';

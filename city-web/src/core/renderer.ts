@@ -10,10 +10,11 @@ export const MOBILE = matchMedia('(pointer: coarse)').matches;
 export const scene = new THREE.Scene();
 
 /* ---------- Camera trực giao (orthographic) ----------
-     Không có phối cảnh: vật ở xa không nhỏ đi. Đặt camera nhìn chéo từ góc (1, 1, 1)
-     cho ra góc nhìn "isometric" quen thuộc của game xây thành phố. */
+   Không có phối cảnh: vật ở xa không nhỏ đi. Đặt camera nhìn chéo từ góc (1, 1, 1)
+   cho ra góc nhìn "isometric" quen thuộc của game xây thành phố. */
 export const camera = new THREE.OrthographicCamera(-10, 10, 10, -10, 0.1, 300);
-// điểm camera nhìn vào (kéo bản đồ = dời điểm này). Nâng lên 3 đơn vị để chừa chỗ phía trên cho nhà cao + nhãn.
+// điểm camera nhìn vào (kéo bản đồ = dời điểm này). Nâng lên 3 đơn vị để chừa chỗ phía trên cho nhà
+// cao + nhãn.
 export const target = new THREE.Vector3(0, 3, 0);
 export const VIEW_DIR = new THREE.Vector3(1, 1.05, 1).normalize();
 const DIST = 80;
@@ -24,7 +25,11 @@ export function placeCamera(): void {
 }
 
 /* ---------- Renderer ---------- */
-export const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
+export const renderer = new THREE.WebGLRenderer({
+    antialias: true,
+    alpha: true,
+    powerPreference: 'high-performance'
+});
 renderer.setClearColor(0x000000, 0); // trong suốt: trời là gradient CSS phía sau
 renderer.setPixelRatio(Math.min(devicePixelRatio, MOBILE ? 1.75 : 2));
 renderer.shadowMap.enabled = true;
@@ -47,8 +52,8 @@ labelRenderer.domElement.style.position = 'absolute';
 labelRenderer.domElement.style.inset = '0';
 
 /* ---------- Ánh sáng ----------
-     1) Hemisphere: ánh sáng trời (trên ấm, dưới xanh xám) để mặt khuất không bị đen.
-     2) Directional: "mặt trời" tạo bóng đổ. Bóng mềm nhờ PCFSoftShadowMap + radius. */
+   1) Hemisphere: ánh sáng trời (trên ấm, dưới xanh xám) để mặt khuất không bị đen.
+   2) Directional: "mặt trời" tạo bóng đổ. Bóng mềm nhờ PCFSoftShadowMap + radius. */
 const hemi = new THREE.HemisphereLight('#fff6e8', '#8a9bb0', 1.6);
 scene.add(hemi);
 
@@ -64,9 +69,9 @@ sun.shadow.radius = 3;
 scene.add(sun, sun.target);
 
 /* ---------- Khung nhìn ----------
-     Camera trực giao cần biết "nhìn rộng bao nhiêu đơn vị". Ta chọn đủ để thấy trọn bản đồ
-     theo chiều ngang (màn dọc của điện thoại) hoặc chiều dọc (màn ngang).
-     Cảnh khác (trong nhà, xem trước nhân vật) đăng ký onResize để cập nhật camera riêng. */
+   Camera trực giao cần biết "nhìn rộng bao nhiêu đơn vị". Ta chọn đủ để thấy trọn bản đồ
+   theo chiều ngang (màn dọc của điện thoại) hoặc chiều dọc (màn ngang).
+   Cảnh khác (trong nhà, xem trước nhân vật) đăng ký onResize để cập nhật camera riêng. */
 const resizeHooks = new Set<(w: number, h: number) => void>();
 export function onResize(fn: (w: number, h: number) => void): void {
     resizeHooks.add(fn);

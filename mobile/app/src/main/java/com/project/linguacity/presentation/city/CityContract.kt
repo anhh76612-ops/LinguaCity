@@ -57,7 +57,9 @@ sealed interface CityIntent {
     /** Bấm "Xây" trên thẻ công trình (chỉ Lv0→1 — BR-TUT-03). */
     data object BuildSelected : CityIntent
     data object MessageShown : CityIntent
-    /** App quay lại foreground: kiểm tra gói nội dung mới + tải lại thành phố (ADR-012, kiểu pull). */
+    /**
+     * App quay lại foreground: kiểm tra gói nội dung mới + tải lại thành phố (ADR-012, kiểu pull).
+     */
     data object AppForeground : CityIntent
     /** M7: "Vào nhà" trên thẻ công trình (Housing đã xây). */
     data object EnterSelected : CityIntent

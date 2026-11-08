@@ -20,7 +20,10 @@ interface PlayerApi {
     suspend fun step(@Header("X-Guest-UUID") guest: String, @Body body: StepRequestDto): PlayerDto
 
     @GET("api/v1/users/me/vocab-progress")
-    suspend fun progress(@Header("X-Guest-UUID") guest: String, @Query("since") since: String? = null): ProgressDto
+    suspend fun progress(
+        @Header("X-Guest-UUID") guest: String,
+        @Query("since") since: String? = null
+    ): ProgressDto
 
     @GET("api/v1/users/me/achievements")
     suspend fun achievements(@Header("X-Guest-UUID") guest: String): AchievementsDto
@@ -33,19 +36,32 @@ interface PlayerApi {
     suspend fun cosmetics(@Header("X-Guest-UUID") guest: String): CosmeticsDto
 
     @POST("api/v1/cosmetics/{code}/unlock")
-    suspend fun unlock(@Header("X-Guest-UUID") guest: String, @Path("code") code: String): CosmeticsDto
+    suspend fun unlock(
+        @Header("X-Guest-UUID") guest: String,
+        @Path("code") code: String
+    ): CosmeticsDto
 
     @PUT("api/v1/users/me/avatar")
-    suspend fun saveAvatar(@Header("X-Guest-UUID") guest: String, @Body body: AvatarConfigDto): CosmeticsDto
+    suspend fun saveAvatar(
+        @Header("X-Guest-UUID") guest: String,
+        @Body body: AvatarConfigDto
+    ): CosmeticsDto
 
     @PUT("api/v1/users/me/house-style")
-    suspend fun saveHouseStyle(@Header("X-Guest-UUID") guest: String, @Body body: HouseStyleDto): CosmeticsDto
+    suspend fun saveHouseStyle(
+        @Header("X-Guest-UUID") guest: String,
+        @Body body: HouseStyleDto
+    ): CosmeticsDto
 }
 
 @Serializable
 data class AvatarConfigDto(
-    val skin: String, val hairStyle: String, val hairColor: String,
-    val shirtColor: String, val pantsColor: String, val accessory: String
+    val skin: String,
+    val hairStyle: String,
+    val hairColor: String,
+    val shirtColor: String,
+    val pantsColor: String,
+    val accessory: String
 )
 
 @Serializable
@@ -53,7 +69,10 @@ data class HouseStyleDto(val wall: String, val floor: String)
 
 @Serializable
 data class CosmeticsDto(
-    val unlocked: List<String>, val avatar: AvatarConfigDto, val houseStyle: HouseStyleDto, val knowledgePoints: Int
+    val unlocked: List<String>,
+    val avatar: AvatarConfigDto,
+    val houseStyle: HouseStyleDto,
+    val knowledgePoints: Int
 )
 
 @Serializable
@@ -61,9 +80,15 @@ data class StatsDto(val collectedWords: Int, val streakDays: Int)
 
 @Serializable
 data class PlayerDto(
-    val userId: String, val knowledgePoints: Int, val hourglassCount: Int, val blueprintShards: Int,
-    val tutorialStep: String, val tutorialCompleted: Boolean, val equippedTitle: String? = null,
-    val avatar: AvatarConfigDto? = null, val houseStyle: HouseStyleDto? = null,
+    val userId: String,
+    val knowledgePoints: Int,
+    val hourglassCount: Int,
+    val blueprintShards: Int,
+    val tutorialStep: String,
+    val tutorialCompleted: Boolean,
+    val equippedTitle: String? = null,
+    val avatar: AvatarConfigDto? = null,
+    val houseStyle: HouseStyleDto? = null,
     val stats: StatsDto
 )
 

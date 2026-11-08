@@ -3,7 +3,8 @@ package com.project.linguacity.domain.model.city
 /**
  * Trạng thái thành phố theo góc nhìn nghiệp vụ, mang dữ liệu GIỐNG SERVER
  * (bảng user_buildings, API GET /api/v1/city — system-design §7.2.8).
- * Lớp này KHÔNG biết bản đồ vẽ bằng gì; việc dịch sang dữ liệu để vẽ nằm ở presentation (toRenderState).
+ * Lớp này KHÔNG biết bản đồ vẽ bằng gì; việc dịch sang dữ liệu để vẽ nằm ở presentation
+ * (toRenderState).
  */
 data class CityState(
     val buildings: List<BuildingState>,
@@ -36,10 +37,14 @@ data class BuildingState(
      * Chỉ để HIỂN THỊ: công trình chỉ thật sự xong khi Backend xác nhận.
      */
     fun progressAt(serverNowMillis: Long): Float {
-        if (!isUpgrading) return 0f
+        if (!isUpgrading) {
+            return 0f
+        }
         val start = startedAtMillis ?: return 0f
         val finish = finishAtMillis ?: return 0f
-        if (finish <= start) return 1f
+        if (finish <= start) {
+            return 1f
+        }
         return ((serverNowMillis - start).toFloat() / (finish - start)).coerceIn(0f, 1f)
     }
 

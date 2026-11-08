@@ -1,17 +1,18 @@
 /* Cầu nối giữa bản đồ (JavaScript) và ứng dụng chủ.
 
-     Chiều vào  (ứng dụng → bản đồ):  window.LinguaCity.setState(json)
-                                                                     window.LinguaCity.enterBuilding(code) / exitBuilding()   (M7: hoạt cảnh vào/ra công trình)
-         - Android: webView.evaluateJavascript("LinguaCity.setState('...')", null)
-         - Web:     gọi trực tiếp hàm này
+   Chiều vào  (ứng dụng → bản đồ):  window.LinguaCity.setState(json)
+                                   window.LinguaCity.enterBuilding(code) / exitBuilding()   (M7:
+                                   hoạt cảnh vào/ra công trình)
+     - Android: webView.evaluateJavascript("LinguaCity.setState('...')", null)
+     - Web:     gọi trực tiếp hàm này
 
-     Chiều ra   (bản đồ → ứng dụng):  emit(intent)
-         - Android: một đối tượng Kotlin gắn bằng addJavascriptInterface(obj, "AndroidBridge"),
-                                có hàm @JavascriptInterface fun postMessage(json: String)
-         - iOS:     window.webkit.messageHandlers.linguaCity.postMessage(json)
-         - Web:     sự kiện DOM "linguacity:intent" (trang chủ lắng nghe bằng addEventListener)
+   Chiều ra   (bản đồ → ứng dụng):  emit(intent)
+     - Android: một đối tượng Kotlin gắn bằng addJavascriptInterface(obj, "AndroidBridge"),
+                có hàm @JavascriptInterface fun postMessage(json: String)
+     - iOS:     window.webkit.messageHandlers.linguaCity.postMessage(json)
+     - Web:     sự kiện DOM "linguacity:intent" (trang chủ lắng nghe bằng addEventListener)
 
-     Bản đồ không biết mình đang chạy ở đâu: nó chỉ thử lần lượt các kênh trên. */
+   Bản đồ không biết mình đang chạy ở đâu: nó chỉ thử lần lượt các kênh trên. */
 import { type CityIntent, type CityState, normalizeState } from './cityState';
 
 interface NativeHost {
@@ -41,14 +42,20 @@ export function isEmbedded(): boolean {
     return !!(host.AndroidBridge || host.webkit?.messageHandlers?.linguaCity);
 }
 
-/** Lệnh hoạt cảnh (M7). Trả về false nếu không chạy được lúc này (đang có hoạt cảnh khác, mã lạ…). */
+/**
+ * Lệnh hoạt cảnh (M7). Trả về false nếu không chạy được lúc này (đang có hoạt cảnh khác, mã lạ…).
+ */
 export interface CityCommands {
     enterBuilding?(code: unknown): boolean;
     exitBuilding?(): boolean;
 }
 
 /** Gắn API công khai lên window. apply: hàm vẽ lại thành phố khi có trạng thái mới. */
-export function exposeApi(apply: (s: CityState) => void, current: () => CityState, commands: CityCommands = {}): void {
+export function exposeApi(
+    apply: (s: CityState) => void,
+    current: () => CityState,
+    commands: CityCommands = {}
+): void {
     const api = {
         ...commands,
         /** Nhận CityState (chuỗi JSON hoặc object). Trả về true nếu hợp lệ. */

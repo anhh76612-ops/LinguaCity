@@ -14,17 +14,34 @@ interface CityApi {
     suspend fun city(@Header("X-Guest-UUID") guest: String): CityDto
 
     @POST("api/v1/buildings/{code}/build")
-    suspend fun build(@Header("X-Guest-UUID") guest: String, @Path("code") code: String): BuildResultDto
+    suspend fun build(
+        @Header("X-Guest-UUID") guest: String,
+        @Path("code") code: String
+    ): BuildResultDto
 }
 
 @Serializable
 data class BuildingStateDto(
-    val buildingId: Long, val code: String, val currentLevel: Int, val targetLevel: Int? = null,
-    val maxLevel: Int, val status: String, val startedAt: String? = null, val finishAt: String? = null
+    val buildingId: Long,
+    val code: String,
+    val currentLevel: Int,
+    val targetLevel: Int? = null,
+    val maxLevel: Int,
+    val status: String,
+    val startedAt: String? = null,
+    val finishAt: String? = null
 )
 
 @Serializable
-data class CityDto(val serverTime: String, val buildings: List<BuildingStateDto>, val tutorialStep: String? = null)
+data class CityDto(
+    val serverTime: String,
+    val buildings: List<BuildingStateDto>,
+    val tutorialStep: String? = null
+)
 
 @Serializable
-data class BuildResultDto(val building: BuildingStateDto, val serverTime: String, val profile: ResourcesDto)
+data class BuildResultDto(
+    val building: BuildingStateDto,
+    val serverTime: String,
+    val profile: ResourcesDto
+)

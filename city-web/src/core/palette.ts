@@ -50,5 +50,8 @@ export const C = {
 // Tông da / tóc / quần áo cho người dân (chọn ngẫu nhiên)
 export const SKIN = ['#f9dcc4', '#f1c7a5', '#e3ad86', '#c98f66', '#9c6b4c'];
 export const HAIR = ['#2b2522', '#4a3426', '#7a4b2a', '#c98a4b', '#e6c27a', '#5b6b8c', '#b05a6a'];
-export const SHIRT = ['#e57373', '#64b5f6', '#81c784', '#ffb74d', '#ba68c8', '#4db6ac', '#f06292', '#fff176', '#90a4ae'];
+export const SHIRT = [
+    '#e57373', '#64b5f6', '#81c784', '#ffb74d', '#ba68c8', '#4db6ac', '#f06292', '#fff176',
+    '#90a4ae'
+];
 export const PANTS = ['#455a64', '#5d4037', '#3949ab', '#6d4c41', '#37474f', '#8d6e63'];

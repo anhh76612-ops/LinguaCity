@@ -6,7 +6,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
-public interface QuestionVocabularyRepository extends JpaRepository<QuestionVocabulary, QuestionVocabularyId> {
+public interface QuestionVocabularyRepository
+        extends JpaRepository<QuestionVocabulary, QuestionVocabularyId> {
 
     List<QuestionVocabulary> findByIdVocabularyIdIn(Collection<Long> vocabularyIds);
 

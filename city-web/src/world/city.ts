@@ -27,7 +27,8 @@ const BUILDERS: Record<BuildingCode, (level: number, wall?: string) => Built> = 
 /** Mọi thứ thuộc về một lô đất. */
 interface Lot {
     code: BuildingCode;
-    holder: THREE.Group;          // nhóm cố định ở tâm lô; mô hình bên trong được thay khi đổi level
+    // nhóm cố định ở tâm lô; mô hình bên trong được thay khi đổi level
+    holder: THREE.Group;
     built?: Built;
     site?: Built;                 // công trường (khi đang nâng cấp)
     label: CSS2DObject;
@@ -71,22 +72,38 @@ export class City {
         this.houseWall = wall;
         for (const b of state.buildings) {
             const lot = this.lots.get(b.code);
-            if (!lot) continue;
+            if (!lot) {
+                continue;
+            }
             const prev = lot.state;
             const restyle = b.code === 'HOUSING' && wallChanged && !!prev;
-            if (!prev || prev.level !== b.level || restyle) { this.rebuild(lot, b.level); changed = true; }
-            if (!prev || !!prev.upgrading !== !!b.upgrading || (b.upgrading && prev.level !== b.level)) { this.setSite(lot, b); changed = true; }
-            if (b.code === 'ROAD' && b.level !== this.streetLevel) { this.rebuildStreets(b.level); changed = true; }
+            if (!prev || prev.level !== b.level || restyle) {
+                this.rebuild(lot, b.level);
+                changed = true;
+            }
+            if (!prev || !!prev.upgrading !== !!b.upgrading
+                || (b.upgrading && prev.level !== b.level)) {
+                this.setSite(lot, b);
+                changed = true;
+            }
+            if (b.code === 'ROAD' && b.level !== this.streetLevel) {
+                this.rebuildStreets(b.level);
+                changed = true;
+            }
             lot.state = { ...b };
             this.renderLabel(lot);
         }
-        if (changed) refreshShadows();
+        if (changed) {
+            refreshShadows();
+        }
     }
 
     /** Cửa vào của công trình (toạ độ thế giới) cho người dân bước vào. */
     doorOf(code: BuildingCode): { x: number; z: number } | null {
         const lot = this.lots.get(code), d = lot?.built?.door;
-        if (!lot || !d) return null;
+        if (!lot || !d) {
+            return null;
+        }
         return { x: lot.holder.position.x + d.x, z: lot.holder.position.z + d.z };
     }
 
@@ -98,12 +115,17 @@ export class City {
     /** Hiệu ứng khi người chơi chạm vào công trình. */
     poke(code: BuildingCode): void {
         const lot = this.lots.get(code);
-        if (lot) lot.bounce = 1;
+        if (lot) {
+            lot.bounce = 1;
+        }
     }
 
     private rebuild(lot: Lot, level: number): void {
-        if (lot.built) disposeGroup(lot.built.group);
-        lot.built = level === 0 ? buildEmptyLot() : BUILDERS[lot.code](level, lot.code === 'HOUSING' ? this.houseWall : undefined);
+        if (lot.built) {
+            disposeGroup(lot.built.group);
+        }
+        lot.built = level === 0 ? buildEmptyLot()
+            : BUILDERS[lot.code](level, lot.code === 'HOUSING' ? this.houseWall : undefined);
         lot.holder.add(lot.built.group);
         // đặt nhãn cao hơn đỉnh mô hình một chút
         const top = new THREE.Box3().setFromObject(lot.built.group).max.y - lot.holder.position.y;
@@ -111,16 +133,24 @@ export class City {
     }
 
     private setSite(lot: Lot, b: BuildingState): void {
-        if (lot.site) { disposeGroup(lot.site.group); lot.site = undefined; }
-        if (!b.upgrading) return;
-        const top = lot.built ? new THREE.Box3().setFromObject(lot.built.group).max.y - lot.holder.position.y : 2;
+        if (lot.site) {
+            disposeGroup(lot.site.group);
+            lot.site = undefined;
+        }
+        if (!b.upgrading) {
+            return;
+        }
+        const top = lot.built
+            ? new THREE.Box3().setFromObject(lot.built.group).max.y - lot.holder.position.y : 2;
         lot.site = buildConstruction(top);
         lot.holder.add(lot.site.group);
         lot.label.position.y = Math.max(lot.label.position.y, top + 1.5);
     }
 
     private rebuildStreets(level: number): void {
-        if (this.streets) disposeGroup(this.streets.group);
+        if (this.streets) {
+            disposeGroup(this.streets.group);
+        }
         this.streets = buildStreets(level, this.pedestrians);
         scene.add(this.streets.group);
         this.streetLevel = level;
@@ -130,8 +160,9 @@ export class City {
         const s = lot.state!, info = LOTS[lot.code];
         const pct = Math.round((s.progress ?? 0) * 100);
         lot.labelEl.classList.toggle('hidden-bar', !s.upgrading);
+        const levelText = s.level === 0 ? 'Chưa xây' : `Lv ${s.level}`;
         lot.labelEl.innerHTML =
-            `<div>${info.icon} ${info.name}<span class="lv">${s.level === 0 ? 'Chưa xây' : `Lv ${s.level}`}</span></div>` +
+            `<div>${info.icon} ${info.name}<span class="lv">${levelText}</span></div>` +
             `<div class="bar" title="Đang nâng cấp ${pct}%"><i style="width:${pct}%"></i></div>`;
     }
 

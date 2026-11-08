@@ -21,7 +21,11 @@ class AchievementsViewModel @Inject constructor(
 ) : ViewModel() {
 
     val items: StateFlow<List<AchievementView>> =
-        player.observeAchievements().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+        player.observeAchievements().stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5_000),
+            emptyList()
+        )
 
     private val _message = MutableStateFlow<String?>(null)
     val message: StateFlow<String?> = _message.asStateFlow()
@@ -32,7 +36,9 @@ class AchievementsViewModel @Inject constructor(
 
     fun equip(code: String?) {
         viewModelScope.launch {
-            runCatching { player.equip(code) }.onFailure { _message.value = friendlyNetworkError(it) }
+            runCatching { player.equip(code) }.onFailure {
+                _message.value = friendlyNetworkError(it)
+            }
         }
     }
 

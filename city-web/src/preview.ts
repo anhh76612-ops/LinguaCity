@@ -1,7 +1,9 @@
 /* Chế độ xem trước nhân vật (M7): index.html?mode=avatar-preview
-     Dùng cho màn chọn ngoại hình (UC_14): avatar đứng trên bệ tròn, tự xoay chậm; kéo ngang để xoay tay.
-     App gửi ngoại hình bằng chính LinguaCity.setState({ player: { appearance } }) — các trường khác bị bỏ qua.
-     Không dựng thành phố: tải nhanh, nhẹ máy. */
+   Dùng cho màn chọn ngoại hình (UC_14): avatar đứng trên bệ tròn, tự xoay chậm; kéo ngang để xoay
+   tay.
+   App gửi ngoại hình bằng chính LinguaCity.setState({ player: { appearance } }) — các trường khác
+   bị bỏ qua.
+   Không dựng thành phố: tải nhanh, nhẹ máy. */
 import * as THREE from 'three';
 import { onResize, renderer } from './core/renderer';
 import { onUpdate, setView } from './core/loop';
@@ -23,7 +25,9 @@ export function bootPreview(): void {
         // nhân vật cao ≈ 2.2 đơn vị: chọn khoảng cách để cả người + bệ vừa khung theo chiều hẹp hơn
         const fitH = 3.8, vFov = THREE.MathUtils.degToRad(camera.fov);
         let dist = fitH / 2 / Math.tan(vFov / 2);
-        if (camera.aspect < 0.75) dist /= camera.aspect / 0.75;
+        if (camera.aspect < 0.75) {
+            dist /= camera.aspect / 0.75;
+        }
         camera.position.set(0, LOOK_AT.y + dist * 0.18, dist);
         camera.lookAt(LOOK_AT);
         camera.updateProjectionMatrix();
@@ -40,7 +44,8 @@ export function bootPreview(): void {
     const rim = new THREE.DirectionalLight('#cfe0f0', 1.2);
     rim.position.set(-3, 2.5, -3);
     scene.add(rim);
-    renderer.shadowMap.autoUpdate = true; // cảnh nhỏ, nhân vật xoay liên tục → cập nhật bóng mỗi khung
+    // cảnh nhỏ, nhân vật xoay liên tục → cập nhật bóng mỗi khung
+    renderer.shadowMap.autoUpdate = true;
 
     // bệ tròn hai tầng
     const stage = new THREE.Group();
@@ -57,12 +62,20 @@ export function bootPreview(): void {
     const pose = restPose();
     const setAppearance = (a: Appearance) => {
         const k = JSON.stringify(a);
-        if (k === lookKey) return;
+        if (k === lookKey) {
+            return;
+        }
         lookKey = k;
-        if (rig) rig.root.removeFromParent();
+        if (rig) {
+            rig.root.removeFromParent();
+        }
         rig = makeChibi(lookOf(a));
         rig.root.scale.setScalar(2.3);
-        rig.root.traverse((o) => { if ((o as THREE.Mesh).isMesh) o.castShadow = true; });
+        rig.root.traverse((o) => {
+            if ((o as THREE.Mesh).isMesh) {
+                o.castShadow = true;
+            }
+        });
         turntable.add(rig.root);
         pop = 1;
     };
@@ -71,16 +84,24 @@ export function bootPreview(): void {
     // kéo ngang để xoay; thả tay thì quán tính giảm dần rồi tự xoay chậm trở lại
     let spin = 0.5, dragging = false, lastX = 0, idle = 0;
     const el = renderer.domElement;
-    el.addEventListener('pointerdown', (e) => { dragging = true; lastX = e.clientX; el.setPointerCapture(e.pointerId); });
+    el.addEventListener('pointerdown', (e) => {
+        dragging = true;
+        lastX = e.clientX;
+        el.setPointerCapture(e.pointerId);
+    });
     el.addEventListener('pointermove', (e) => {
-        if (!dragging) return;
+        if (!dragging) {
+            return;
+        }
         const dx = e.clientX - lastX;
         lastX = e.clientX;
         turntable.rotation.y += dx * 0.012;
         spin = dx * 0.6;
         idle = 0;
     });
-    const up = () => { dragging = false; };
+    const up = () => {
+        dragging = false;
+    };
     el.addEventListener('pointerup', up);
     el.addEventListener('pointercancel', up);
 
@@ -92,7 +113,9 @@ export function bootPreview(): void {
             spin += (auto - spin) * Math.min(1, dt * 2.5);
             turntable.rotation.y += spin * dt;
         }
-        if (!rig) return;
+        if (!rig) {
+            return;
+        }
         // nảy nhẹ khi đổi ngoại hình
         if (pop > 0) {
             pop = Math.max(0, pop - dt * 2.5);
@@ -101,7 +124,9 @@ export function bootPreview(): void {
         }
         waveT -= dt;
         const anim = waveT < 0 && waveT > -1.6 ? 'wave' : 'idle';
-        if (waveT < -1.6) waveT = 5 + Math.random() * 4;
+        if (waveT < -1.6) {
+            waveT = 5 + Math.random() * 4;
+        }
         applyPose(rig, pose, poseFor(anim, t, 0, 0), dt, false);
     });
 

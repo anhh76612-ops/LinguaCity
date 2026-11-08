@@ -3,7 +3,8 @@ package com.project.linguacity.presentation.city
 /**
  * Ngoại hình nhân vật và kiểu nhà ĐỂ VẼ (hợp đồng B, M7). Giá trị là asset_key của `cosmetic_items`
  * (system-design §10.2.3): màu "#rrggbb", kiểu dáng là từ khoá city-web hiểu
- * (hairStyle: short|long|bun|spiky · accessory: none|hat|glasses · floor: oak|walnut|tile|checker|carpet).
+ * (hairStyle: short|long|bun|spiky · accessory: none|hat|glasses · floor:
+ * oak|walnut|tile|checker|carpet).
  * Lớp dịch mã cosmetic (HAIR_SHORT…) → asset_key nằm ở M8; bản đồ không biết mã cosmetic.
  */
 data class AvatarLook(

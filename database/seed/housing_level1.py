@@ -230,55 +230,98 @@ WORDS = [
 
 assert len(WORDS) == 30, len(WORDS)
 
+VOCAB_INSERT = (
+    "INSERT INTO vocabularies (id, word, meaning, word_type, ipa, examples, image_url, "
+    "theme_id, level, difficulty_rank) VALUES "
+)
+QUESTION_INSERT = (
+    "INSERT INTO questions (id, content_type, skill, question_type, tier, question_text, answer, "
+    "accepted_answers, explanation, audio_url, metadata) VALUES "
+)
+EXAM_REF = "(SELECT id FROM exams WHERE code = 'EXAM_HOUSING_LV2')"
+
+
 def q(s):
     return "'" + s.replace("'", "''") + "'"
 
-def hint_of(word):
-    return " ".join([word[0]] + ["_"] * (len(word) - 2) + [word[-1]]) if len(word) > 2 else word
 
-def main(out):
-    w = out.write
+def hint_of(word):
+    if len(word) <= 2:
+        return word
+    return " ".join([word[0]] + ["_"] * (len(word) - 2) + [word[-1]])
+
+
+def set_sequence(table):
+    """Đưa sequence của bảng về MAX(id) sau khi chèn id cố định."""
+    return (f"SELECT setval(pg_get_serial_sequence('{table}', 'id'), "
+            f"(SELECT MAX(id) FROM {table}));\n\n")
+
+
+def write_vocabularies(w):
     w("-- ===== Seed: từ vựng House Level 1 (sinh bởi database/seed/housing_level1.py) =====\n")
-    meanings = [x[3] for x in WORDS]
     for i, x in enumerate(WORDS, start=1):
         word, ipa, wtype, meaning, rank, theme, ex = x[:7]
-        w("INSERT INTO vocabularies (id, word, meaning, word_type, ipa, examples, image_url, theme_id, level, difficulty_rank) VALUES "
-          f"({i}, {q(word)}, {q(meaning)}, {q(wtype)}, {q(ipa)}, {q(json.dumps(ex, ensure_ascii=False))}::jsonb, NULL, "
-          f"(SELECT id FROM themes WHERE code = {q(theme)}), 1, {q(rank)});\n")
-    w("SELECT setval(pg_get_serial_sequence('vocabularies', 'id'), (SELECT MAX(id) FROM vocabularies));\n\n")
+        examples = json.dumps(ex, ensure_ascii=False)
+        w(VOCAB_INSERT
+          + f"({i}, {q(word)}, {q(meaning)}, {q(wtype)}, {q(ipa)}, {q(examples)}::jsonb, NULL, "
+          + f"(SELECT id FROM themes WHERE code = {q(theme)}), 1, {q(rank)});\n")
+    w(set_sequence("vocabularies"))
 
-    w("-- ===== Câu hỏi: 3 câu mỗi từ (tier 1 trắc nghiệm, tier 2 điền có gợi ý, tier 3 điền theo ngữ cảnh) =====\n")
+
+def questions_of(i, x, meanings):
+    """3 câu của một từ: tier 1 trắc nghiệm, tier 2 điền có gợi ý, tier 3 điền theo ngữ cảnh."""
+    word, ipa, wtype, meaning, rank, theme, ex, s2, tip2, s3, exp3, extra = x
+    # tier 1: 3 phương án nhiễu lấy nghĩa của các từ kế cạnh (cố định để seed ổn định)
+    distract = [meanings[(i - 1 + k) % 30] for k in (3, 11, 19)]
+    opts = [meaning] + distract
+    rot = i % 4  # xoay vị trí đáp án đúng
+    opts = opts[-rot:] + opts[:-rot] if rot else opts
+    exp1 = f"\"{word}\" {ipa} nghĩa là {meaning}. Ví dụ: {ex[0]}"
+    return (
+        (1, "MULT_CHOICE", "READING", f"What does \"{word}\" mean?", meaning, [], exp1,
+         {"options": opts}),
+        (2, "FILL_BLANK", "WRITING", f"Điền từ còn thiếu (gợi ý: {meaning})", word, extra, tip2,
+         {"sentence": s2, "hint": hint_of(word)}),
+        (3, "FILL_BLANK", "WRITING", "Điền một từ phù hợp vào chỗ trống", word, extra, exp3,
+         {"sentence": s3}),
+    )
+
+
+def write_questions(w):
+    w("-- ===== Câu hỏi: 3 câu mỗi từ (tier 1 trắc nghiệm, tier 2 điền có gợi ý, "
+      "tier 3 điền theo ngữ cảnh) =====\n")
+    meanings = [x[3] for x in WORDS]
     qid = 0
     for i, x in enumerate(WORDS, start=1):
-        word, ipa, wtype, meaning, rank, theme, ex, s2, tip2, s3, exp3, extra = x
-        # tier 1: 3 phương án nhiễu lấy nghĩa của các từ kế cạnh (cố định để seed ổn định)
-        distract = [meanings[(i - 1 + k) % 30] for k in (3, 11, 19)]
-        opts = [meaning] + distract
-        rot = i % 4  # xoay vị trí đáp án đúng
-        opts = opts[-rot:] + opts[:-rot] if rot else opts
-        exp1 = f"\"{word}\" {ipa} nghĩa là {meaning}. Ví dụ: {ex[0]}"
-        for tier, qtype, skill, text, answer, accepted, expl, meta in (
-            (1, "MULT_CHOICE", "READING", f"What does \"{word}\" mean?", meaning, [], exp1, {"options": opts}),
-            (2, "FILL_BLANK", "WRITING", f"Điền từ còn thiếu (gợi ý: {meaning})", word, extra, tip2,
-             {"sentence": s2, "hint": hint_of(word)}),
-            (3, "FILL_BLANK", "WRITING", "Điền một từ phù hợp vào chỗ trống", word, extra, exp3, {"sentence": s3}),
-        ):
+        for tier, qtype, skill, text, answer, accepted, expl, meta in questions_of(i, x, meanings):
             qid += 1
-            w("INSERT INTO questions (id, content_type, skill, question_type, tier, question_text, answer, accepted_answers, explanation, audio_url, metadata) VALUES "
-              f"({qid}, 'VOCABULARY', '{skill}', '{qtype}', {tier}, {q(text)}, {q(answer)}, "
-              f"{q(json.dumps(accepted, ensure_ascii=False))}::jsonb, {q(expl)}, NULL, {q(json.dumps(meta, ensure_ascii=False))}::jsonb);\n")
-            w(f"INSERT INTO question_vocabularies (question_id, vocabulary_id, relation_type) VALUES ({qid}, {i}, 'TARGET');\n")
-    w("SELECT setval(pg_get_serial_sequence('questions', 'id'), (SELECT MAX(id) FROM questions));\n\n")
+            accepted_json = json.dumps(accepted, ensure_ascii=False)
+            meta_json = json.dumps(meta, ensure_ascii=False)
+            w(QUESTION_INSERT
+              + f"({qid}, 'VOCABULARY', '{skill}', '{qtype}', {tier}, {q(text)}, {q(answer)}, "
+              + f"{q(accepted_json)}::jsonb, {q(expl)}, NULL, {q(meta_json)}::jsonb);\n")
+            w("INSERT INTO question_vocabularies (question_id, vocabulary_id, relation_type) "
+              + f"VALUES ({qid}, {i}, 'TARGET');\n")
+    w(set_sequence("questions"))
 
-    w("-- ===== Bài thi Housing Lv2 (VS4 mới chấm; ở đây chỉ để gói đủ phạm vi DoD): 10 câu tier 3 =====\n")
-    w("INSERT INTO exams (code, building_id, target_level, reward_blueprint_id, question_count) VALUES "
-      "('EXAM_HOUSING_LV2', (SELECT id FROM buildings WHERE code = 'HOUSING'), 2, "
+
+def write_exam(w):
+    w("-- ===== Bài thi Housing Lv2 (VS4 mới chấm; ở đây chỉ để gói đủ phạm vi DoD): "
+      "10 câu tier 3 =====\n")
+    w("INSERT INTO exams (code, building_id, target_level, reward_blueprint_id, question_count) "
+      "VALUES ('EXAM_HOUSING_LV2', (SELECT id FROM buildings WHERE code = 'HOUSING'), 2, "
       "(SELECT id FROM blueprints WHERE code = 'BLUEPRINT_HOUSING_LV2'), 10);\n")
-    w("INSERT INTO exam_requirements (exam_id, required_card_count, required_knowledge, required_blueprint_shards) VALUES "
-      "((SELECT id FROM exams WHERE code = 'EXAM_HOUSING_LV2'), 30, 200, 0);\n")
+    w("INSERT INTO exam_requirements (exam_id, required_card_count, required_knowledge, "
+      f"required_blueprint_shards) VALUES ({EXAM_REF}, 30, 200, 0);\n")
     for i in range(1, 31, 3):
-        w("INSERT INTO exam_questions (exam_id, question_id) VALUES "
-          f"((SELECT id FROM exams WHERE code = 'EXAM_HOUSING_LV2'), {i * 3});\n")
+        w(f"INSERT INTO exam_questions (exam_id, question_id) VALUES ({EXAM_REF}, {i * 3});\n")
+
+
+def main(out):
+    write_vocabularies(out.write)
+    write_questions(out.write)
+    write_exam(out.write)
+
 
 if __name__ == "__main__":
     sys.stdout.reconfigure(encoding="utf-8")

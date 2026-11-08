@@ -17,7 +17,8 @@ public class UserProfileController {
     private final UserOnboardingService userOnboardingService;
     private final TutorialService tutorialService;
 
-    public UserProfileController(UserOnboardingService userOnboardingService, TutorialService tutorialService) {
+    public UserProfileController(
+            UserOnboardingService userOnboardingService, TutorialService tutorialService) {
         this.userOnboardingService = userOnboardingService;
         this.tutorialService = tutorialService;
     }

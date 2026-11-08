@@ -25,6 +25,7 @@ import org.springframework.http.MediaType;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 import tools.jackson.databind.JsonNode;
@@ -42,9 +43,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
- * Phiên học, bài kiểm tra trình độ, xây House, danh hiệu — chạy end-to-end qua API trên H2 với đồng hồ giả.
+ * Phiên học, bài kiểm tra trình độ, xây House, danh hiệu — chạy end-to-end qua API trên H2 với đồng
+ * hồ giả.
  * TC-VS3-01..14, TC-TUT-01..06, TC-ACH-01/03/04 (docs/06-testing/test-plan.md §5–§6).
- * DB riêng (linguacity_learning) để không đụng dữ liệu của ContentApiTests. Mỗi test dùng một người chơi mới.
+ * DB riêng (linguacity_learning) để không đụng dữ liệu của ContentApiTests. Mỗi test dùng một người
+ * chơi mới.
  */
 @SpringBootTest(properties = {
         "spring.datasource.url=jdbc:h2:mem:linguacity_learning;DB_CLOSE_DELAY=-1",
@@ -102,7 +105,8 @@ class LearningFlowTests {
     @Test
     void sessionHasTwentyItemsReadingFirstWithoutAnswersAndResumes() throws Exception {
         String user = newUser();
-        ResultActions first = post("/api/v1/learning/sessions", user, "{\"buildingCode\":\"HOUSING\"}")
+        ResultActions first = post(
+                "/api/v1/learning/sessions", user, "{\"buildingCode\":\"HOUSING\"}")
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.totalCount").value(20))
                 .andExpect(jsonPath("$.items.length()").value(20))
@@ -153,13 +157,15 @@ class LearningFlowTests {
                 .andExpect(jsonPath("$.masteryAfter").value(1))
                 .andExpect(jsonPath("$.collectedNow").value(true));
 
-        UserVocabProgress p = progress.findByUserIdAndVocabularyId(UUID.fromString(user), vocab).orElseThrow();
+        UserVocabProgress p = progress.findByUserIdAndVocabularyId(
+                UUID.fromString(user), vocab).orElseThrow();
         assertNotNull(p.getCollectedAt());
         assertNotNull(p.getFirstSeenAt());
 
         api.perform(get("/api/v1/users/me/vocab-progress").header("X-Guest-UUID", user))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.items[?(@.vocabularyId == " + vocab + ")].collected").value(contains(true)))
+                .andExpect(jsonPath("$.items[?(@.vocabularyId == " + vocab + ")].collected")
+                        .value(contains(true)))
                 .andExpect(jsonPath("$.items[?(@.vocabularyId == " + vocab + ")].maxMastery")
                         .value(contains(vocab % 5 == 0 ? 15 : 10)));
     }
@@ -172,7 +178,8 @@ class LearningFlowTests {
         String id = s.get("sessionId").asString();
 
         answerItems(id, user, s, 17, 19);
-        complete(id, user).andExpect(status().isConflict()).andExpect(jsonPath("$.code").value("INCOMPLETE"));
+        complete(id, user).andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("INCOMPLETE"));
         answer(id, user, 20, "sai");
 
         complete(id, user)
@@ -189,7 +196,12 @@ class LearningFlowTests {
                 .andExpect(jsonPath("$.kpAwarded").value(105))
                 .andExpect(jsonPath("$.profile.knowledgePoints").value(105));
         assertEquals(105, users.findById(UUID.fromString(user)).orElseThrow().getKnowledgePoints());
-        answer(id, user, 1, "x").andExpect(status().isConflict()).andExpect(jsonPath("$.code").value("SESSION_CLOSED"));
+        answer(
+                id,
+                user,
+                1,
+                "x").andExpect(status().isConflict())
+                        .andExpect(jsonPath("$.code").value("SESSION_CLOSED"));
     }
 
     // TC-VS3-10
@@ -200,10 +212,13 @@ class LearningFlowTests {
             JsonNode s = start(user);
             String id = s.get("sessionId").asString();
             answerItems(id, user, s, 20, 20);
-            ResultActions done = complete(id, user).andExpect(jsonPath("$.dailySessionIndex").value(n));
+            ResultActions done = complete(id, user)
+                    .andExpect(jsonPath("$.dailySessionIndex").value(n));
             done.andExpect(jsonPath("$.kpAwarded").value(n <= 5 ? 120 : 24));
         }
-        assertEquals(5 * 120 + 24, users.findById(UUID.fromString(user)).orElseThrow().getKnowledgePoints());
+        assertEquals(
+                5 * 120 + 24,
+                users.findById(UUID.fromString(user)).orElseThrow().getKnowledgePoints());
     }
 
     // TC-VS3-07
@@ -212,16 +227,28 @@ class LearningFlowTests {
         String user = newUser();
         JsonNode s = start(user);
         String id = s.get("sessionId").asString();
-        answer(id, user, 1, answerOf(s.get("items").get(0))).andExpect(jsonPath("$.isCorrect").value(true));
+        answer(
+                id,
+                user,
+                1,
+                answerOf(s.get("items").get(0))).andExpect(jsonPath("$.isCorrect").value(true));
 
         clock.advance(Duration.ofMinutes(31));
-        answer(id, user, 2, "x").andExpect(status().isGone()).andExpect(jsonPath("$.code").value("SESSION_EXPIRED"));
+        answer(
+                id,
+                user,
+                2,
+                "x").andExpect(status().isGone())
+                        .andExpect(jsonPath("$.code").value("SESSION_EXPIRED"));
         complete(id, user).andExpect(status().isGone());
         api.perform(get("/api/v1/learning/sessions/" + id).header("X-Guest-UUID", user))
                 .andExpect(jsonPath("$.status").value("EXPIRED"));
 
         long vocab = s.get("items").get(0).get("vocabularyId").asLong();
-        assertEquals(1, progress.findByUserIdAndVocabularyId(UUID.fromString(user), vocab).orElseThrow().getMasteryScore());
+        assertEquals(
+                1,
+                progress.findByUserIdAndVocabularyId(
+                        UUID.fromString(user), vocab).orElseThrow().getMasteryScore());
         assertEquals(0, users.findById(UUID.fromString(user)).orElseThrow().getKnowledgePoints());
 
         JsonNode fresh = start(user);
@@ -239,7 +266,8 @@ class LearningFlowTests {
 
         complete(id, user).andExpect(status().isOk());
         stale.setKpAwarded(999);
-        assertThrows(ObjectOptimisticLockingFailureException.class, () -> sessions.saveAndFlush(stale));
+        assertThrows(
+                ObjectOptimisticLockingFailureException.class, () -> sessions.saveAndFlush(stale));
     }
 
     @Test
@@ -266,9 +294,16 @@ class LearningFlowTests {
                 .andExpect(jsonPath("$.code").value("INVALID_STEP"))
                 .andExpect(jsonPath("$.details.current").value("INTRO"));
         put("/api/v1/users/me/tutorial/step", user, "{\"step\":\"PLACEMENT\"}")
-                .andExpect(status().isOk()).andExpect(jsonPath("$.tutorialStep").value("PLACEMENT"));
-        put("/api/v1/users/me/tutorial/step", user, "{\"step\":\"PLACEMENT\"}").andExpect(status().isOk());
-        put("/api/v1/users/me/tutorial/step", user, "{\"step\":\"LEARN_HOUSE\"}").andExpect(status().isConflict());
+                .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.tutorialStep").value("PLACEMENT"));
+        put(
+                "/api/v1/users/me/tutorial/step",
+                user,
+                "{\"step\":\"PLACEMENT\"}").andExpect(status().isOk());
+        put(
+                "/api/v1/users/me/tutorial/step",
+                user,
+                "{\"step\":\"LEARN_HOUSE\"}").andExpect(status().isConflict());
     }
 
     // TC-TUT-02, TC-TUT-03, TC-ACH-03 (FLAWLESS, COMBO10)
@@ -288,7 +323,10 @@ class LearningFlowTests {
         for (int i = 0; i < 30; i++) {
             JsonNode item = s.get("items").get(i);
             words.add(item.get("vocabularyId").asLong());
-            assertEquals(i < 10 ? 1 : i < 20 ? 2 : 3, item.get("question").get("tier").asInt(), "item " + (i + 1));
+            assertEquals(
+                    i < 10 ? 1 : i < 20 ? 2 : 3,
+                    item.get("question").get("tier").asInt(),
+                    "item " + (i + 1));
         }
         assertEquals(20, words.size());
 
@@ -297,7 +335,9 @@ class LearningFlowTests {
         complete(id, user)
                 .andExpect(jsonPath("$.kpAwarded").value(30 * 3 + 100))
                 .andExpect(jsonPath("$.tutorialStep").value("LEARN_HOUSE"))
-                .andExpect(jsonPath("$.newAchievements", hasItems("GOOD_START", "FLAWLESS", "TOP_ENTRANT", "COMBO10")));
+                .andExpect(jsonPath(
+                        "$.newAchievements",
+                        hasItems("GOOD_START", "FLAWLESS", "TOP_ENTRANT", "COMBO10")));
     }
 
     // TC-ACH-01: phải ĐÚNG HƠN 15 từ (khác nhau)
@@ -342,21 +382,32 @@ class LearningFlowTests {
                 .andExpect(jsonPath("$.building.status").value("UPGRADING"))
                 .andExpect(jsonPath("$.building.targetLevel").value(1))
                 .andExpect(jsonPath("$.profile.knowledgePoints").value(50));
-        post("/api/v1/buildings/HOUSING/build", user, "").andExpect(jsonPath("$.code").value("BUSY"));
+        post(
+                "/api/v1/buildings/HOUSING/build",
+                user,
+                "").andExpect(jsonPath("$.code").value("BUSY"));
         api.perform(get("/api/v1/city").header("X-Guest-UUID", user))
-                .andExpect(jsonPath("$.buildings[?(@.code == 'HOUSING')].status").value(contains("UPGRADING")))
+                .andExpect(jsonPath("$.buildings[?(@.code == 'HOUSING')].status")
+                        .value(contains("UPGRADING")))
                 .andExpect(jsonPath("$.tutorialStep").value("BUILD_HOUSE"));
 
         clock.advance(Duration.ofSeconds(11));
         api.perform(get("/api/v1/city").header("X-Guest-UUID", user))
                 .andExpect(jsonPath("$.buildings.length()").value(2))
-                .andExpect(jsonPath("$.buildings[?(@.code == 'HOUSING')].currentLevel").value(contains(1)))
-                .andExpect(jsonPath("$.buildings[?(@.code == 'HOUSING')].status").value(contains("IDLE")))
-                .andExpect(jsonPath("$.buildings[?(@.code == 'PARK')].currentLevel").value(contains(0)))
+                .andExpect(jsonPath("$.buildings[?(@.code == 'HOUSING')].currentLevel")
+                        .value(contains(1)))
+                .andExpect(jsonPath("$.buildings[?(@.code == 'HOUSING')].status")
+                        .value(contains("IDLE")))
+                .andExpect(jsonPath("$.buildings[?(@.code == 'PARK')].currentLevel")
+                        .value(contains(0)))
                 .andExpect(jsonPath("$.tutorialStep").value("ENTER_HOUSE"));
-        post("/api/v1/buildings/HOUSING/build", user, "").andExpect(jsonPath("$.code").value("ALREADY_BUILT"));
+        post(
+                "/api/v1/buildings/HOUSING/build",
+                user,
+                "").andExpect(jsonPath("$.code").value("ALREADY_BUILT"));
 
-        // Công trình đã Lv1 → bài học lấy từ Level 2 (chưa có) nên quay về ôn từ đã sưu tầm của Level 1
+        // Công trình đã Lv1 → bài học lấy từ Level 2 (chưa có) nên quay về ôn từ đã sưu tầm của
+        // Level 1
         post("/api/v1/learning/sessions", user, "{\"buildingCode\":\"HOUSING\"}")
                 .andExpect(status().isCreated()).andExpect(jsonPath("$.vocabLevel").value(2));
     }
@@ -371,9 +422,13 @@ class LearningFlowTests {
         String user = newUser();
         put("/api/v1/users/me/equipped-title", user, "{\"code\":\"GOOD_START\"}")
                 .andExpect(status().isConflict()).andExpect(jsonPath("$.code").value("NOT_EARNED"));
-        achievementService.grant(UUID.fromString(user), "GOOD_START", LocalDateTime.now(clock.withZone(ZoneOffset.UTC)));
+        achievementService.grant(
+                UUID.fromString(user),
+                "GOOD_START",
+                LocalDateTime.now(clock.withZone(ZoneOffset.UTC)));
         put("/api/v1/users/me/equipped-title", user, "{\"code\":\"GOOD_START\"}")
-                .andExpect(status().isOk()).andExpect(jsonPath("$.equippedTitle").value("GOOD_START"));
+                .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.equippedTitle").value("GOOD_START"));
         api.perform(get("/api/v1/users/me/achievements").header("X-Guest-UUID", user))
                 .andExpect(jsonPath("$.equipped").value("GOOD_START"))
                 .andExpect(jsonPath("$.items[0].code").value("GOOD_START"));
@@ -385,20 +440,23 @@ class LearningFlowTests {
     void coreListsAchievementsButHidesSecretConditions() throws Exception {
         api.perform(get("/api/v1/content/core").header("X-Guest-UUID", newUser()))
                 .andExpect(jsonPath("$.achievements.length()").value(7))
-                .andExpect(jsonPath("$.achievements[?(@.code == 'FLAWLESS')].hidden").value(contains(true)))
-                .andExpect(jsonPath("$.achievements[?(@.code == 'FLAWLESS')].description").isEmpty())
-                .andExpect(jsonPath("$.achievements[?(@.code == 'GOOD_START')].description").isNotEmpty());
+                .andExpect(jsonPath("$.achievements[?(@.code == 'FLAWLESS')].hidden")
+                        .value(contains(true)))
+                .andExpect(jsonPath("$.achievements[?(@.code == 'FLAWLESS')].description")
+                        .isEmpty())
+                .andExpect(jsonPath("$.achievements[?(@.code == 'GOOD_START')].description")
+                        .isNotEmpty());
     }
 
     @Test
     void tutorialCompletionGrantsNewResident() throws Exception {
         String user = newUser();
-        api.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
-                        .post("/api/v1/users/me/tutorial/complete").header("X-Guest-UUID", user))
+        api.perform(MockMvcRequestBuilders.post("/api/v1/users/me/tutorial/complete")
+                        .header("X-Guest-UUID", user))
                 .andExpect(status().isConflict()); // TC-TUT-07: còn ở INTRO
         setStep(UUID.fromString(user), TutorialStep.TOUR);
-        api.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
-                        .post("/api/v1/users/me/tutorial/complete").header("X-Guest-UUID", user))
+        api.perform(MockMvcRequestBuilders.post("/api/v1/users/me/tutorial/complete")
+                        .header("X-Guest-UUID", user))
                 .andExpect(status().isOk());
         api.perform(get("/api/v1/users/me/achievements").header("X-Guest-UUID", user))
                 .andExpect(jsonPath("$.items[*].code", hasItem("NEW_RESIDENT")));
@@ -413,11 +471,16 @@ class LearningFlowTests {
     private List<String> placementWithCorrectWords(int correctWords) throws Exception {
         String user = newUser();
         setStep(UUID.fromString(user), TutorialStep.PLACEMENT);
-        JsonNode s = json.readTree(post("/api/v1/tutorial/placement", user, "").andReturn().getResponse().getContentAsString());
+        JsonNode s = json.readTree(post(
+                "/api/v1/tutorial/placement",
+                user,
+                "").andReturn().getResponse().getContentAsString());
         List<Long> order = new ArrayList<>();
         s.get("items").forEach(i -> {
             long v = i.get("vocabularyId").asLong();
-            if (!order.contains(v)) order.add(v);
+            if (!order.contains(v)) {
+                order.add(v);
+            }
         });
         Set<Long> good = new HashSet<>(order.subList(0, correctWords));
         String id = s.get("sessionId").asString();
@@ -431,7 +494,10 @@ class LearningFlowTests {
     private List<String> placementWithCorrectItems(int correctItems) throws Exception {
         String user = newUser();
         setStep(UUID.fromString(user), TutorialStep.PLACEMENT);
-        JsonNode s = json.readTree(post("/api/v1/tutorial/placement", user, "").andReturn().getResponse().getContentAsString());
+        JsonNode s = json.readTree(post(
+                "/api/v1/tutorial/placement",
+                user,
+                "").andReturn().getResponse().getContentAsString());
         String id = s.get("sessionId").asString();
         answerItems(id, user, s, correctItems, 30);
         return achievementsOf(complete(id, user));
@@ -445,7 +511,8 @@ class LearningFlowTests {
     }
 
     /** Trả lời {@code count} câu đầu: {@code correct} câu đầu đúng, còn lại sai. */
-    private void answerItems(String id, String user, JsonNode session, int correct, int count) throws Exception {
+    private void answerItems(
+            String id, String user, JsonNode session, int correct, int count) throws Exception {
         for (int i = 0; i < count; i++) {
             JsonNode item = session.get("items").get(i);
             answer(id, user, item.get("itemNo").asInt(), i < correct ? answerOf(item) : "sai")
@@ -454,12 +521,14 @@ class LearningFlowTests {
     }
 
     private String answerOf(JsonNode item) {
-        return questions.findById(item.get("question").get("id").asLong()).orElseThrow().getAnswer();
+        return questions.findById(item.get("question").get("id").asLong()).orElseThrow()
+                .getAnswer();
     }
 
     private int itemNoOf(JsonNode session, long vocabularyId, String skill) {
         for (JsonNode item : session.get("items")) {
-            if (item.get("vocabularyId").asLong() == vocabularyId && skill.equals(item.get("question").get("skill").asString())) {
+            if (item.get("vocabularyId").asLong() == vocabularyId
+                    && skill.equals(item.get("question").get("skill").asString())) {
                 return item.get("itemNo").asInt();
             }
         }
@@ -469,7 +538,8 @@ class LearningFlowTests {
     private void collectWords(UUID user, int count) {
         LocalDateTime now = LocalDateTime.now(clock.withZone(ZoneOffset.UTC));
         vocabularies.findAll().stream().filter(v -> v.getLevel() == 1).limit(count).forEach(v -> {
-            UserVocabProgress p = progress.findByUserIdAndVocabularyId(user, v.getId()).orElseGet(UserVocabProgress::new);
+            UserVocabProgress p = progress.findByUserIdAndVocabularyId(
+                    user, v.getId()).orElseGet(UserVocabProgress::new);
             p.setUserId(user);
             p.setVocabularyId(v.getId());
             p.setMasteryScore(Math.max(1, Optional.ofNullable(p.getMasteryScore()).orElse(0)));
@@ -487,17 +557,20 @@ class LearningFlowTests {
 
     private String newUser() throws Exception {
         String id = UUID.randomUUID().toString();
-        api.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
-                .post("/api/v1/users/onboard").header("X-Guest-UUID", id)).andExpect(status().isOk());
+        api.perform(MockMvcRequestBuilders
+                .post("/api/v1/users/onboard").header(
+                        "X-Guest-UUID", id)).andExpect(status().isOk());
         return id;
     }
 
     private JsonNode start(String user) throws Exception {
-        return json.readTree(post("/api/v1/learning/sessions", user, "{\"buildingCode\":\"HOUSING\"}")
+        return json.readTree(post(
+                "/api/v1/learning/sessions", user, "{\"buildingCode\":\"HOUSING\"}")
                 .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString());
     }
 
-    private ResultActions answer(String id, String user, int itemNo, String answer) throws Exception {
+    private ResultActions answer(
+            String id, String user, int itemNo, String answer) throws Exception {
         return post("/api/v1/learning/sessions/" + id + "/items/" + itemNo + "/answer", user,
                 json.writeValueAsString(Map.of("answer", answer)));
     }
@@ -507,7 +580,9 @@ class LearningFlowTests {
     }
 
     private ResultActions post(String url, String user, String body) throws Exception {
-        var req = org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(url).header("X-Guest-UUID", user);
+        var req = MockMvcRequestBuilders.post(url)
+                .header(
+                "X-Guest-UUID", user);
         if (!body.isEmpty()) {
             req = req.contentType(MediaType.APPLICATION_JSON).content(body);
         }
@@ -515,11 +590,16 @@ class LearningFlowTests {
     }
 
     private ResultActions put(String url, String user, String body) throws Exception {
-        return api.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put(url)
-                .header("X-Guest-UUID", user).contentType(MediaType.APPLICATION_JSON).content(body));
+        return api.perform(MockMvcRequestBuilders.put(url)
+                .header("X-Guest-UUID", user)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body));
     }
 
-    /** Thế giới nhỏ: HOUSING (30 từ Level 1, mỗi từ 3 câu tier 1–3) + PARK (chưa có nội dung) + 7 danh hiệu. */
+    /**
+     * Thế giới nhỏ: HOUSING (30 từ Level 1, mỗi từ 3 câu tier 1–3) + PARK (chưa có nội dung) + 7
+     * danh hiệu.
+     */
     private void seedWorld() {
         Theme house = theme("HOUSE");
         Theme daily = theme("DAILY_LIFE");
@@ -545,8 +625,20 @@ class LearningFlowTests {
             v.setLevel(1);
             v.setDifficultyRank(i % 5 == 0 ? "C" : "D");
             v = vocabularies.save(v);
-            question(v, 1, "READING", "MULT_CHOICE", v.getMeaning(), "{\"options\":[\"" + v.getMeaning() + "\",\"khác\"]}");
-            question(v, 2, "WRITING", "FILL_BLANK", v.getWord(), "{\"sentence\":\"___\",\"hint\":\"w _ d\"}");
+            question(
+                    v,
+                    1,
+                    "READING",
+                    "MULT_CHOICE",
+                    v.getMeaning(),
+                    "{\"options\":[\"" + v.getMeaning() + "\",\"khác\"]}");
+            question(
+                    v,
+                    2,
+                    "WRITING",
+                    "FILL_BLANK",
+                    v.getWord(),
+                    "{\"sentence\":\"___\",\"hint\":\"w _ d\"}");
             question(v, 3, "WRITING", "FILL_BLANK", v.getWord(), "{\"sentence\":\"a ___ here\"}");
         }
 
@@ -558,9 +650,24 @@ class LearningFlowTests {
         packs.save(core);
 
         String[][] catalog = {
-                {"NEW_RESIDENT", "EASY", "TUTORIAL_DONE", "0"}, {"GOOD_START", "EASY", "PLACEMENT_WORDS_CORRECT", "15"},
-                {"COLLECTOR", "EASY", "LEVEL_COLLECTED", "0"}, {"TOP_ENTRANT", "HARD", "PLACEMENT_TOP_PERCENT", "90"},
-                {"DILIGENT", "HARD", "STREAK_DAYS", "3"}, {"FLAWLESS", "HIDDEN", "PLACEMENT_PERFECT", "30"},
+                {
+                    "NEW_RESIDENT",
+                    "EASY",
+                    "TUTORIAL_DONE",
+                    "0"
+                }, {"GOOD_START", "EASY", "PLACEMENT_WORDS_CORRECT", "15"},
+                {
+                    "COLLECTOR",
+                    "EASY",
+                    "LEVEL_COLLECTED",
+                    "0"
+                }, {"TOP_ENTRANT", "HARD", "PLACEMENT_TOP_PERCENT", "90"},
+                {
+                    "DILIGENT",
+                    "HARD",
+                    "STREAK_DAYS",
+                    "3"
+                }, {"FLAWLESS", "HIDDEN", "PLACEMENT_PERFECT", "30"},
                 {"COMBO10", "HIDDEN", "ANSWER_STREAK", "10"}};
         for (int i = 0; i < catalog.length; i++) {
             Achievement a = new Achievement();
@@ -597,7 +704,8 @@ class LearningFlowTests {
         buildingThemes.save(bt);
     }
 
-    private void question(Vocabulary v, int tier, String skill, String type, String answer, String metadata) {
+    private void question(
+            Vocabulary v, int tier, String skill, String type, String answer, String metadata) {
         Question q = new Question();
         q.setContentType("VOCABULARY");
         q.setSkill(skill);

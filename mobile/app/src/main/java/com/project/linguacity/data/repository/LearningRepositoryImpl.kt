@@ -42,11 +42,20 @@ class LearningRepositoryImpl @Inject constructor(
     override suspend fun startLesson(buildingCode: String): LessonSession =
         call { api.start(guest(), StartSessionRequestDto(buildingCode)).toDomain() }
 
-    override suspend fun startPlacement(): LessonSession = call { api.placement(guest()).toDomain() }
+    override suspend fun startPlacement(): LessonSession = call {
+        api.placement(guest()).toDomain()
+    }
 
-    override suspend fun session(id: String): LessonSession = call { api.get(guest(), id).toDomain() }
+    override suspend fun session(id: String): LessonSession = call { api.get(
+        guest(),
+        id
+    ).toDomain() }
 
-    override suspend fun answer(sessionId: String, itemNo: Int, answer: String): AnswerFeedback = call {
+    override suspend fun answer(
+        sessionId: String,
+        itemNo: Int,
+        answer: String
+    ): AnswerFeedback = call {
         val r = api.answer(guest(), sessionId, itemNo, AnswerRequestDto(answer))
         val before = playerDao.progress(r.vocabularyId)
         playerDao.upsertProgress(
@@ -91,7 +100,14 @@ class LearningRepositoryImpl @Inject constructor(
 
     override fun observeProgress(): Flow<Map<Long, VocabProgress>> =
         playerDao.observeProgress().map { rows ->
-            rows.associate { it.vocabularyId to VocabProgress(it.vocabularyId, it.masteryScore, it.maxMastery, it.collected) }
+            rows.associate {
+                it.vocabularyId to VocabProgress(
+                    it.vocabularyId,
+                    it.masteryScore,
+                    it.maxMastery,
+                    it.collected
+                )
+            }
         }
 
     private suspend fun guest() = guestIdStore.getOrCreateGuestUuid()

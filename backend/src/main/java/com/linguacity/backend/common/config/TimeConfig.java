@@ -6,7 +6,8 @@ import org.springframework.context.annotation.Configuration;
 import java.time.Clock;
 
 /**
- * Một {@link Clock} dùng chung để mọi phép tính thời gian theo giờ server (FR-SYS-04) có thể giả lập trong test.
+ * Một {@link Clock} dùng chung để mọi phép tính thời gian theo giờ server (FR-SYS-04) có thể giả
+ * lập trong test.
  */
 @Configuration
 public class TimeConfig {

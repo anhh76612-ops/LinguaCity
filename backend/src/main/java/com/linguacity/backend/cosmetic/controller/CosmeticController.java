@@ -25,17 +25,20 @@ public class CosmeticController {
     }
 
     @PostMapping("/cosmetics/{code}/unlock")
-    public CosmeticsDto unlock(@RequestHeader("X-Guest-UUID") UUID guest, @PathVariable String code) {
+    public CosmeticsDto unlock(
+            @RequestHeader("X-Guest-UUID") UUID guest, @PathVariable String code) {
         return cosmetics.unlock(guest, code);
     }
 
     @PutMapping("/users/me/avatar")
-    public CosmeticsDto avatar(@RequestHeader("X-Guest-UUID") UUID guest, @RequestBody AvatarConfig body) {
+    public CosmeticsDto avatar(
+            @RequestHeader("X-Guest-UUID") UUID guest, @RequestBody AvatarConfig body) {
         return cosmetics.setAvatar(guest, body);
     }
 
     @PutMapping("/users/me/house-style")
-    public CosmeticsDto houseStyle(@RequestHeader("X-Guest-UUID") UUID guest, @RequestBody HouseStyleConfig body) {
+    public CosmeticsDto houseStyle(
+            @RequestHeader("X-Guest-UUID") UUID guest, @RequestBody HouseStyleConfig body) {
         return cosmetics.setHouseStyle(guest, body);
     }
 }

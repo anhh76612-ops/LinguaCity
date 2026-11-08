@@ -6,7 +6,8 @@ import com.project.linguacity.domain.model.city.CityEvent
 import com.project.linguacity.domain.model.city.CityState
 
 /**
- * Hợp đồng (B) — dữ liệu ĐỂ VẼ, gửi cho renderer (bản đồ web hoặc Compose). Xem system-design §9.2, ADR-011.
+ * Hợp đồng (B) — dữ liệu ĐỂ VẼ, gửi cho renderer (bản đồ web hoặc Compose). Xem system-design §9.2,
+ * ADR-011.
  * Không có giờ, không có tài nguyên: chỉ level, đang xây hay không và tiến độ.
  */
 data class CityRenderState(

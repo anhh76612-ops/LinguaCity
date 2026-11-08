@@ -5,7 +5,8 @@ import org.springframework.http.HttpStatus;
 import java.util.Map;
 
 /**
- * Lỗi nghiệp vụ có sẵn mã HTTP và mã lỗi máy đọc được. Lỗi mới dùng lớp này thay vì thêm handler riêng
+ * Lỗi nghiệp vụ có sẵn mã HTTP và mã lỗi máy đọc được. Lỗi mới dùng lớp này thay vì thêm handler
+ * riêng
  * vào {@link ApiExceptionHandler}.
  */
 public class ApiException extends RuntimeException {
@@ -18,7 +19,8 @@ public class ApiException extends RuntimeException {
         this(status, code, message, null);
     }
 
-    public ApiException(HttpStatus status, String code, String message, Map<String, Object> details) {
+    public ApiException(
+            HttpStatus status, String code, String message, Map<String, Object> details) {
         super(message);
         this.status = status;
         this.code = code;

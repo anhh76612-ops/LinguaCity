@@ -4,7 +4,9 @@ import * as THREE from 'three';
 let texture: THREE.CanvasTexture | null = null;
 
 function markerTexture(): THREE.CanvasTexture {
-    if (texture) return texture;
+    if (texture) {
+        return texture;
+    }
     const s = 128, cv = document.createElement('canvas');
     cv.width = cv.height = s;
     const ctx = cv.getContext('2d')!;
@@ -32,7 +34,9 @@ function markerTexture(): THREE.CanvasTexture {
 
 export function makeMarker(): THREE.Sprite {
     // depthTest: false → luôn vẽ đè lên trên, không bị nhà che: người chơi luôn thấy để chạm vào
-    const m = new THREE.Sprite(new THREE.SpriteMaterial({ map: markerTexture(), depthTest: false, transparent: true }));
+    const m = new THREE.Sprite(new THREE.SpriteMaterial({
+        map: markerTexture(), depthTest: false, transparent: true
+    }));
     m.scale.setScalar(0.75);
     m.renderOrder = 10;
     return m;

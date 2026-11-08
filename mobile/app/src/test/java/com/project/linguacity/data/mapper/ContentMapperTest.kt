@@ -46,14 +46,18 @@ class ContentMapperTest {
                              "metadata":{"options":["tiền thuê nhà","tiền cọc"]}}],
                "questionVocabularies":[{"questionId":1,"vocabularyId":1,"relationType":"TARGET"}],
                "exams":[{"id":1,"code":"EXAM_HOUSING_LV2","buildingCode":"HOUSING","targetLevel":2,"blueprintCode":"BLUEPRINT_HOUSING_LV2",
-                         "questionCount":10,"requirement":{"requiredCardCount":30,"requiredKnowledge":200,"requiredBlueprintShards":0},
+                         "questionCount":10,
+                         "requirement":{"requiredCardCount":30,"requiredKnowledge":200,"requiredBlueprintShards":0},
                          "questionIds":[3,12]}]}"""
         )
         val rows = pack.toRows()
 
         assertTrue(rows.vocabularies.all { it.packCode == "HOUSING:1" })
         assertEquals(listOf("My rent is due."), rows.vocabularies.single().examples)
-        assertEquals("""{"options":["tiền thuê nhà","tiền cọc"]}""", rows.questions.single().metadata)
+        assertEquals(
+            """{"options":["tiền thuê nhà","tiền cọc"]}""",
+            rows.questions.single().metadata
+        )
         assertEquals(30, rows.examRequirements.single().requiredCardCount)
         assertEquals(listOf(3L, 12L), rows.examQuestions.map { it.questionId })
         assertEquals("rent", rows.vocabularies.single().toDomain().word)
@@ -69,7 +73,8 @@ class ContentMapperTest {
 
     @Test
     fun `a question in a pack never has answer fields`() {
-        // DTO không có trường answer/explanation: nếu server lỡ gửi, ignoreUnknownKeys bỏ qua và Room không lưu.
+        // DTO không có trường answer/explanation: nếu server lỡ gửi, ignoreUnknownKeys bỏ qua và
+        // Room không lưu.
         val pack = json.decodeFromString(
             PackDto.serializer(),
             """{"code":"HOUSING:1","version":1,"questions":[{"id":9,"contentType":"VOCABULARY","skill":"WRITING",

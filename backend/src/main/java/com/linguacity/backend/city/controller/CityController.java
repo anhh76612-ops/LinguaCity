@@ -23,7 +23,8 @@ public class CityController {
     }
 
     @PostMapping("/buildings/{code}/build")
-    public BuildResultDto build(@RequestHeader("X-Guest-UUID") UUID guest, @PathVariable String code) {
+    public BuildResultDto build(
+            @RequestHeader("X-Guest-UUID") UUID guest, @PathVariable String code) {
         return city.build(guest, code);
     }
 }

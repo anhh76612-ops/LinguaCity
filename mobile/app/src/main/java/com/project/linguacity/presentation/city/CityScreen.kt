@@ -55,7 +55,8 @@ import com.project.linguacity.presentation.tutorial.spotlightTarget
 import androidx.compose.runtime.CompositionLocalProvider
 
 /**
- * SCR-04 City View. Bản đồ chiếm toàn màn hình; UI Compose (HUD, menu nổi, thẻ công trình, bảng trong nhà, snackbar)
+ * SCR-04 City View. Bản đồ chiếm toàn màn hình; UI Compose (HUD, menu nổi, thẻ công trình, bảng
+ * trong nhà, snackbar)
  * nằm đè lên trên. Muốn dùng bản dự phòng: truyền renderer = ComposeCityRenderer.
  */
 @OptIn(ExperimentalLayoutApi::class)
@@ -78,7 +79,8 @@ fun CityScreen(
     val snackbar = remember { SnackbarHostState() }
     val spotlight = rememberSpotlightRegistry()
 
-    // Tutorial thư ký (ADR-014): điều hướng theo nút của Mai; tự mở thẻ House khi Mai cần chỉ vào nút Học/Xây.
+    // Tutorial thư ký (ADR-014): điều hướng theo nút của Mai; tự mở thẻ House khi Mai cần chỉ vào
+    // nút Học/Xây.
     LaunchedEffect(Unit) {
         tutorial.nav.collect { nav ->
             when (nav) {
@@ -93,14 +95,20 @@ fun CityScreen(
         }
     }
     LaunchedEffect(guide.message) {
-        guide.message?.let { snackbar.showSnackbar(it); tutorial.messageShown() }
+        guide.message?.let { text ->
+            snackbar.showSnackbar(text)
+            tutorial.messageShown()
+        }
     }
 
-    // Mỗi lần màn City quay lại foreground: tải lại thành phố + kiểm tra gói nội dung mới (ADR-012, kiểu pull).
+    // Mỗi lần màn City quay lại foreground: tải lại thành phố + kiểm tra gói nội dung mới (ADR-012,
+    // kiểu pull).
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_START) viewModel.onIntent(CityIntent.AppForeground)
+            if (event == Lifecycle.Event.ON_START) {
+                viewModel.onIntent(CityIntent.AppForeground)
+            }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
@@ -123,12 +131,17 @@ fun CityScreen(
             modifier = Modifier.fillMaxSize()
         )
 
-        // SCR-15: bản đồ cần vài giây cho khung hình đầu → loading "Mai đang dựng thành phố" thay vòng xoay
+        // SCR-15: bản đồ cần vài giây cho khung hình đầu → loading "Mai đang dựng thành phố" thay
+        // vòng xoay
         if (!state.mapReady) {
-            DestinationLoading(LoadingKind.CITY, Modifier.background(MaterialTheme.colorScheme.background))
+            DestinationLoading(
+                LoadingKind.CITY,
+                Modifier.background(MaterialTheme.colorScheme.background)
+            )
         }
 
-        // M7: phím Back khi đang ở trong công trình = "Ra ngoài" (chưa vào xong thì nuốt phím, chờ hoạt cảnh)
+        // M7: phím Back khi đang ở trong công trình = "Ra ngoài" (chưa vào xong thì nuốt phím, chờ
+        // hoạt cảnh)
         BackHandler(enabled = state.focus != null || state.inside != null) {
             viewModel.onIntent(CityIntent.ExitBuilding)
         }
@@ -143,40 +156,50 @@ fun CityScreen(
                 modifier = Modifier.spotlightTarget(SpotKeys.KP))
             AssistChip(onClick = onOpenProfile, label = { Text("⏳ ${p?.hourglassCount ?: 0}") })
             AssistChip(onClick = onOpenProfile, label = { Text("🧩 ${p?.blueprintShards ?: 0}") })
-            state.equippedTitleName?.let { AssistChip(onClick = onOpenAchievements, label = { Text("🏅 $it") }) }
+            state.equippedTitleName?.let {
+                AssistChip(onClick = onOpenAchievements, label = { Text("🏅 $it") })
+            }
         }
 
         Column(
-            modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().navigationBarsPadding().padding(16.dp),
+            modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().navigationBarsPadding()
+                .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // SCR-22 Menu nổi: Thẻ từ / Danh hiệu / Tuỳ biến (M8) / Hồ sơ / Cài đặt. Ẩn khi đang vào/ở trong nhà (M7).
-            if (state.focus == null) FloatingMenu(
-                entries = listOf(
-                    MenuEntry("vocab", "📖", "Thẻ từ") {
-                        val house = state.city.building(BuildingCode.HOUSING)
-                        onOpenVocabulary(BuildingCode.HOUSING, maxOf(1, house?.level ?: 1))
-                    },
-                    MenuEntry("titles", "🏅", "Danh hiệu", onOpenAchievements),
-                    MenuEntry("customize", "🎨", "Tuỳ biến") { onOpenCustomize(false) },
-                    MenuEntry("profile", "👤", "Hồ sơ", onOpenProfile),
-                    MenuEntry("settings", "⚙️", "Cài đặt", onOpenSettings)
-                ),
-                modifier = Modifier.align(Alignment.End).size(width = 220.dp, height = 190.dp),
-                fabModifier = Modifier.spotlightTarget(SpotKeys.MENU)
-            )
+            // SCR-22 Menu nổi: Thẻ từ / Danh hiệu / Tuỳ biến (M8) / Hồ sơ / Cài đặt. Ẩn khi đang
+            // vào/ở trong nhà (M7).
+            if (state.focus == null) {
+                FloatingMenu(
+                    entries = listOf(
+                        MenuEntry("vocab", "📖", "Thẻ từ") {
+                            val house = state.city.building(BuildingCode.HOUSING)
+                            onOpenVocabulary(BuildingCode.HOUSING, maxOf(1, house?.level ?: 1))
+                        },
+                        MenuEntry("titles", "🏅", "Danh hiệu", onOpenAchievements),
+                        MenuEntry("customize", "🎨", "Tuỳ biến") { onOpenCustomize(false) },
+                        MenuEntry("profile", "👤", "Hồ sơ", onOpenProfile),
+                        MenuEntry("settings", "⚙️", "Cài đặt", onOpenSettings)
+                    ),
+                    modifier = Modifier.align(Alignment.End).size(width = 220.dp, height = 190.dp),
+                    fabModifier = Modifier.spotlightTarget(SpotKeys.MENU)
+                )
+            }
             SnackbarHost(snackbar)
             // M7: đang ở trong nhà → bảng nhiệm vụ trong nhà thay cho thẻ công trình
             state.inside?.let { code ->
-                if (state.focus == code) InteriorPanel(
-                    code = code,
-                    onLearn = { onStartLesson(code) },
-                    onVocabulary = { onOpenVocabulary(code, maxOf(1, render.building(code)?.level ?: 1)) },
-                    onDecorate = { onOpenCustomize(true) },
-                    onExit = { viewModel.onIntent(CityIntent.ExitBuilding) }
-                )
+                if (state.focus == code) {
+                    val vocabularyLevel = maxOf(1, render.building(code)?.level ?: 1)
+                    InteriorPanel(
+                        code = code,
+                        onLearn = { onStartLesson(code) },
+                        onVocabulary = { onOpenVocabulary(code, vocabularyLevel) },
+                        onDecorate = { onOpenCustomize(true) },
+                        onExit = { viewModel.onIntent(CityIntent.ExitBuilding) }
+                    )
+                }
             }
-            state.selected?.takeIf { state.focus == null }?.let { code -> render.building(code) }?.let { building ->
+            state.selected?.takeIf { state.focus == null }?.let { code -> render.building(code) }
+                ?.let { building ->
                 val learnLevel = minOf(3, building.level + 1)
                 BuildingCard(
                     building = building,
@@ -217,46 +240,71 @@ private fun BuildingCard(
                 style = MaterialTheme.typography.titleMedium
             )
             when {
-                building.upgrading && building.progress >= 1f -> Text("Sắp xong — đang chờ máy chủ xác nhận…")
+                building.upgrading
+                    && building.progress >= 1f -> Text("Sắp xong — đang chờ máy chủ xác nhận…")
                 building.upgrading -> {
                     Text("Đang xây… ${(building.progress * 100).toInt()}%")
-                    LinearProgressIndicator(progress = { building.progress }, modifier = Modifier.fillMaxWidth())
+                    LinearProgressIndicator(
+                        progress = { building.progress },
+                        modifier = Modifier.fillMaxWidth()
+                    )
                 }
                 building.isMaxLevel -> Text("Đã đạt level tối đa")
                 !building.isBuilt -> Text("Lô đất trống: học từ của công trình này để xây")
             }
             if (collected.second > 0 && !building.isMaxLevel) {
-                Text("Bộ sưu tầm Level ${minOf(3, building.level + 1)}: ${collected.first}/${collected.second} thẻ",
-                    style = MaterialTheme.typography.bodySmall)
-            }
-            // Điều kiện Level kế tiếp, đọc từ Room (building_levels, gói CORE).
-            if (next != null && !building.upgrading) {
+                val nextLevel = minOf(3, building.level + 1)
                 Text(
-                    "Lên Lv ${next.level}: ${next.knowledgeCost} KP · ${formatDuration(next.constructionTimeSeconds)}" +
-                        if (next.requiredCollected > 0) " · cần ${next.requiredCollected} từ" else "",
+                    "Bộ sưu tầm Level $nextLevel: ${collected.first}/${collected.second} thẻ",
                     style = MaterialTheme.typography.bodySmall
                 )
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
+            // Điều kiện Level kế tiếp, đọc từ Room (building_levels, gói CORE).
+            if (next != null && !building.upgrading) {
+                val wordsNeeded = if (next.requiredCollected > 0) {
+                    " · cần ${next.requiredCollected} từ"
+                } else {
+                    ""
+                }
+                Text(
+                    "Lên Lv ${next.level}: ${next.knowledgeCost} KP · " +
+                        formatDuration(next.constructionTimeSeconds) + wordsNeeded,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 // M7: Housing đã xây thì vào được bên trong (nội thất 3D)
                 if (building.code == BuildingCode.HOUSING && building.isBuilt) {
                     Button(onClick = onEnter) { Text("Vào nhà") }
                 }
-                Button(onClick = onLearn, enabled = !building.isMaxLevel, modifier = Modifier.spotlightTarget(SpotKeys.LEARN)) {
+                Button(
+                    onClick = onLearn,
+                    enabled = !building.isMaxLevel,
+                    modifier = Modifier.spotlightTarget(SpotKeys.LEARN)
+                ) {
                     Text("Học")
                 }
                 if (!building.isBuilt) {
                     FilledTonalButton(onClick = onBuild, enabled = !building.upgrading && !busy,
                         modifier = Modifier.spotlightTarget(SpotKeys.BUILD)) { Text("Xây") }
                 }
-                TextButton(onClick = onVocabulary, modifier = Modifier.spotlightTarget(SpotKeys.VOCAB)) { Text("Thẻ từ") }
+                TextButton(
+                    onClick = onVocabulary,
+                    modifier = Modifier.spotlightTarget(SpotKeys.VOCAB)
+                ) { Text("Thẻ từ") }
                 TextButton(onClick = onClose) { Text("Đóng") }
             }
         }
     }
 }
 
-/** M7: bảng nhiệm vụ khi đang ở trong nhà (UC_15 bước 2). Nút Trang trí (M8) mở tab Nhà của màn Tuỳ biến. */
+/**
+ * M7: bảng nhiệm vụ khi đang ở trong nhà (UC_15 bước 2). Nút Trang trí (M8) mở tab Nhà của màn Tuỳ
+ * biến.
+ */
 @Composable
 private fun InteriorPanel(
     code: BuildingCode,
@@ -269,7 +317,10 @@ private fun InteriorPanel(
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text("${code.icon} Nhà của bạn", style = MaterialTheme.typography.titleMedium)
             Text("Chạm sàn để đi lại trong nhà.", style = MaterialTheme.typography.bodySmall)
-            Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Button(onClick = onLearn) { Text("Học") }
                 TextButton(onClick = onVocabulary) { Text("Thẻ từ") }
                 TextButton(onClick = onDecorate) { Text("Trang trí") }

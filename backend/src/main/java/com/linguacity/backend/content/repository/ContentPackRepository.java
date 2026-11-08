@@ -12,5 +12,6 @@ public interface ContentPackRepository extends JpaRepository<ContentPack, Long> 
 
     Optional<ContentPack> findByScopeAndCode(String scope, String code);
 
-    Optional<ContentPack> findByScopeAndBuildingIdAndLevel(String scope, Long buildingId, Integer level);
+    Optional<ContentPack> findByScopeAndBuildingIdAndLevel(
+            String scope, Long buildingId, Integer level);
 }

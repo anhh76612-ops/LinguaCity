@@ -62,7 +62,8 @@ public class CosmeticService {
     @Transactional(readOnly = true)
     public List<CosmeticItemDto> catalog() {
         return items.findAllByOrderByCategoryAscSortOrderAsc().stream()
-                .map(i -> new CosmeticItemDto(i.getCode(), i.getCategory(), i.getName(), i.getUnlockType(),
+                .map(i -> new CosmeticItemDto(i.getCode(), i.getCategory(), i.getName(),
+                        i.getUnlockType(),
                         i.getPriceKp(), i.getAchievementCode(), i.getAssetKey(), i.getSortOrder()))
                 .toList();
     }
@@ -77,7 +78,8 @@ public class CosmeticService {
     public CosmeticsDto unlock(UUID userId, String code) {
         UserProfile p = profile(userId);
         CosmeticItem item = items.findById(code)
-                .orElseThrow(() -> ApiException.notFound("COSMETIC_NOT_FOUND", "Unknown cosmetic: " + code));
+                .orElseThrow(() -> ApiException.notFound(
+                        "COSMETIC_NOT_FOUND", "Unknown cosmetic: " + code));
         if (!CosmeticItem.KP.equals(item.getUnlockType())) {
             throw ApiException.conflict("NOT_PURCHASABLE", "Cosmetic is not sold for KP: " + code);
         }
@@ -99,11 +101,16 @@ public class CosmeticService {
         return toDto(users.save(p));
     }
 
-    /** BR-COS-03: mỗi mã phải đúng nhóm và đã mở. Sai → 400 INVALID_COSMETIC (details: field, code, reason). */
+    /**
+     * BR-COS-03: mỗi mã phải đúng nhóm và đã mở. Sai → 400 INVALID_COSMETIC (details: field, code,
+     * reason).
+     */
     @Transactional
     public CosmeticsDto setAvatar(UUID userId, AvatarConfig body) {
         UserProfile p = profile(userId);
-        if (body == null) throw invalidBody();
+        if (body == null) {
+            throw invalidBody();
+        }
         Set<String> unlocked = unlockedCodes(userId);
         Map<String, CosmeticItem> byCode = byCode();
         check(byCode, unlocked, "skin", body.skin(), "SKIN");
@@ -119,7 +126,9 @@ public class CosmeticService {
     @Transactional
     public CosmeticsDto setHouseStyle(UUID userId, HouseStyleConfig body) {
         UserProfile p = profile(userId);
-        if (body == null) throw invalidBody();
+        if (body == null) {
+            throw invalidBody();
+        }
         Set<String> unlocked = unlockedCodes(userId);
         Map<String, CosmeticItem> byCode = byCode();
         check(byCode, unlocked, "wall", body.wall(), "WALL");
@@ -152,23 +161,40 @@ public class CosmeticService {
                 case CosmeticItem.ACHIEVEMENT -> earned.contains(i.getAchievementCode());
                 default -> false;
             };
-            if (ok) result.add(i.getCode());
+            if (ok) {
+                result.add(i.getCode());
+            }
         }
         return result;
     }
 
-    private void check(Map<String, CosmeticItem> byCode, Set<String> unlocked, String field, String code, String category) {
+    private void check(
+            Map<String,
+            CosmeticItem> byCode,
+            Set<String> unlocked,
+            String field,
+            String code,
+            String category) {
         CosmeticItem item = code == null ? null : byCode.get(code);
         String reason;
-        if (item == null) reason = "UNKNOWN";
-        else if (!category.equals(item.getCategory())) reason = "WRONG_CATEGORY";
-        else if (!unlocked.contains(code)) reason = "LOCKED";
-        else return;
+        if (item == null) {
+            reason = "UNKNOWN";
+        } else if (!category.equals(item.getCategory())) {
+            reason = "WRONG_CATEGORY";
+        } else if (!unlocked.contains(code)) {
+            reason = "LOCKED";
+        } else {
+            return;
+        }
         Map<String, Object> details = new LinkedHashMap<>();
         details.put("field", field);
         details.put("code", code);
         details.put("reason", reason);
-        throw new ApiException(HttpStatus.BAD_REQUEST, "INVALID_COSMETIC", "Invalid cosmetic for " + field, details);
+        throw new ApiException(
+                HttpStatus.BAD_REQUEST,
+                "INVALID_COSMETIC",
+                "Invalid cosmetic for " + field,
+                details);
     }
 
     private Map<String, CosmeticItem> byCode() {
@@ -176,7 +202,9 @@ public class CosmeticService {
     }
 
     private <T> T read(String raw, Class<T> type, T fallback) {
-        if (raw == null || raw.isBlank()) return fallback;
+        if (raw == null || raw.isBlank()) {
+            return fallback;
+        }
         try {
             return json.readValue(raw, type);
         } catch (RuntimeException e) {
@@ -185,7 +213,11 @@ public class CosmeticService {
     }
 
     private CosmeticsDto toDto(UserProfile p) {
-        return new CosmeticsDto(List.copyOf(unlockedCodes(p.getId())), avatarOf(p), houseStyleOf(p), p.getKnowledgePoints());
+        return new CosmeticsDto(
+                List.copyOf(unlockedCodes(p.getId())),
+                avatarOf(p),
+                houseStyleOf(p),
+                p.getKnowledgePoints());
     }
 
     private UserProfile profile(UUID userId) {

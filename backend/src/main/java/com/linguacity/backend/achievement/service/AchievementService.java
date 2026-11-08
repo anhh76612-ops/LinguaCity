@@ -26,7 +26,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Xét và trao danh hiệu (BR-ACH-01..04, system-design §10.5). Danh hiệu chỉ trao một lần, không thu hồi.
+ * Xét và trao danh hiệu (BR-ACH-01..04, system-design §10.5). Danh hiệu chỉ trao một lần, không thu
+ * hồi.
  */
 @Service
 public class AchievementService {
@@ -70,11 +71,13 @@ public class AchievementService {
     }
 
     /**
-     * Xét sau khi một phiên vừa COMPLETED. {@code levelFullyCollected}: người chơi đã sưu tầm đủ mọi từ của
+     * Xét sau khi một phiên vừa COMPLETED. {@code levelFullyCollected}: người chơi đã sưu tầm đủ
+     * mọi từ của
      * (công trình, Level) của phiên chưa — tính sẵn ở LearningService.
      */
     @Transactional
-    public List<String> evaluateAfterSession(LearningSession session, List<LearningSessionItem> items,
+    public List<String> evaluateAfterSession(LearningSession session,
+            List<LearningSessionItem> items,
                                              boolean levelFullyCollected, LocalDateTime nowUtc) {
         UUID user = session.getUserId();
         List<String> granted = new ArrayList<>();
@@ -88,7 +91,8 @@ public class AchievementService {
             if (distinctCorrectWords > threshold.getOrDefault(GOOD_START, 15)) {
                 grantInto(granted, user, GOOD_START, nowUtc);
             }
-            if (session.getTotalCount() > 0 && session.getCorrectCount().equals(session.getTotalCount())) {
+            if (session.getTotalCount() > 0
+                    && session.getCorrectCount().equals(session.getTotalCount())) {
                 grantInto(granted, user, FLAWLESS, nowUtc);
             }
             if (isTopEntrant(session)) {
@@ -112,7 +116,8 @@ public class AchievementService {
      * chưa đủ mẫu thì dùng ngưỡng cố định (≥ fallback-correct câu đúng).
      */
     public boolean isTopEntrant(LearningSession session) {
-        List<Integer> others = sessions.correctCountsOfOthers(SessionType.PLACEMENT, SessionStatus.COMPLETED, session.getId());
+        List<Integer> others = sessions.correctCountsOfOthers(
+                SessionType.PLACEMENT, SessionStatus.COMPLETED, session.getId());
         int mine = session.getCorrectCount();
         if (others.size() < balance.getAchievementMinSamples()) {
             return mine >= balance.getAchievementFallbackCorrect();
@@ -126,7 +131,8 @@ public class AchievementService {
     public int streakDays(UUID userId, LocalDateTime nowUtc) {
         ZoneId zone = balance.zone();
         LocalDate today = Times.localDate(nowUtc, zone);
-        Set<LocalDate> days = sessions.completedAtSince(userId, SessionStatus.COMPLETED, nowUtc.minusDays(400)).stream()
+        Set<LocalDate> days = sessions.completedAtSince(
+                userId, SessionStatus.COMPLETED, nowUtc.minusDays(400)).stream()
                 .map(t -> Times.localDate(t, zone))
                 .collect(Collectors.toSet());
         LocalDate cursor = days.contains(today) ? today : today.minusDays(1);

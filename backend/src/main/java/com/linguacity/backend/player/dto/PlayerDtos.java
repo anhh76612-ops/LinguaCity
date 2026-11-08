@@ -16,9 +16,17 @@ public final class PlayerDtos {
     public record StatsDto(long collectedWords, int streakDays) {}
 
     /** GET /users/me (§10.4.3). */
-    public record PlayerDto(UUID userId, int knowledgePoints, int hourglassCount, int blueprintShards,
-                            TutorialStep tutorialStep, boolean tutorialCompleted, String equippedTitle,
-                            AvatarConfig avatar, HouseStyleConfig houseStyle, StatsDto stats) {}
+    public record PlayerDto(
+            UUID userId,
+            int knowledgePoints,
+            int hourglassCount,
+            int blueprintShards,
+            TutorialStep tutorialStep,
+            boolean tutorialCompleted,
+            String equippedTitle,
+            AvatarConfig avatar,
+            HouseStyleConfig houseStyle,
+            StatsDto stats) {}
 
     public record StepRequest(TutorialStep step) {}
 

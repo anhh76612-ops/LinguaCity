@@ -5,6 +5,7 @@ import com.project.linguacity.data.local.player.PlayerDao
 import com.project.linguacity.data.local.player.UserBuildingEntity
 import com.project.linguacity.data.local.preferences.GuestIdStore
 import com.project.linguacity.data.local.user.UserProfileDao
+import com.project.linguacity.data.local.user.UserProfileEntity
 import com.project.linguacity.data.mapper.toEntity
 import com.project.linguacity.data.remote.IsoTime
 import com.project.linguacity.data.remote.apiError
@@ -29,7 +30,8 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Thành phố thật (thay FakeCityRepository). Dữ liệu đi: server (GET /city) → Room (user_buildings) → StateFlow.
+ * Thành phố thật (thay FakeCityRepository). Dữ liệu đi: server (GET /city) → Room (user_buildings)
+ * → StateFlow.
  * Nhờ đọc từ Room, mở app offline vẫn thấy thành phố lần đồng bộ cuối (ADR-004).
  */
 @Singleton
@@ -86,8 +88,7 @@ class CityRepositoryImpl @Inject constructor(
         IsoTime.parseMillis(serverTime)?.let { offset.value = it - System.currentTimeMillis() }
     }
 
-    private suspend fun updateProfile(change: (com.project.linguacity.data.local.user.UserProfileEntity) ->
-    com.project.linguacity.data.local.user.UserProfileEntity) {
+    private suspend fun updateProfile(change: (UserProfileEntity) -> UserProfileEntity) {
         profiles.getById(guestIdStore.getOrCreateGuestUuid())?.let { profiles.upsert(change(it)) }
     }
 
@@ -95,11 +96,17 @@ class CityRepositoryImpl @Inject constructor(
         val byCode = rows.associateBy { it.buildingCode }
         return BuildingCode.entries.map { code ->
             val row = byCode[code.name]
-            if (row == null) BuildingState(code, level = 0)
+            if (row == null) {
+                BuildingState(code, level = 0)
+            }
             else BuildingState(
                 code = code,
                 level = row.currentLevel,
-                status = if (row.status == "UPGRADING") BuildingStatus.UPGRADING else BuildingStatus.IDLE,
+                status = if (row.status == "UPGRADING") {
+                    BuildingStatus.UPGRADING
+                } else {
+                    BuildingStatus.IDLE
+                },
                 startedAtMillis = row.startedAtMillis,
                 finishAtMillis = row.finishAtMillis
             )

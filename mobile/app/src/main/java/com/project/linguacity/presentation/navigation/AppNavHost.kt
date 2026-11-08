@@ -44,7 +44,10 @@ object HomeRoute
 @Serializable
 data class VocabularyRoute(val buildingCode: String, val level: Int)
 
-/** SCR-08/09 Bài học. `placement = true` là bài kiểm tra trình độ (ADR-014, M6). LessonViewModel đọc tham số theo tên. */
+/**
+ * SCR-08/09 Bài học. `placement = true` là bài kiểm tra trình độ (ADR-014, M6). LessonViewModel đọc
+ * tham số theo tên.
+ */
 @Serializable
 data class LessonRoute(val buildingCode: String, val placement: Boolean = false)
 
@@ -80,10 +83,14 @@ fun AppNavHost(
             NavHost(
                 navController = navController,
                 startDestination = OnboardingRoute,
-                enterTransition = { fadeIn(tween(duration)) + slideInHorizontally(tween(duration)) { it / 10 } },
+                enterTransition = {
+                    fadeIn(tween(duration)) + slideInHorizontally(tween(duration)) { it / 10 }
+                },
                 exitTransition = { fadeOut(tween(duration)) },
                 popEnterTransition = { fadeIn(tween(duration)) },
-                popExitTransition = { fadeOut(tween(duration)) + slideOutHorizontally(tween(duration)) { it / 10 } }
+                popExitTransition = {
+                    fadeOut(tween(duration)) + slideOutHorizontally(tween(duration)) { it / 10 }
+                }
             ) {
                 composable<OnboardingRoute> {
                     OnboardingScreen(
@@ -106,13 +113,20 @@ fun AppNavHost(
                     )
                 }
 
-                // Màn chính sau onboarding là City View (SCR-04); tutorial thư ký chạy ngay trên đó.
+                // Màn chính sau onboarding là City View (SCR-04); tutorial thư ký chạy ngay trên
+                // đó.
                 composable<HomeRoute> {
                     CityScreen(
-                        onOpenVocabulary = { code, level -> navController.navigate(VocabularyRoute(code.name, level)) },
+                        onOpenVocabulary = {
+                            code,
+                            level -> navController.navigate(VocabularyRoute(code.name, level))
+                        },
                         onStartLesson = { code -> navController.navigate(LessonRoute(code.name)) },
                         onOpenAchievements = { navController.navigate(AchievementsRoute) },
-                        onStartPlacement = { navController.navigate(LessonRoute("HOUSING", placement = true)) },
+                        onStartPlacement = { navController.navigate(LessonRoute(
+                            "HOUSING",
+                            placement = true
+                        )) },
                         onOpenProfile = { navController.navigate(ProfileRoute) },
                         onOpenSettings = { navController.navigate(SettingsRoute) },
                         onOpenCustomize = { house -> navController.navigate(CustomizeRoute(house)) }
@@ -150,7 +164,11 @@ fun AppNavHost(
                     CompositionLocalProvider(LocalNavAnimScope provides this) {
                         VocabularyListScreen(
                             onBack = { navController.popBackStack() },
-                            onOpenCard = { index -> navController.navigate(FlashcardRoute(route.buildingCode, route.level, index)) }
+                            onOpenCard = { index -> navController.navigate(FlashcardRoute(
+                                route.buildingCode,
+                                route.level,
+                                index
+                            )) }
                         )
                     }
                 }

@@ -38,11 +38,22 @@ data class ProfileState(
 )
 
 @HiltViewModel
-class ProfileViewModel @Inject constructor(player: PlayerRepository, learning: LearningRepository) : ViewModel() {
+class ProfileViewModel @Inject constructor(
+    player: PlayerRepository,
+    learning: LearningRepository
+) : ViewModel() {
     val state: StateFlow<ProfileState> = combine(
-        player.observeProfile(), player.observeAchievements(), player.stats, learning.observeProgress()
+        player.observeProfile(),
+        player.observeAchievements(),
+        player.stats,
+        learning.observeProgress()
     ) { profile, achievements, stats, progress ->
-        ProfileState(profile, achievements.firstOrNull { it.equipped }?.name, stats, progress.values.count { it.collected })
+        ProfileState(
+            profile,
+            achievements.firstOrNull { it.equipped }?.name,
+            stats,
+            progress.values.count { it.collected }
+        )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ProfileState())
 
     init {
@@ -52,7 +63,11 @@ class ProfileViewModel @Inject constructor(player: PlayerRepository, learning: L
 
 /** SCR-19 Hồ sơ: ngoại hình (M8), danh hiệu, tài nguyên, thống kê học. */
 @Composable
-fun ProfileScreen(onBack: () -> Unit, onOpenAchievements: () -> Unit, viewModel: ProfileViewModel = hiltViewModel()) {
+fun ProfileScreen(
+    onBack: () -> Unit,
+    onOpenAchievements: () -> Unit,
+    viewModel: ProfileViewModel = hiltViewModel()
+) {
     val s by viewModel.state.collectAsState()
     Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -71,20 +86,44 @@ fun ProfileScreen(onBack: () -> Unit, onOpenAchievements: () -> Unit, viewModel:
             repeat(3) { SkeletonBlock(Modifier.fillMaxWidth(), 64.dp) }
             return@Column
         }
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.staggeredAppear(0)) {
-            Box(Modifier.size(72.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primaryContainer),
-                contentAlignment = Alignment.Center) { Text("🙂", style = MaterialTheme.typography.headlineLarge) }
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.staggeredAppear(0)
+        ) {
+            Box(Modifier.size(72.dp).clip(CircleShape)
+                .background(MaterialTheme.colorScheme.primaryContainer),
+                contentAlignment = Alignment.Center) {
+                    Text("🙂", style = MaterialTheme.typography.headlineLarge)
+                }
             Spacer(Modifier.width(16.dp))
             Column {
-                Text("Cư dân #${p.id.take(4).uppercase()}", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                Text(s.titleName?.let { "🏅 $it" } ?: "Chưa đeo danh hiệu", style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    "Cư dân #${p.id.take(4).uppercase()}",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    s.titleName?.let { "🏅 $it" } ?: "Chưa đeo danh hiệu",
+                    style = MaterialTheme.typography.bodyMedium
+                )
                 Text("Ngoại hình nhân vật: sắp có", style = MaterialTheme.typography.labelSmall)
             }
         }
-        StatCard(1, "Tài nguyên", "💡 ${p.knowledgePoints} KP   ⏳ ${p.hourglassCount}   🧩 ${p.blueprintShards}")
+        StatCard(
+            1,
+            "Tài nguyên",
+            "💡 ${p.knowledgePoints} KP   ⏳ ${p.hourglassCount}   🧩 ${p.blueprintShards}"
+        )
         StatCard(2, "Từ đã sưu tầm", "${s.stats?.collectedWords ?: s.collectedOffline} từ")
-        StatCard(3, "Chuỗi ngày học", s.stats?.let { "🔥 ${it.streakDays} ngày liên tiếp" } ?: "Cần mạng để cập nhật")
-        Button(onClick = onOpenAchievements, modifier = Modifier.fillMaxWidth().staggeredAppear(4)) { Text("🏅 Bộ sưu tập danh hiệu") }
+        StatCard(
+            3,
+            "Chuỗi ngày học",
+            s.stats?.let { "🔥 ${it.streakDays} ngày liên tiếp" } ?: "Cần mạng để cập nhật"
+        )
+        Button(
+            onClick = onOpenAchievements,
+            modifier = Modifier.fillMaxWidth().staggeredAppear(4)
+        ) { Text("🏅 Bộ sưu tập danh hiệu") }
     }
 }
 

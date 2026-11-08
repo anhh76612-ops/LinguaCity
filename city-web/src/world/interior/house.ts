@@ -1,6 +1,8 @@
 // Nội thất 3D của Housing (M7): một căn phòng TRỐNG (đồ nội thất để sau — future-expansion §5).
-// Nhìn chéo từ góc (+x, +z) giống bản đồ nên chỉ dựng đủ hai bức tường phía sau (-z) và bên trái (-x);
-// hai phía gần camera chỉ có chân tường thấp ("cắt mặt cắt" kiểu nhà búp bê) để nhìn được vào trong.
+// Nhìn chéo từ góc (+x, +z) giống bản đồ nên chỉ dựng đủ hai bức tường phía sau (-z) và bên trái
+// (-x);
+// hai phía gần camera chỉ có chân tường thấp ("cắt mặt cắt" kiểu nhà búp bê) để nhìn được vào
+// trong.
 //
 //   z = -D/2  ┌──── tường sau (cửa sổ) ────┐
 //             │                             │
@@ -20,7 +22,10 @@ const LOW_H = 0.35;           // chân tường phía gần camera
 
 /** Vị trí cửa (trong phòng, sát mép +z) và vùng người chơi đi lại được. */
 export const DOOR = { x: 0, z: ROOM_D / 2 - 0.35 };
-export const WALKABLE = { minX: -ROOM_W / 2 + 0.45, maxX: ROOM_W / 2 - 0.45, minZ: -ROOM_D / 2 + 0.45, maxZ: ROOM_D / 2 - 0.35 };
+export const WALKABLE = {
+    minX: -ROOM_W / 2 + 0.45, maxX: ROOM_W / 2 - 0.45, minZ: -ROOM_D / 2 + 0.45,
+    maxZ: ROOM_D / 2 - 0.35
+};
 
 /** Bảng màu từng kiểu sàn: [màu chính, màu phụ]. */
 const FLOOR_COLORS: Record<FloorKey, [string, string]> = {
@@ -38,16 +43,31 @@ function floor(g: THREE.Group, key: FloorKey): void {
     if (key === 'oak' || key === 'walnut') {
         // ván gỗ chạy dọc trục x, so le hai tông
         const n = 11, w = ROOM_D / n;
-        for (let i = 0; i < n; i++) box(g, ROOM_W, T, w - 0.01, i % 2 ? a : b, 0, -T, -ROOM_D / 2 + w * (i + 0.5));
+        for (let i = 0; i < n; i++) {
+            box(g, ROOM_W, T, w - 0.01, i % 2 ? a : b, 0, -T, -ROOM_D / 2 + w * (i + 0.5));
+        }
     } else if (key === 'tile' || key === 'checker') {
         const s = key === 'tile' ? 0.7 : 0.55;
         const nx = Math.ceil(ROOM_W / s), nz = Math.ceil(ROOM_D / s);
         const sx = ROOM_W / nx, sz = ROOM_D / nz;
-        for (let i = 0; i < nx; i++) for (let j = 0; j < nz; j++) {
-            const gap = key === 'tile' ? 0.03 : 0;
-            box(g, sx - gap, T, sz - gap, (i + j) % 2 ? a : b, -ROOM_W / 2 + sx * (i + 0.5), -T, -ROOM_D / 2 + sz * (j + 0.5));
+        for (let i = 0; i < nx; i++) {
+            for (let j = 0; j < nz; j++) {
+                const gap = key === 'tile' ? 0.03 : 0;
+                box(
+                    g,
+                    sx - gap,
+                    T,
+                    sz - gap,
+                    (i + j) % 2 ? a : b,
+                    -ROOM_W / 2 + sx * (i + 0.5),
+                    -T,
+                    -ROOM_D / 2 + sz * (j + 0.5)
+                );
+            }
         }
-        if (key === 'tile') box(g, ROOM_W, T * 0.9, ROOM_D, '#b7c0c6', 0, -T, 0); // vữa ron
+        if (key === 'tile') {  // vữa ron
+            box(g, ROOM_W, T * 0.9, ROOM_D, '#b7c0c6', 0, -T, 0);
+        }
     } else {
         // thảm: nền sàn gỗ + tấm thảm lớn có viền
         box(g, ROOM_W, T, ROOM_D, '#cfa36d', 0, -T, 0);
@@ -57,8 +77,12 @@ function floor(g: THREE.Group, key: FloorKey): void {
 }
 
 // vật liệu riêng (phát sáng / trong suốt) tạo một lần, dùng lại mỗi lần dựng lại phòng
-const SHADE_MAT = new THREE.MeshStandardMaterial({ color: '#fff3c4', emissive: '#ffd77a', emissiveIntensity: 0.7, side: THREE.DoubleSide });
-const GLOW_MAT = new THREE.MeshBasicMaterial({ color: '#fff6d8', transparent: true, opacity: 0.28, depthWrite: false });
+const SHADE_MAT = new THREE.MeshStandardMaterial({
+    color: '#fff3c4', emissive: '#ffd77a', emissiveIntensity: 0.7, side: THREE.DoubleSide
+});
+const GLOW_MAT = new THREE.MeshBasicMaterial({
+    color: '#fff6d8', transparent: true, opacity: 0.28, depthWrite: false
+});
 
 export interface Interior {
     group: THREE.Group;

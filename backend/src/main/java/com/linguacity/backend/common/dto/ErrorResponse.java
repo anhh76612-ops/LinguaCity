@@ -5,7 +5,8 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.Map;
 
 /**
- * Định dạng lỗi chung (FR-SYS-06). {@code code} giúp app phân biệt các lỗi cùng mã HTTP (system-design §10.4);
+ * Định dạng lỗi chung (FR-SYS-06). {@code code} giúp app phân biệt các lỗi cùng mã HTTP
+ * (system-design §10.4);
  * {@code details} (tuỳ chọn) mang thêm dữ liệu, ví dụ còn thiếu bao nhiêu từ/KP để xây.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)

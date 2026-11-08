@@ -34,7 +34,10 @@ public class UserProfile {
     @Column(name = "tutorial_completed", nullable = false)
     private boolean tutorialCompleted = false;
 
-    /** Optimistic Locking (FR-SYS-05): hai request cùng cộng/trừ KP thì request sau bị từ chối thay vì ghi đè. */
+    /**
+     * Optimistic Locking (FR-SYS-05): hai request cùng cộng/trừ KP thì request sau bị từ chối thay
+     * vì ghi đè.
+     */
     @Version
     @Column(name = "version", nullable = false)
     private Long version;

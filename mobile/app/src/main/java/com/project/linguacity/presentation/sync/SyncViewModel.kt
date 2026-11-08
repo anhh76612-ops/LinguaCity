@@ -46,18 +46,24 @@ class SyncViewModel @Inject constructor(
     private var job: Job? = null
 
     private fun sync() {
-        if (job?.isActive == true) return // xoay màn hình / bấm Thử lại liên tục: không chạy chồng
+        if (job?.isActive == true) {  // xoay màn hình / bấm Thử lại liên tục: không chạy chồng
+            return
+        }
         _state.value = SyncState(running = true)
         job = viewModelScope.launch {
             try {
-                syncContent { p -> _state.update { it.copy(done = p.done, total = p.total, currentPack = p.currentPack) } }
+                syncContent { p -> _state.update {
+                    it.copy(done = p.done, total = p.total, currentPack = p.currentPack)
+                } }
                 _state.update { it.copy(running = false, finished = true) }
             } catch (e: Exception) {
                 // Đã có cache → vào game bằng dữ liệu cũ, không làm phiền người chơi (UC_03 E2).
                 if (syncContent.hasCache()) {
                     _state.update { it.copy(running = false, finished = true) }
                 } else {
-                    _state.update { it.copy(running = false, error = friendlyNetworkError(e, firstRun = true)) }
+                    _state.update {
+                        it.copy(running = false, error = friendlyNetworkError(e, firstRun = true))
+                    }
                 }
             }
         }

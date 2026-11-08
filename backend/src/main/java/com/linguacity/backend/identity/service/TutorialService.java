@@ -19,7 +19,10 @@ import java.util.UUID;
 @Service
 public class TutorialService {
 
-    /** BR-TUT-02: những bước app được tự chuyển. Các bước còn lại do server chuyển khi đạt điều kiện. */
+    /**
+     * BR-TUT-02: những bước app được tự chuyển. Các bước còn lại do server chuyển khi đạt điều
+     * kiện.
+     */
     static final Map<TutorialStep, TutorialStep> CLIENT_TRANSITIONS = Map.of(
             TutorialStep.INTRO, TutorialStep.PLACEMENT,
             TutorialStep.ENTER_HOUSE, TutorialStep.CUSTOMIZE,
@@ -30,7 +33,10 @@ public class TutorialService {
     private final AchievementService achievements;
     private final Clock clock;
 
-    public TutorialService(UserProfileRepository userProfileRepository, AchievementService achievements, Clock clock) {
+    public TutorialService(
+            UserProfileRepository userProfileRepository,
+            AchievementService achievements,
+            Clock clock) {
         this.userProfileRepository = userProfileRepository;
         this.achievements = achievements;
         this.clock = clock;
@@ -62,7 +68,10 @@ public class TutorialService {
         return saved;
     }
 
-    /** PUT /users/me/tutorial/step — chỉ cho các bước trong {@link #CLIENT_TRANSITIONS}; gọi lại cùng bước thì bỏ qua. */
+    /**
+     * PUT /users/me/tutorial/step — chỉ cho các bước trong {@link #CLIENT_TRANSITIONS}; gọi lại
+     * cùng bước thì bỏ qua.
+     */
     @Transactional
     public UserProfile advanceByClient(UUID userId, TutorialStep to) {
         UserProfile profile = userProfileRepository.findById(userId)
@@ -73,7 +82,8 @@ public class TutorialService {
         }
         if (CLIENT_TRANSITIONS.get(from) != to) {
             throw new ApiException(HttpStatus.CONFLICT, "INVALID_STEP",
-                    "Cannot move tutorial from " + from + " to " + to, Map.of("current", from.name()));
+                    "Cannot move tutorial from " + from + " to " + to, Map.of(
+                            "current", from.name()));
         }
         profile.setTutorialStep(to);
         return userProfileRepository.save(profile);

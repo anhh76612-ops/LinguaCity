@@ -1,5 +1,6 @@
 // Cảnh "bên trong nhà" (M7): một THREE.Scene riêng có ánh sáng và camera riêng.
-// Vòng lặp chỉ vẽ cảnh đang hiện (core/loop.ts setView), nên thành phố không tốn GPU khi đang ở trong nhà.
+// Vòng lặp chỉ vẽ cảnh đang hiện (core/loop.ts setView), nên thành phố không tốn GPU khi đang ở
+// trong nhà.
 import * as THREE from 'three';
 import { MOBILE, VIEW_DIR, onResize } from '../../core/renderer';
 import { onUpdate } from '../../core/loop';
@@ -8,7 +9,8 @@ import type { Appearance, HouseStyle } from '../../bridge/cityState';
 import { Player } from '../../people/player';
 import { DOOR, ROOM_D, ROOM_W, WALKABLE, buildHouseInterior } from './house';
 
-const INSIDE_SCALE = 1.5; // trong phòng nhìn gần hơn nên phóng to nhân vật cho cân với tường cao 2.6
+// trong phòng nhìn gần hơn nên phóng to nhân vật cho cân với tường cao 2.6
+const INSIDE_SCALE = 1.5;
 
 export class InteriorView {
     readonly scene = new THREE.Scene();
@@ -27,7 +29,10 @@ export class InteriorView {
         sun.position.set(4, 9, -6);
         sun.castShadow = true;
         sun.shadow.mapSize.setScalar(MOBILE ? 512 : 1024);
-        Object.assign(sun.shadow.camera, { left: -6, right: 6, top: 6, bottom: -6, near: 1, far: 30 });
+        Object.assign(
+            sun.shadow.camera,
+            { left: -6, right: 6, top: 6, bottom: -6, near: 1, far: 30 }
+        );
         sun.shadow.bias = -0.0008;
         sun.shadow.radius = 3;
         this.scene.add(sun, sun.target);
@@ -47,7 +52,11 @@ export class InteriorView {
         }, appearance);
         this.player.placeAt(DOOR.x, DOOR.z, Math.PI);
 
-        onUpdate((dt, t) => { if (this.active) this.player.update(dt, t); });
+        onUpdate((dt, t) => {
+            if (this.active) {
+                this.player.update(dt, t);
+            }
+        });
     }
 
     /** Khung nhìn vừa đủ cả căn phòng ở cả màn dọc và màn ngang. */
@@ -63,9 +72,13 @@ export class InteriorView {
 
     setStyle(style: HouseStyle): void {
         const key = `${style.wall}|${style.floor}`;
-        if (key === this.styleKey) return;
+        if (key === this.styleKey) {
+            return;
+        }
         this.styleKey = key;
-        if (this.room) disposeGroup(this.room);
+        if (this.room) {
+            disposeGroup(this.room);
+        }
         this.room = buildHouseInterior(style).group;
         this.scene.add(this.room);
     }
@@ -86,7 +99,10 @@ export class InteriorView {
 
     async walkOut(): Promise<void> {
         this.player.busy = true;
-        await this.player.walkTo([{ x: DOOR.x, z: DOOR.z - 0.2 }, { x: DOOR.x, z: DOOR.z + 0.5 }], 2.2);
+        await this.player.walkTo(
+            [{ x: DOOR.x, z: DOOR.z - 0.2 }, { x: DOOR.x, z: DOOR.z + 0.5 }],
+            2.2
+        );
         this.player.busy = false;
     }
 
@@ -94,7 +110,9 @@ export class InteriorView {
     tap(ndc: THREE.Vector2): boolean {
         this.ray.setFromCamera(ndc, this.camera);
         const hit = this.ray.ray.intersectPlane(this.floorPlane, new THREE.Vector3());
-        if (!hit || this.player.busy) return false;
+        if (!hit || this.player.busy) {
+            return false;
+        }
         const x = THREE.MathUtils.clamp(hit.x, WALKABLE.minX, WALKABLE.maxX);
         const z = THREE.MathUtils.clamp(hit.z, WALKABLE.minZ, WALKABLE.maxZ);
         void this.player.walkTo([{ x, z }], 1.6).then(() => this.player.act('idle', 2));
