@@ -54,7 +54,7 @@ labelRenderer.domElement.style.inset = '0';
 /* ---------- Ánh sáng ----------
    1) Hemisphere: ánh sáng trời (trên ấm, dưới xanh xám) để mặt khuất không bị đen.
    2) Directional: "mặt trời" tạo bóng đổ. Bóng mềm nhờ PCFSoftShadowMap + radius. */
-const hemi = new THREE.HemisphereLight('#fff6e8', '#8a9bb0', 1.6);
+export const hemi = new THREE.HemisphereLight('#fff6e8', '#8a9bb0', 1.6);
 scene.add(hemi);
 
 export const sun = new THREE.DirectionalLight('#fff1dc', 2.3);

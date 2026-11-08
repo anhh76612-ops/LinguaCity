@@ -23,6 +23,7 @@ import { BUILDING_CODES, type BuildingCode } from './world/grid';
 import { InteriorView } from './world/interior/interiorView';
 import { Director } from './world/director';
 import { bootPreview } from './preview';
+import { startDayNight } from './core/daynight';
 
 /** Phần API mà bảng giả lập (chạy riêng trên trình duyệt) cần gọi. */
 interface DebugApi {
@@ -194,6 +195,7 @@ function bootCity(): void {
         });
     }
 
+    startDayNight();
     emit({ type: 'Ready' });
 }
 
