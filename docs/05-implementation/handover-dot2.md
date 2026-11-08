@@ -280,3 +280,31 @@ Lưu ý: **V006 đổi `learning_sessions.building_id` thành cho phép NULL.** 
 
 - Gợi ý Mai lần đầu mở Trung tâm thi; nhãn "mất khi đứt chuỗi" ở SCR-18.
 - Lịch chuỗi 7 ngày: API chưa trả lịch sử, màn chỉ hiện hai điều kiện của hôm nay.
+
+## M16: city-web (08/11/2026)
+
+**Nhánh:** `feat/m12-progression`.
+
+- Bản đồ đã vẽ dấu (!) theo `events[].id` từ trước (`Citizens.syncEvents`), nên không phải đổi cách vẽ.
+- **Hợp đồng bridge (vẫn `v: 1`):**
+  - `events[].kind` nhận thêm `HELP`, giá trị lạ coi là `GRAMMAR`;
+  - thêm `buildingCode` tuỳ chọn; mã lạ bỏ qua. Bản đồ hiện chưa dùng trường này để chọn người mang dấu.
+- File đổi: `city-web/src/bridge/cityState.ts`, `mobile/.../city/web/CityBridgeJson.kt`, system-design §9.2.1.
+- **Đã kiểm:** `npm run typecheck`, `compileDebugKotlin compileDebugUnitTestKotlin`, `check_style.py` 0 lỗi.
+
+### Việc của chat test
+
+- `normalizeState`: `kind: "HELP"` giữ nguyên; `kind: "XYZ"` → `GRAMMAR`; `buildingCode: "SCHOOL"` giữ nguyên, `"FOO"` → không có.
+- `CityBridgeJsonTest` (nếu có): chuỗi state có thêm `buildingCode`.
+- Trên emulator: sự kiện hôm nay hiện dấu (!) trên người dân; giải xong thì dấu biến mất sau khi `GET /city` tải lại.
+
+## Đợt 2: tổng kết cho E2E
+
+**Commit:** M11 (44a8b28 … 60f5cac), M12 f95b393, M13 9989d13, M14 517bcd5, M15 589a9da, M16 (commit này).
+
+**Người dùng làm trước E2E:**
+1. Push nhánh `feat/m12-progression`.
+2. Chạy V006, V007 bằng psql (`$env:PGCLIENTENCODING="UTF8"`).
+3. Chạy backend mới từ bản đã checkout nhánh này.
+
+**Còn mở:** Q10 (pool thi toàn câu tier 3, đậu 8/10) chờ người dùng quyết; các mục "Chưa làm" của M15.

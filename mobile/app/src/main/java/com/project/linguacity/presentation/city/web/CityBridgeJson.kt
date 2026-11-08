@@ -69,7 +69,7 @@ internal object CityBridgeJson {
     )
 
     @Serializable
-    private data class EventDto(val id: String, val kind: String)
+    private data class EventDto(val id: String, val kind: String, val buildingCode: String? = null)
 
     @Serializable
     private data class IntentDto(
@@ -85,7 +85,7 @@ internal object CityBridgeJson {
             buildings = state.buildings.map {
                 BuildingDto(it.code.name, it.level, it.upgrading, it.progress)
             },
-            events = state.events.map { EventDto(it.id, it.kind) },
+            events = state.events.map { EventDto(it.id, it.kind, it.buildingCode?.name) },
             player = PlayerDto(state.avatar.dto()),
             houseStyle = HouseDto(state.house.wall, state.house.floor)
         )

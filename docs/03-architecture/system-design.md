@@ -955,7 +955,7 @@ Thành phố đi qua **hai hợp đồng khác nhau**, mỗi cái phục vụ m�
 | `status` | `upgrading` | `upgrading = (status == "UPGRADING")` |
 | `startedAt`, `finishAt`, `serverTime` | `progress` | `serverNow = giờ máy + (serverTime − giờ máy lúc nhận)`; `progress = clamp((serverNow − startedAt) / (finishAt − startedAt), 0, 1)`; `finishAt ≤ startedAt` → 1 |
 | `targetLevel`, `maxLevel` | *(không gửi)* | Dùng cho UI Compose (thẻ công trình), không cần để vẽ. |
-| events (id số hoặc chuỗi) | `events[].id` (chuỗi), `kind` | Id là chuỗi mờ (opaque). Bản đồ tự chọn người dân mang dấu (!), không có toạ độ. |
+| events (id số hoặc chuỗi) | `events[].id` (chuỗi), `kind`, `buildingCode` | Id là chuỗi mờ (opaque). Bản đồ tự chọn người dân mang dấu (!), không có toạ độ. Từ M16: `kind` = `HELP` (cư dân nhờ việc, ADR-015 §5), thêm `buildingCode` tuỳ chọn (vẫn `v: 1`). |
 
 #### 9.2.2. Kotlin → bản đồ: `CityState` v1
 ```json

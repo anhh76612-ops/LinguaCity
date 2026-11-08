@@ -17,9 +17,12 @@ export interface BuildingState {
 }
 
 /** Sự kiện thành phố (GDD §3.1): dấu (!) trên đầu một người dân, chạm vào để làm bài ngữ pháp. */
+/** kind: 'HELP' là cư dân nhờ việc (ADR-015 §5); 'GRAMMAR' giữ cho bản cũ. buildingCode tuỳ chọn
+ *  (M16): công trình gắn với sự kiện, bản đồ hiện chưa dùng để chọn người mang dấu (!). */
 export interface CityEvent {
     id: string;
-    kind?: 'GRAMMAR';
+    kind?: 'GRAMMAR' | 'HELP';
+    buildingCode?: BuildingCode;
 }
 
 /* ---------- Ngoại hình nhân vật và kiểu nhà (M7, trường TUỲ CHỌN, vẫn v1) ----------
@@ -118,7 +121,11 @@ export function normalizeState(input: unknown): CityState {
         ?? { code, level: 1, upgrading: false, progress: 0 });
     const events = (Array.isArray(raw.events) ? raw.events : [])
         .filter((e): e is CityEvent => !!e && typeof e.id === 'string' && e.id.length > 0)
-        .map((e) => ({ id: e.id, kind: e.kind ?? 'GRAMMAR' }));
+        .map((e): CityEvent => ({
+            id: e.id,
+            kind: e.kind === 'HELP' ? 'HELP' : 'GRAMMAR',
+            buildingCode: BUILDING_CODES.find((code) => code === e.buildingCode)
+        }));
     return {
         v: CONTRACT_VERSION,
         buildings,
