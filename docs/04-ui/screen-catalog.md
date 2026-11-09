@@ -16,7 +16,7 @@
 | SCR-04 | City View (màn hình chính) | **WebView + city-web (Three.js)**, đường lui Compose (ADR-010) | UC_09 | VS5 | 🟡 (bản đồ + nhúng xong, dữ liệu giả lập) |
 | SCR-05 | Chi tiết công trình | Compose (thẻ đè lên bản đồ: Học / Xây / Thẻ từ, tiến độ sưu tầm, điều kiện Level kế) | UC_09, UC_10 | VS5 | 🟡 dữ liệu thật từ `GET /city` (`4.13`); Housing đã xây có nút "Vào nhà" (M7) |
 | SCR-06 | Danh sách từ vựng | Compose | UC_04 | VS2 | 🟡 bản cơ bản (`4.6-scr06-vocabulary-list.png`; ✓ sưu tầm ở M5, skeleton ở M9) · M9: skeleton + stagger + shared element |
-| SCR-07 | Flashcard | Compose (HorizontalPager + lật thẻ 3D) | UC_04 | VS2 | 🟡 bản cơ bản (`4.7`, `4.8`; shared element ở M9) · M9: shared element từ danh sách |
+| SCR-07 | Flashcard | Compose (HorizontalPager + lật thẻ 3D) | UC_04 | VS2 | 🟡 bản cơ bản (`4.7`, `4.8`; shared element ở M9) · M9: shared element từ danh sách · **Thiết kế mới "Kho thẻ"** (2 chế độ đọc: Lưới đều / Bento) ở [`redesign/2026-11-09-kho-the-design.md`](redesign/2026-11-09-kho-the-design.md), chờ chọn thay SCR-06, SCR-07 hay cả hai |
 | SCR-08 | Bài học (Learning Session / Mini-game) | Compose (trắc nghiệm + điền từ, phản hồi của Mai sau mỗi câu) | UC_05 | VS3 | 🟡 bản chức năng (`4.10`; chân dung Mai ở M6, hiệu ứng ở M9) |
 | SCR-09 | Kết quả bài học | Compose (điểm, KP + thưởng + hệ số ngày, sưu tầm, danh hiệu mới) | UC_05 | VS3 | 🟡 bản chức năng (`4.11`) |
 | SCR-10 | Trung tâm thi (của một công trình) | Compose | UC_06 | VS4 | 🟡 Specified (ADR-015) |
