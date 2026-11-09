@@ -44,6 +44,9 @@ public class VocabProgressRecorder {
             row.setFirstSeenAt(now);
         }
         row.setLastReviewedAt(now);
+        if (correct) {
+            row.setLastCorrectAt(now);
+        }
         boolean collectedNow = correct && !wasCollected;
         if (collectedNow) {
             row.setCollectedAt(now); // BR-LEARN-04: sưu tầm = lần đầu trả lời đúng

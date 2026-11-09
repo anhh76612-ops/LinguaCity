@@ -184,7 +184,7 @@ Như mục 4, cộng hệ số ×1,2 làm thẻ to ra; các thẻ khác chạy l
 | Cần | Hiện trạng | Làm |
 |---|---|---|
 | Mastery | Có (`VocabProgress.mastery/maxMastery`) | Dùng luôn |
-| Lần cuối trả lời đúng | Chưa có ở đâu (ADR-017 còn Proposed); app chỉ có `lastReviewedAtMillis` | Backend: migration thêm `user_vocab_progress.last_correct_at`; ghi khi trả lời đúng ở bài học/thi (`VocabProgressRecorder`); trả `ProgressItemDto.lastCorrectAt`. App: Room migration `lastCorrectAtMillis`. Dữ liệu cũ null → tính từ `firstSeenAt` |
+| Lần cuối trả lời đúng | Chưa có ở đâu (ADR-017 còn Proposed); app chỉ có `lastReviewedAtMillis` | Backend: migration thêm `user_vocab_progress.last_correct_at`; ghi mỗi lần trả lời đúng qua `VocabProgressRecorder`; trả `ProgressItemDto.lastCorrectAt`. App: Room migration `lastCorrectAtMillis`. Dữ liệu cũ null → tính từ `firstSeenAt` |
 | Từ đã gặp | `ProgressItemDto.firstSeenAt` có, Room chưa lưu | Lưu `firstSeenAtMillis` vào Room |
 | Yêu thích, `U`, ghi chú, kết quả Tự kiểm tra | Chưa có | Bảng Room mới trên máy (`user_card_prefs`: vocabularyId, favorite, userScale, note, lastSelfCheckAt, updatedAt); không đồng bộ server lần này *(Claude)* |
 | Cụm từ | Chưa có | Trường `collocations` (danh sách chuỗi) trong bảng từ vựng + migration + gói nội dung + Room; viết 2–3 cụm cho mỗi từ Housing cấp 1 (`database/seed/housing_level1.py`) |
