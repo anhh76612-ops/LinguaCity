@@ -87,11 +87,11 @@ object ProfileRoute
 @Serializable
 object SettingsRoute
 
-/** SCR-20 Tuỳ biến nhân vật / nhà (M8). CustomizeViewModel đọc `houseTab` theo tên. */
 /** Màn "Bộ giao diện" (S1, chỉ bản debug): xem token và component trên máy thật. */
 @Serializable
 object DesignGalleryRoute
 
+/** SCR-20 Tuỳ biến nhân vật / nhà (M8). CustomizeViewModel đọc `houseTab` theo tên. */
 @Serializable
 data class CustomizeRoute(val houseTab: Boolean = false)
 
