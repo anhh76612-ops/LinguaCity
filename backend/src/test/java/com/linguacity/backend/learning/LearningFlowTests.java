@@ -180,6 +180,60 @@ class LearningFlowTests {
                         .value(contains(vocab % 5 == 0 ? 15 : 10)));
     }
 
+    @Test
+    void correctAnswerSetsLastCorrectAt() throws Exception {
+        String user = newUser();
+        JsonNode s = start(user);
+        String id = s.get("sessionId").asString();
+        JsonNode first = s.get("items").get(0);
+        long vocab = first.get("vocabularyId").asLong();
+
+        answer(id, user, 1, answerOf(first))
+                .andExpect(jsonPath("$.isCorrect").value(true));
+
+        UserVocabProgress p = progress.findByUserIdAndVocabularyId(
+                UUID.fromString(user), vocab).orElseThrow();
+        assertEquals(LocalDateTime.ofInstant(clock.instant(), ZoneOffset.UTC), p.getLastCorrectAt());
+        api.perform(get("/api/v1/users/me/vocab-progress").header("X-Guest-UUID", user))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[0].lastCorrectAt").isNotEmpty());
+    }
+
+    @Test
+    void wrongAnswerKeepsPreviousLastCorrectAt() throws Exception {
+        String user = newUser();
+        JsonNode s = start(user);
+        String id = s.get("sessionId").asString();
+        JsonNode first = s.get("items").get(0);
+        long vocab = first.get("vocabularyId").asLong();
+        LocalDateTime correctAt = LocalDateTime.ofInstant(clock.instant(), ZoneOffset.UTC);
+
+        answer(id, user, 1, answerOf(first)).andExpect(jsonPath("$.isCorrect").value(true));
+        clock.advance(Duration.ofMinutes(5));
+        int writingNo = itemNoOf(s, vocab, "WRITING");
+        answer(id, user, writingNo, "sai bét").andExpect(jsonPath("$.isCorrect").value(false));
+
+        UserVocabProgress p = progress.findByUserIdAndVocabularyId(
+                UUID.fromString(user), vocab).orElseThrow();
+        assertEquals(correctAt, p.getLastCorrectAt());
+        assertEquals(correctAt.plusMinutes(5), p.getLastReviewedAt());
+    }
+
+    @Test
+    void wrongFirstAnswerLeavesLastCorrectAtNull() throws Exception {
+        String user = newUser();
+        JsonNode s = start(user);
+        String id = s.get("sessionId").asString();
+        long vocab = s.get("items").get(0).get("vocabularyId").asLong();
+
+        answer(id, user, 1, "sai bét").andExpect(jsonPath("$.isCorrect").value(false));
+
+        UserVocabProgress p = progress.findByUserIdAndVocabularyId(
+                UUID.fromString(user), vocab).orElseThrow();
+        assertNull(p.getLastCorrectAt());
+        assertNotNull(p.getFirstSeenAt());
+    }
+
     // TC-VS3-09, TC-VS3-11, TC-VS3-12
     @Test
     void completingAwardsKpOnceAndRequiresEveryAnswer() throws Exception {

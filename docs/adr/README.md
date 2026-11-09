@@ -22,8 +22,8 @@
 | [ADR-013](ADR-013-server-learning-session.md) | Phiên học do server quản lý; sưu tầm = đúng lần đầu (sửa ADR-005); chống cày KP | 🟡 Proposed |
 | [ADR-014](ADR-014-secretary-tutorial-placement.md) | Tutorial thư ký + bài kiểm tra trình độ + xây House thật | 🟡 Proposed |
 | [ADR-015](ADR-015-progression-after-level-one.md) | Tiến trình sau Lv1: thi, nâng cấp, nhiệm vụ, sự kiện, luyện tập, chuỗi; bài học 20 từ / 30 câu | 🟡 Proposed |
-| [ADR-016](ADR-016-economy-v2-mastery-decay.md) | Kinh tế v2 (Gạch, Gỗ, Năng lượng, Town Level, thuế); Mastery v2: sai không trừ, giảm theo thời gian, FSRS | 🟡 Proposed |
-| [ADR-017](ADR-017-ai-characters-content-pipeline.md) | AI cho nhân vật (chat trực tuyến có giới hạn) + pipeline LLM sinh nội dung offline | 🟡 Proposed |
+| [ADR-017](ADR-017-economy-v2-mastery-decay.md) | Kinh tế v2 (Gạch, Gỗ, Năng lượng, Town Level, thuế); Mastery v2: sai không trừ, giảm theo thời gian, FSRS | 🟡 Proposed |
+| [ADR-018](ADR-018-ai-characters-content-pipeline.md) | AI cho nhân vật (chat trực tuyến có giới hạn) + pipeline LLM sinh nội dung offline | 🟡 Proposed |
 
 Nhật ký sự cố: [troubleshooting-log.md](troubleshooting-log.md)
 

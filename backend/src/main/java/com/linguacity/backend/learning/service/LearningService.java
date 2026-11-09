@@ -387,7 +387,8 @@ public class LearningService {
                         balance.maxMastery(rank.get(row.getVocabularyId())),
                         row.isCollected(),
                         Times.toInstant(row.getFirstSeenAt()),
-                        Times.toInstant(row.getLastReviewedAt())))
+                        Times.toInstant(row.getLastReviewedAt()),
+                        Times.toInstant(row.getLastCorrectAt())))
                 .toList();
         return new ProgressDto(Times.toInstant(Times.nowUtc(clock)), dtos);
     }

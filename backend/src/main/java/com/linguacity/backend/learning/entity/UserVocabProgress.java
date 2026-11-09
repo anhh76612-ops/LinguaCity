@@ -32,6 +32,10 @@ public class UserVocabProgress {
     @Column(name = "last_reviewed_at")
     private LocalDateTime lastReviewedAt;
 
+    /** Lần cuối trả lời đúng (Kho thẻ: độ tươi của thẻ). Câu sai không xoá; null nếu chưa từng đúng. */
+    @Column(name = "last_correct_at")
+    private LocalDateTime lastCorrectAt;
+
     /** ADR-013: lần đầu trả lời đúng = "đã sưu tầm". Không bao giờ bị xoá (BR-LEARN-04). */
     @Column(name = "collected_at")
     private LocalDateTime collectedAt;

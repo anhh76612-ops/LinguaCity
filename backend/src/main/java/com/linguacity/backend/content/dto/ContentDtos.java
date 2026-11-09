@@ -65,7 +65,8 @@ public final class ContentDtos {
 
     public record VocabularyDto(Long id, String word, String meaning, String wordType, String ipa,
                                 List<String> examples, String imageUrl, String themeCode, int level,
-                                String difficultyRank) {}
+                                String difficultyRank, List<String> collocations,
+                                String explanation, String iconKey) {}
 
     /** Câu hỏi để hiển thị: KHÔNG có answer, acceptedAnswers, explanation. */
     public record QuestionDto(

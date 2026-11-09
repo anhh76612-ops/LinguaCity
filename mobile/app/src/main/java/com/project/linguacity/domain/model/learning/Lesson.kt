@@ -83,8 +83,21 @@ data class VocabProgress(
     val vocabularyId: Long,
     val mastery: Int,
     val maxMastery: Int,
-    val collected: Boolean
-)
+    val collected: Boolean,
+    val firstSeenAtMillis: Long? = null,
+    val lastCorrectAtMillis: Long? = null
+) {
+    val seen: Boolean get() = firstSeenAtMillis != null
+
+    /** Thẻ "sắp quên": quá [staleDays] ngày kể từ lần đúng gần nhất (hoặc lần đầu gặp nếu chưa từng đúng). */
+    fun isStale(nowMillis: Long, staleDays: Int = STALE_DAYS): Boolean {
+        val anchor = lastCorrectAtMillis ?: firstSeenAtMillis ?: return false
+        return nowMillis - anchor > staleDays * MILLIS_PER_DAY
+    }
+}
+
+const val STALE_DAYS = 7
+private const val MILLIS_PER_DAY = 24L * 60 * 60 * 1000
 
 /** Lỗi nghiệp vụ của phiên học — ViewModel quyết định hiện gì cho từng loại. */
 class LearningException(val kind: Kind, message: String? = null) : Exception(message) {

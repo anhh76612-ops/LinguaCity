@@ -116,7 +116,10 @@ data class VocabularyDto(
     val imageUrl: String? = null,
     val themeCode: String,
     val level: Int,
-    val difficultyRank: String
+    val difficultyRank: String,
+    val collocations: List<String> = emptyList(),
+    val explanation: String? = null,
+    val iconKey: String? = null
 )
 
 /** Không có answer / acceptedAnswers / explanation — server không bao giờ gửi (NFR-01). */
