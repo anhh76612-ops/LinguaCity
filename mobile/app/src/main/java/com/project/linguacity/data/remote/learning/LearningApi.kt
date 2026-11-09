@@ -129,7 +129,8 @@ data class ProgressItemDto(
     val maxMastery: Int,
     val collected: Boolean,
     val firstSeenAt: String? = null,
-    val lastReviewedAt: String? = null
+    val lastReviewedAt: String? = null,
+    val lastCorrectAt: String? = null
 )
 
 @Serializable

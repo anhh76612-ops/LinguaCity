@@ -8,7 +8,7 @@ import com.project.linguacity.data.local.player.UserVocabProgressEntity
 import com.project.linguacity.data.local.preferences.GuestIdStore
 import com.project.linguacity.data.local.user.UserProfileDao
 import com.project.linguacity.data.mapper.toDomain
-import com.project.linguacity.data.remote.IsoTime
+import com.project.linguacity.data.mapper.toEntity
 import com.project.linguacity.data.remote.apiError
 import com.project.linguacity.data.remote.learning.AnswerRequestDto
 import com.project.linguacity.data.remote.learning.LearningApi
@@ -74,6 +74,7 @@ class LearningRepositoryImpl @Inject constructor(
     ): AnswerFeedback = call {
         val result = api.answer(guest(), sessionId, itemNo, AnswerRequestDto(answer))
         val before = playerDao.progress(result.vocabularyId)
+        val now = System.currentTimeMillis()
         playerDao.upsertProgress(
             listOf(
                 UserVocabProgressEntity(
@@ -81,7 +82,9 @@ class LearningRepositoryImpl @Inject constructor(
                     masteryScore = result.masteryAfter,
                     maxMastery = result.maxMastery,
                     collected = (before?.collected == true) || result.collectedNow,
-                    lastReviewedAtMillis = System.currentTimeMillis()
+                    lastReviewedAtMillis = now,
+                    firstSeenAtMillis = before?.firstSeenAtMillis ?: now,
+                    lastCorrectAtMillis = if (result.isCorrect) now else before?.lastCorrectAtMillis
                 )
             )
         )
@@ -108,10 +111,7 @@ class LearningRepositoryImpl @Inject constructor(
 
     override suspend fun refreshProgress() {
         val dto = playerApi.progress(guest())
-        playerDao.upsertProgress(dto.items.map {
-            UserVocabProgressEntity(it.vocabularyId, it.masteryScore, it.maxMastery, it.collected,
-                IsoTime.parseMillis(it.lastReviewedAt))
-        })
+        playerDao.upsertProgress(dto.items.map { it.toEntity() })
     }
 
     override fun observeProgress(): Flow<Map<Long, VocabProgress>> =
@@ -121,7 +121,9 @@ class LearningRepositoryImpl @Inject constructor(
                     it.vocabularyId,
                     it.masteryScore,
                     it.maxMastery,
-                    it.collected
+                    it.collected,
+                    it.firstSeenAtMillis,
+                    it.lastCorrectAtMillis
                 )
             }
         }
