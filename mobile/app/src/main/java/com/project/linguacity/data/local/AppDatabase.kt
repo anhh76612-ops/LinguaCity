@@ -20,6 +20,7 @@ import com.project.linguacity.data.local.content.QuestionVocabularyEntity
 import com.project.linguacity.data.local.content.ThemeEntity
 import com.project.linguacity.data.local.content.VocabularyEntity
 import com.project.linguacity.data.local.player.AchievementEntity
+import com.project.linguacity.data.local.player.CardPrefsDao
 import com.project.linguacity.data.local.player.CardPrefsEntity
 import com.project.linguacity.data.local.player.CosmeticItemEntity
 import com.project.linguacity.data.local.player.UnlockedCosmeticEntity
@@ -80,6 +81,8 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun contentDao(): ContentDao
 
     abstract fun playerDao(): PlayerDao
+
+    abstract fun cardPrefsDao(): CardPrefsDao
 }
 
 /**

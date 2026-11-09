@@ -5,6 +5,7 @@ import androidx.room.Room
 import com.project.linguacity.data.local.AppDatabase
 import com.project.linguacity.data.local.MIGRATION_1_2
 import com.project.linguacity.data.local.content.ContentDao
+import com.project.linguacity.data.local.player.CardPrefsDao
 import com.project.linguacity.data.local.player.PlayerDao
 import com.project.linguacity.data.local.user.UserProfileDao
 import dagger.Module
@@ -44,4 +45,7 @@ object DatabaseModule {
 
     @Provides
     fun providePlayerDao(database: AppDatabase): PlayerDao = database.playerDao()
+
+    @Provides
+    fun provideCardPrefsDao(database: AppDatabase): CardPrefsDao = database.cardPrefsDao()
 }
