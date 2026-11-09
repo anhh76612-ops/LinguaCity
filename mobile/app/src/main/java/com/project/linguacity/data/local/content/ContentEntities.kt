@@ -1,5 +1,6 @@
 package com.project.linguacity.data.local.content
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
 
@@ -67,7 +68,11 @@ data class VocabularyEntity(
     val themeCode: String,
     val level: Int,
     val difficultyRank: String,
-    val packCode: String
+    val packCode: String,
+    @ColumnInfo(defaultValue = "[]")
+    val collocations: List<String> = emptyList(),
+    val explanation: String? = null,
+    val iconKey: String? = null
 )
 
 @Entity(tableName = "questions", primaryKeys = ["id"], indices = [Index("packCode")])

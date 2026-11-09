@@ -79,7 +79,10 @@ fun PackDto.toRows(): PackRows {
                 imageUrl = it.imageUrl,
                 themeCode = it.themeCode,
                 level = it.level,
-                difficultyRank = it.difficultyRank, packCode = pack
+                difficultyRank = it.difficultyRank, packCode = pack,
+                collocations = it.collocations,
+                explanation = it.explanation,
+                iconKey = it.iconKey
             )
         },
         questions = questions.map {
@@ -127,7 +130,10 @@ fun VocabularyEntity.toDomain() = Vocabulary(
     examples,
     themeCode,
     level,
-    difficultyRank
+    difficultyRank,
+    collocations,
+    explanation,
+    iconKey
 )
 
 fun BuildingLevelEntity.toDomain() =

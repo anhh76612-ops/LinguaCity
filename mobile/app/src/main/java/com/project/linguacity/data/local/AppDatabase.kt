@@ -20,6 +20,7 @@ import com.project.linguacity.data.local.content.QuestionVocabularyEntity
 import com.project.linguacity.data.local.content.ThemeEntity
 import com.project.linguacity.data.local.content.VocabularyEntity
 import com.project.linguacity.data.local.player.AchievementEntity
+import com.project.linguacity.data.local.player.CardPrefsEntity
 import com.project.linguacity.data.local.player.CosmeticItemEntity
 import com.project.linguacity.data.local.player.UnlockedCosmeticEntity
 import com.project.linguacity.data.local.player.PlayerDao
@@ -36,6 +37,8 @@ import com.project.linguacity.data.local.user.UserProfileEntity
  * v3 → v4: Player State (VS3): tiến độ từ, công trình, danh hiệu + 2 cột hồ sơ (có DEFAULT) → vẫn
  * AutoMigration.
  * v4 → v5: Tuỳ biến (M8): 2 bảng mới + 2 cột hồ sơ cho phép NULL → AutoMigration.
+ * v5 → v6: Kho thẻ: 3 cột nội dung từ vựng (collocations có DEFAULT '[]'), 2 cột mốc tiến độ cho phép
+ * NULL, bảng user_card_prefs → AutoMigration.
  */
 @Database(
     entities = [
@@ -57,14 +60,16 @@ import com.project.linguacity.data.local.user.UserProfileEntity
         AchievementEntity::class,
         UserAchievementEntity::class,
         CosmeticItemEntity::class,
-        UnlockedCosmeticEntity::class
+        UnlockedCosmeticEntity::class,
+        CardPrefsEntity::class
     ],
-    version = 5,
+    version = 6,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 2, to = 3),
         AutoMigration(from = 3, to = 4),
-        AutoMigration(from = 4, to = 5)
+        AutoMigration(from = 4, to = 5),
+        AutoMigration(from = 5, to = 6)
     ]
 )
 @TypeConverters(Converters::class)

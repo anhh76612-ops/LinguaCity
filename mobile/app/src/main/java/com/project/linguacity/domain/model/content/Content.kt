@@ -10,7 +10,10 @@ data class Vocabulary(
     val examples: List<String>,
     val themeCode: String,
     val level: Int,
-    val difficultyRank: String
+    val difficultyRank: String,
+    val collocations: List<String> = emptyList(),
+    val explanation: String? = null,
+    val iconKey: String? = null
 )
 
 /** Chi phí và điều kiện để xây/nâng một công trình lên `level` (bảng building_levels). */
