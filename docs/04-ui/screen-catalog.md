@@ -30,7 +30,7 @@
 | SCR-18 | Bộ sưu tập danh hiệu | Compose | UC_13 | VS3+ | 🟡 bản cơ bản (`4.12`; skeleton, hiệu ứng nhận ở M9) · M9: skeleton + stagger |
 | SCR-19 | Hồ sơ | Compose + xem trước avatar (city-web) | UC_13, UC_14 | VS3+ | ✅ bản đầu: danh hiệu, tài nguyên, số từ, chuỗi ngày (`4.20`). M8 đã có ngoại hình (API + màn SCR-20) nhưng Hồ sơ chưa hiện xem trước avatar và chưa có lối vào Tuỳ biến |
 | SCR-20 | Tuỳ biến nhân vật / nhà | Compose + city-web `avatar-preview` / nội thất | UC_14 | VS3+ | 🟡 M8: tab Nhân vật (xem trước 3D) + tab Nhà (mảng màu tường + tên sàn), mua món KP có hộp xác nhận; mở từ nút 🎨 và "Trang trí" trong nhà. Chưa gắn vào bước tutorial `CUSTOMIZE` của Mai (M6) |
-| SCR-21 | Cài đặt | Compose (xoay màn hình, hiệu ứng, xem lại hướng dẫn) | — | UI | ✅ xoay màn hình, giảm hiệu ứng, xem lại hướng dẫn (`4.21`) |
+| SCR-21 | Cài đặt | Compose (xoay màn hình, hiệu ứng, xem lại hướng dẫn; mặc định Ngang (Kho thẻ 2026-11-09)) | — | UI | ✅ xoay màn hình, giảm hiệu ứng, xem lại hướng dẫn (`4.21`) |
 | SCR-22 | Menu nổi | Compose FAB bung hình cung trên bản đồ | — | UI | ✅ 4 mục trên cung 1/4, xoay 45°, trễ 40 ms/mục, rung nhẹ (`4.19`) · M8 thêm 🎨 Tuỳ biến · đợt 2 thêm 📜 Nhiệm vụ, 🎯 Luyện tập |
 | SCR-23 | Nhiệm vụ & Chuỗi | Compose (tab Chính tuyến / Hằng ngày, lịch chuỗi 7 ngày) | UC_16, UC_17, UC_20 | Đợt 2 | 🟡 Specified (ADR-015) |
 | SCR-24 | Luyện tập | Compose (chọn chế độ, chủ đề, cỡ bài; chạy bằng SCR-08/09) | UC_19 | Đợt 2 | 🟡 Specified |
