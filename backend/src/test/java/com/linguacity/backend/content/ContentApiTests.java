@@ -170,17 +170,47 @@ class ContentApiTests {
                 .andExpect(jsonPath("$.exams[0].questionIds.length()").value(1));
     }
 
+    @Test
+    void packExposesCollocationsExplanationAndIconKey() throws Exception {
+        Vocabulary v = vocabularies.findAll().stream()
+                .filter(x -> x.getWord().equals("rent")).findFirst().orElseThrow();
+        v.setCollocations("[\"pay the rent\",\"monthly rent\"]");
+        v.setExplanation("Khoản trả hằng tháng.");
+        v.setIconKey("key");
+        vocabularies.save(v);
+        api.perform(get("/api/v1/content/packs/HOUSING/1").header("X-Guest-UUID", GUEST))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.vocabularies[?(@.word=='rent')].collocations")
+                        .value(contains(contains("pay the rent", "monthly rent"))))
+                .andExpect(jsonPath("$.vocabularies[?(@.word=='rent')].explanation")
+                        .value(contains("Khoản trả hằng tháng.")))
+                .andExpect(jsonPath("$.vocabularies[?(@.word=='rent')].iconKey")
+                        .value(contains("key")));
+    }
+
+    @Test
+    void packReturnsEmptyCollocationsWhenNull() throws Exception {
+        api.perform(get("/api/v1/content/packs/HOUSING/1").header("X-Guest-UUID", GUEST))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.vocabularies[?(@.word=='bill')].collocations")
+                        .value(contains(empty())))
+                .andExpect(jsonPath("$.vocabularies[?(@.word=='bill')].explanation")
+                        .value(contains(nullValue())))
+                .andExpect(jsonPath("$.vocabularies[?(@.word=='bill')].iconKey")
+                        .value(contains(nullValue())));
+    }
+
     // TC-VS2-04 (NFR-01, BR-CONTENT-07)
     @Test
     void packNeverLeaksAnswers() throws Exception {
         String body = api.perform(get("/api/v1/content/packs/housing/1").header(
                 "X-Guest-UUID", GUEST))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.questions[*].explanation").doesNotExist())
                 .andReturn().getResponse().getContentAsString();
         assertAll(
                 () -> assertFalse(body.contains("\"answer\"")),
                 () -> assertFalse(body.contains("acceptedAnswers")),
-                () -> assertFalse(body.contains("explanation")),
                 () -> assertFalse(body.contains("SECRET")));
     }
 

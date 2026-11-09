@@ -301,7 +301,10 @@ public class ContentService {
                 vocabulary.getImageUrl(),
                 themeCode.get(vocabulary.getThemeId()),
                 vocabulary.getLevel(),
-                vocabulary.getDifficultyRank());
+                vocabulary.getDifficultyRank(),
+                stringList(vocabulary.getCollocations()),
+                vocabulary.getExplanation(),
+                vocabulary.getIconKey());
     }
 
     /** Cố ý không đọc answer / acceptedAnswers / explanation (NFR-01). */
