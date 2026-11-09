@@ -40,7 +40,21 @@ class LearningEngineTests {
         assertEquals(1, MasteryEngine.apply(0, true, 10));
         assertEquals(0, MasteryEngine.apply(0, false, 10));
         assertEquals(10, MasteryEngine.apply(10, true, 10));
-        assertEquals(14, MasteryEngine.apply(15, false, 15));
+        // ADR-017: sai không trừ Mastery
+        assertEquals(15, MasteryEngine.apply(15, false, 15));
+        assertEquals(4, MasteryEngine.apply(4, false, 10));
+    }
+
+    // ADR-017: mỗi 7 ngày không trả lời đúng thì −1; đã tốt nghiệp thì không giảm
+    @Test
+    void masteryDecaysWeeklyUnlessGraduated() {
+        LocalDateTime last = LocalDateTime.of(2026, 11, 1, 8, 0);
+        assertEquals(6, MasteryEngine.effective(6, last, null, last.plusDays(6), 7));
+        assertEquals(5, MasteryEngine.effective(6, last, null, last.plusDays(7), 7));
+        assertEquals(4, MasteryEngine.effective(6, last, null, last.plusDays(15), 7));
+        assertEquals(0, MasteryEngine.effective(2, last, null, last.plusDays(70), 7));
+        assertEquals(10, MasteryEngine.effective(10, last, last, last.plusDays(70), 7));
+        assertEquals(3, MasteryEngine.effective(3, null, null, last.plusDays(70), 7));
     }
 
     // TC-VS3-13: chưa sưu tầm → Mastery thấp; bỏ từ vừa ôn < 10 phút; Level đang học trước từ ôn

@@ -311,7 +311,9 @@ public class PracticeService {
             return new WordSelector.Candidate(id, review, false, 0, null);
         }
         return new WordSelector.Candidate(
-                id, review, row.isCollected(), row.getMasteryScore(), row.getLastReviewedAt());
+                id, review, row.isCollected(),
+                VocabProgressRecorder.effectiveMastery(row, java.time.LocalDateTime.now(java.time.ZoneOffset.UTC)),
+                row.getLastReviewedAt());
     }
 
     private LocalDateTime[] todayRange() {

@@ -47,6 +47,13 @@ public class LearningController {
         return learning.answer(guest, id, itemNo, body.answer());
     }
 
+    /** S5: gợi ý của Bơ cho câu chưa trả lời. */
+    @PostMapping("/learning/sessions/{id}/items/{itemNo}/hint")
+    public com.linguacity.backend.learning.dto.LearningDtos.HintDto hint(
+            @CurrentUser UUID guest, @PathVariable UUID id, @PathVariable int itemNo) {
+        return learning.hint(guest, id, itemNo);
+    }
+
     @PostMapping("/learning/sessions/{id}/complete")
     public CompleteResultDto complete(
             @CurrentUser UUID guest, @PathVariable UUID id) {

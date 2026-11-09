@@ -39,8 +39,14 @@ data class LessonUiState(
     /** Tên các danh hiệu mới (ghép từ danh mục). */
     val newAchievementNames: List<String> = emptyList(),
     val problem: LessonProblem? = null,
-    val problemMessage: String? = null
+    val problemMessage: String? = null,
+    /** S5: gợi ý của Bơ cho câu hiện tại (null = chưa xin). */
+    val hint: com.project.linguacity.domain.model.learning.BoHint? = null,
+    /** S5: số lần đã nhờ Bơ trong bài (tối đa [MAX_HINTS]). */
+    val hintsUsed: Int = 0,
+    val hinting: Boolean = false
 ) {
+    val hintsLeft: Int get() = (MAX_HINTS - hintsUsed).coerceAtLeast(0)
     val current get() = session?.items?.getOrNull(index)
 }
 
@@ -51,7 +57,11 @@ sealed interface LessonIntent {
     data object Submit : LessonIntent
     data object Next : LessonIntent
     data object Retry : LessonIntent
+    /** S5: nhờ Bơ nhắc bài. */
+    data object AskHint : LessonIntent
 }
+
+const val MAX_HINTS = 2
 
 /**
  * SCR-08/09 (UC_05). Cùng một ViewModel cho mọi kiểu phiên: bài học ở công trình, bài kiểm
@@ -85,6 +95,7 @@ class LessonViewModel @Inject constructor(
             is LessonIntent.Choose -> submit(intent.option)
             LessonIntent.Submit -> submit(_state.value.input)
             LessonIntent.Next -> next()
+            LessonIntent.AskHint -> askHint()
             LessonIntent.Retry -> {
                 val action = pending
                 _state.update { it.copy(problem = null, problemMessage = null) }
@@ -155,12 +166,36 @@ class LessonViewModel @Inject constructor(
         }
     }
 
+    private fun askHint() {
+        val current = _state.value
+        val item = current.current ?: return
+        val session = current.session ?: return
+        if (current.hinting || current.hint != null || current.feedback != null ||
+            current.hintsLeft <= 0 || session.placement) {
+            return
+        }
+        _state.update { it.copy(hinting = true) }
+        viewModelScope.launch {
+            val hint = runCatching { learning.hint(session.id, item.itemNo) }.getOrNull()
+            _state.update {
+                it.copy(
+                    hinting = false,
+                    hint = hint,
+                    hintsUsed = if (hint != null) it.hintsUsed + 1 else it.hintsUsed
+                )
+            }
+        }
+    }
+
     private fun next() {
         val current = _state.value
         val total = current.session?.items?.size ?: return
         val nextIndex = current.index + 1
         _state.update {
-            it.copy(index = nextIndex, feedback = null, maiLine = null, input = "", chosen = null)
+            it.copy(
+                index = nextIndex, feedback = null, maiLine = null, input = "", chosen = null,
+                hint = null
+            )
         }
         if (nextIndex >= total) {
             complete()

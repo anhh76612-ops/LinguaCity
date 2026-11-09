@@ -1,5 +1,6 @@
 package com.project.linguacity.presentation.settings
 
+import com.project.linguacity.ui.components.*
 import android.content.pm.ApplicationInfo
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.layout.*
@@ -51,11 +52,11 @@ fun SettingsScreen(
     val settings by viewModel.settings.collectAsState()
     Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        TextButton(onClick = onBack) { Text("‹ Thành phố") }
+        CozyTextButton(onClick = onBack) { Text("‹ Thành phố") }
         Text("Cài đặt", style = MaterialTheme.typography.titleLarge)
 
         // SCR-26 (VS6): tài khoản, đăng xuất, xoá tài khoản
-        Card(Modifier.fillMaxWidth().staggeredAppear(0)) {
+        CozyCard(Modifier.fillMaxWidth().staggeredAppear(0)) {
             Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
                     Text("Tài khoản", style = MaterialTheme.typography.titleMedium)
@@ -64,11 +65,11 @@ fun SettingsScreen(
                         style = MaterialTheme.typography.bodySmall
                     )
                 }
-                FilledTonalButton(onClick = onOpenAccount) { Text("Mở") }
+                CozyTonalButton(onClick = onOpenAccount) { Text("Mở") }
             }
         }
 
-        Card(Modifier.fillMaxWidth().staggeredAppear(0)) {
+        CozyCard(Modifier.fillMaxWidth().staggeredAppear(0)) {
             Column(Modifier.padding(16.dp)) {
                 Text("Xoay màn hình", style = MaterialTheme.typography.titleMedium)
                 OrientationSetting.entries.forEach { o ->
@@ -86,7 +87,7 @@ fun SettingsScreen(
                 }
             }
         }
-        Card(Modifier.fillMaxWidth().staggeredAppear(1)) {
+        CozyCard(Modifier.fillMaxWidth().staggeredAppear(1)) {
             Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
                     Text("Giảm hiệu ứng chuyển động", style = MaterialTheme.typography.titleMedium)
@@ -98,7 +99,7 @@ fun SettingsScreen(
                 Switch(checked = settings.reduceMotion, onCheckedChange = viewModel::reduceMotion)
             }
         }
-        Card(Modifier.fillMaxWidth().staggeredAppear(2)) {
+        CozyCard(Modifier.fillMaxWidth().staggeredAppear(2)) {
             Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
                     Text("Xem lại hướng dẫn", style = MaterialTheme.typography.titleMedium)
@@ -107,7 +108,7 @@ fun SettingsScreen(
                         style = MaterialTheme.typography.bodySmall
                     )
                 }
-                FilledTonalButton(
+                CozyTonalButton(
                     onClick = {
                         viewModel.replayTour()
                         onReplayTour()
@@ -121,7 +122,7 @@ fun SettingsScreen(
         val context = LocalContext.current
         val debuggable = (context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
         if (debuggable) {
-            Card(Modifier.fillMaxWidth().staggeredAppear(3)) {
+            CozyCard(Modifier.fillMaxWidth().staggeredAppear(3)) {
                 Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
                         Text("Bộ giao diện (debug)", style = MaterialTheme.typography.titleMedium)
@@ -130,7 +131,7 @@ fun SettingsScreen(
                             style = MaterialTheme.typography.bodySmall
                         )
                     }
-                    FilledTonalButton(onClick = onOpenDesignGallery) { Text("Mở") }
+                    CozyTonalButton(onClick = onOpenDesignGallery) { Text("Mở") }
                 }
             }
         }

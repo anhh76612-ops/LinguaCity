@@ -220,6 +220,50 @@ public class LearningService {
         return factory.toDto(session, Times.nowUtc(clock));
     }
 
+    /** Bơ chỉ đúng với xác suất này (S5, character bible: "thiên tài cẩu thả"). */
+    static final double HINT_POINT_ACCURACY = 0.75;
+
+    /**
+     * S5: gợi ý của Bơ. Không dùng được trong bài kiểm tra trình độ. Trắc nghiệm: chỉ vào một
+     * phương án (đúng với xác suất {@link #HINT_POINT_ACCURACY}); điền từ: hé chữ cái đầu và nghĩa.
+     * Không lộ đáp án trước khi hỏi: chỉ trả về khi người chơi chủ động xin gợi ý.
+     */
+    @Transactional(readOnly = true)
+    public com.linguacity.backend.learning.dto.LearningDtos.HintDto hint(
+            UUID userId, UUID sessionId, int itemNo) {
+        LearningSession session = own(userId, sessionId);
+        ensureOpen(session, Times.nowUtc(clock));
+        if (session.getType() == SessionType.PLACEMENT) {
+            throw ApiException.conflict("HINT_NOT_ALLOWED", "No hints in placement");
+        }
+        LearningSessionItem item = items.findById(new LearningSessionItemId(sessionId, itemNo))
+                .orElseThrow(() -> ApiException.notFound("ITEM_NOT_FOUND", "No item " + itemNo));
+        if (item.isAnswered()) {
+            throw ApiException.conflict("ALREADY_ANSWERED", "Item " + itemNo + " was already answered");
+        }
+        Question question = questions.findById(item.getQuestionId()).orElseThrow();
+        String meaning = vocabularies.findById(item.getVocabularyId()).map(Vocabulary::getMeaning).orElse(null);
+        String answer = question.getAnswer();
+        java.util.List<String> options = new java.util.ArrayList<>();
+        var meta = views.metadataOf(question);
+        if (meta != null && meta.has("options")) {
+            meta.get("options").forEach(o -> options.add(o.asString()));
+        }
+        if (options != null && options.size() > 1) {
+            java.util.Random random = new java.util.Random();
+            String pick = answer;
+            if (random.nextDouble() >= HINT_POINT_ACCURACY) {
+                java.util.List<String> wrong = options.stream().filter(o -> !o.equalsIgnoreCase(answer)).toList();
+                if (!wrong.isEmpty()) {
+                    pick = wrong.get(random.nextInt(wrong.size()));
+                }
+            }
+            return new com.linguacity.backend.learning.dto.LearningDtos.HintDto("POINT", pick, null, null);
+        }
+        String letter = answer == null || answer.isBlank() ? null : answer.substring(0, 1);
+        return new com.linguacity.backend.learning.dto.LearningDtos.HintDto("LETTER", null, letter, meaning);
+    }
+
     public AnswerResultDto answer(UUID userId, UUID sessionId, int itemNo, String answer) {
         LearningSession session = own(userId, sessionId);
         LocalDateTime now = Times.nowUtc(clock);
@@ -252,7 +296,7 @@ public class LearningService {
                 question.getAnswer(),
                 question.getExplanation(),
                 vocabulary.getId(),
-                outcome.row().getMasteryScore(),
+                VocabProgressRecorder.effectiveMastery(outcome.row(), now),
                 max,
                 outcome.collectedNow(),
                 session.getCurrentStreak());
@@ -262,11 +306,14 @@ public class LearningService {
     private VocabProgressRecorder.Outcome recordProgress(LearningSession session, UUID userId,
             Long vocabularyId, boolean correct, int max, LocalDateTime now) {
         boolean rewarded = isRewardable(session, userId, vocabularyId, now);
+        // ADR-017: luyện tập không đổi Mastery; bài học / sự kiện thì có
+        boolean practice = session.getType().isPractice();
         VocabProgressRecorder.Outcome outcome =
-                recorder.record(userId, vocabularyId, correct, max, rewarded, now);
-        if (session.getType().isPractice() && rewarded) {
+                recorder.record(userId, vocabularyId, correct, max, !practice, now);
+        if (practice && rewarded) {
             rewardPracticeAnswer(session, outcome.row(), correct, now);
         }
+        awardMaterials(userId, practice, rewarded, correct, outcome);
         trackAnswer(userId, session, outcome);
         return outcome;
     }
@@ -336,7 +383,7 @@ public class LearningService {
         List<ProgressItemDto> dtos = list.stream()
                 .map(row -> new ProgressItemDto(
                         row.getVocabularyId(),
-                        row.getMasteryScore(),
+                        VocabProgressRecorder.effectiveMastery(row, Times.nowUtc(clock)),
                         balance.maxMastery(rank.get(row.getVocabularyId())),
                         row.isCollected(),
                         Times.toInstant(row.getFirstSeenAt()),
@@ -432,6 +479,23 @@ public class LearningService {
         int kpSoFar = session.getKpAwarded() == null ? 0 : session.getKpAwarded();
         session.setKpAwarded(kpSoFar + balance.getPracticeKpPerCorrect());
         sessions.save(session);
+    }
+
+    /**
+     * ADR-017 kinh tế v2: học từ mới (sưu tầm lần đầu trong bài học/sự kiện) ra 1 Gạch; ôn đúng
+     * trong luyện tập (lần đầu trong ngày của từ) ra 1 Gỗ.
+     */
+    private void awardMaterials(UUID userId, boolean practice, boolean rewarded, boolean correct,
+            VocabProgressRecorder.Outcome outcome) {
+        int bricks = !practice && outcome.collectedNow() ? 1 : 0;
+        int wood = practice && rewarded && correct ? 1 : 0;
+        if (bricks == 0 && wood == 0) {
+            return;
+        }
+        UserProfile profile = requireUser(userId);
+        profile.setBricks(profile.getBricks() + bricks);
+        profile.setWood(profile.getWood() + wood);
+        users.save(profile);
     }
 
     /** Tiến độ nhiệm vụ hằng ngày theo từng câu trả lời (system-design §11.4). */
@@ -624,7 +688,8 @@ public class LearningService {
                 id,
                 review,
                 vocabProgress.isCollected(),
-                vocabProgress.getMasteryScore(),
+                VocabProgressRecorder.effectiveMastery(vocabProgress,
+                        LocalDateTime.now(java.time.ZoneOffset.UTC)),
                 vocabProgress.getLastReviewedAt());
     }
 }

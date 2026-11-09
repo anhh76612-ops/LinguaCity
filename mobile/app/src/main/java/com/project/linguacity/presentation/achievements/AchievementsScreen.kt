@@ -1,5 +1,6 @@
 package com.project.linguacity.presentation.achievements
 
+import com.project.linguacity.ui.components.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -30,7 +31,7 @@ fun AchievementsScreen(onBack: () -> Unit, viewModel: AchievementsViewModel = hi
 
     Scaffold(snackbarHost = { SnackbarHost(snackbar) }) { padding ->
         Column(Modifier.fillMaxSize().padding(padding).padding(16.dp)) {
-            TextButton(onClick = onBack) { Text("‹ Thành phố") }
+            CozyTextButton(onClick = onBack) { Text("‹ Thành phố") }
             Text("Danh hiệu", style = MaterialTheme.typography.titleLarge)
             Text(
                 "${items.count { it.earned }}/${items.size} đã có",
@@ -67,7 +68,7 @@ fun AchievementsScreen(onBack: () -> Unit, viewModel: AchievementsViewModel = hi
 
 @Composable
 private fun AchievementRow(a: AchievementView, onEquip: (String?) -> Unit) {
-    Card(Modifier.fillMaxWidth().alpha(if (a.earned) 1f else 0.55f)) {
+    CozyCard(Modifier.fillMaxWidth().alpha(if (a.earned) 1f else 0.55f)) {
         Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
             Text(if (a.earned) "🏅" else "🔒", style = MaterialTheme.typography.headlineSmall)
             Column(Modifier.weight(1f).padding(horizontal = 12.dp)) {
@@ -90,9 +91,9 @@ private fun AchievementRow(a: AchievementView, onEquip: (String?) -> Unit) {
             }
             if (a.earned) {
                 if (a.equipped) {
-                    TextButton(onClick = { onEquip(null) }) { Text("Tháo") }
+                    CozyTextButton(onClick = { onEquip(null) }) { Text("Tháo") }
                 }
-                else TextButton(onClick = { onEquip(a.code) }) { Text("Đeo") }
+                else CozyTextButton(onClick = { onEquip(a.code) }) { Text("Đeo") }
             }
         }
     }

@@ -6,7 +6,11 @@ package com.project.linguacity.presentation.tutorial
  * → những câu Mai nói, nút nào được khoanh sáng, và hành động ở câu cuối. Test được trên JVM
  * (TutorialGuideTest).
  */
-enum class MaiMood { GREET, HAPPY, ENCOURAGE, SURPRISED }
+/**
+ * Biểu cảm của Mai. Mục 11 thêm: POUT (giận dỗi, phồng má), SLY (cười gian khi tính sổ),
+ * WORRIED (lo lắng), SLEEPY (buồn ngủ, dùng ban đêm) — character bible §1.
+ */
+enum class MaiMood { GREET, HAPPY, ENCOURAGE, SURPRISED, POUT, SLY, WORRIED, SLEEPY }
 
 enum class GuideAction {
     NONE,
@@ -129,8 +133,8 @@ object TutorialGuide {
                     SpotKeys.KP
                 ),
                 GuideLine(
-                    "Còn đây là menu: Thẻ từ, Danh hiệu, Hồ sơ và Cài đặt. Danh hiệu có loại dễ, " +
-                    "loại khó, và cả… loại ẩn nữa đó!",
+                    "Dưới cùng là Bưu điện (nhiệm vụ, danh hiệu, hồ sơ) và Xưởng (thẻ từ, luyện " +
+                    "tập). Bảng bên trái ghi việc hôm nay, bấm Đi tới là mình dẫn bạn tới nơi!",
                     MaiMood.SURPRISED,
                     SpotKeys.MENU
                 ),

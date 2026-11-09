@@ -67,6 +67,11 @@ class LearningRepositoryImpl @Inject constructor(
         id
     ).toDomain() }
 
+    override suspend fun hint(sessionId: String, itemNo: Int) = call {
+        val dto = api.hint(guest(), sessionId, itemNo)
+        com.project.linguacity.domain.model.learning.BoHint(dto.kind, dto.option, dto.letter, dto.meaning)
+    }
+
     override suspend fun answer(
         sessionId: String,
         itemNo: Int,

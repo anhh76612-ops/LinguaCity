@@ -28,5 +28,11 @@ data class UserProfileEntity(
 
     /** v5 (M8): avatar_config / house_style dạng JSON của server (mã cosmetic). null = mặc định. */
     val avatarJson: String? = null,
-    val houseStyleJson: String? = null
+    val houseStyleJson: String? = null,
+
+    /** v6 (ADR-017): Gạch (học từ mới) và Gỗ (ôn tập). */
+    @ColumnInfo(defaultValue = "0")
+    val bricks: Int = 0,
+    @ColumnInfo(defaultValue = "0")
+    val wood: Int = 0
 )

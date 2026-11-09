@@ -22,6 +22,9 @@ public final class PlayerDtos {
             int knowledgePoints,
             int hourglassCount,
             int blueprintShards,
+            /** ADR-017 */
+            int bricks,
+            int wood,
             TutorialStep tutorialStep,
             boolean tutorialCompleted,
             String equippedTitle,

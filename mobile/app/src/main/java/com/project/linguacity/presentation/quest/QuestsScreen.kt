@@ -1,5 +1,6 @@
 package com.project.linguacity.presentation.quest
 
+import com.project.linguacity.ui.components.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -49,7 +50,7 @@ fun QuestsScreen(onBack: () -> Unit, viewModel: QuestsViewModel = hiltViewModel(
     }
     Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(16.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            TextButton(onClick = onBack) { Text("‹ Quay lại") }
+            CozyTextButton(onClick = onBack) { Text("‹ Quay lại") }
             Text("📜 Nhiệm vụ", style = MaterialTheme.typography.titleLarge)
         }
         val overview = state.overview
@@ -87,14 +88,14 @@ fun QuestsScreen(onBack: () -> Unit, viewModel: QuestsViewModel = hiltViewModel(
 private fun OfflineView(offline: Boolean, onRetry: () -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(if (offline) "Nhiệm vụ cần mạng." else "Chưa tải được nhiệm vụ.")
-        Button(onClick = onRetry) { Text("Thử lại") }
+        CozyButton(onClick = onRetry) { Text("Thử lại") }
     }
 }
 
 /** Chuỗi ngày: một ngày được tính khi có cả bài học lẫn nhiệm vụ hằng ngày (BR-STREAK-01). */
 @Composable
 private fun StreakCard(streak: StreakStatus, week: List<Boolean>) {
-    Card(Modifier.fillMaxWidth()) {
+    CozyCard(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(
                 "🔥 Chuỗi ${streak.days} ngày · kỷ lục ${streak.best}",
@@ -156,7 +157,7 @@ private fun QuestList(
 
 @Composable
 private fun QuestCard(quest: Quest, claiming: Boolean, onClaim: (String) -> Unit) {
-    Card(Modifier.fillMaxWidth()) {
+    CozyCard(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Text(quest.title, fontWeight = FontWeight.SemiBold)
             Text(quest.description, style = MaterialTheme.typography.bodySmall)
@@ -178,7 +179,7 @@ private fun QuestCard(quest: Quest, claiming: Boolean, onClaim: (String) -> Unit
 private fun QuestAction(quest: Quest, claiming: Boolean, onClaim: (String) -> Unit) {
     when {
         quest.claimed -> Text("Đã nhận ✓")
-        quest.claimable -> Button(onClick = { onClaim(quest.code) }, enabled = !claiming) {
+        quest.claimable -> CozyButton(onClick = { onClaim(quest.code) }, enabled = !claiming) {
             Text(if (claiming) "…" else "Nhận")
         }
         else -> Text("Đang làm")

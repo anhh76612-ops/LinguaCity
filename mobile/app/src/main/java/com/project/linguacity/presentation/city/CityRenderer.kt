@@ -33,4 +33,6 @@ sealed interface CityMapIntent {
     data class BuildingEntered(val code: BuildingCode) : CityMapIntent
     /** M7: đã ra lại ngoài phố (sau lệnh exitBuilding). */
     data class BuildingExited(val code: BuildingCode) : CityMapIntent
+    /** S2: nhân vật đã đi bộ tới cổng công trình (sau lệnh "Đi tới"). */
+    data class PlayerArrived(val code: BuildingCode) : CityMapIntent
 }

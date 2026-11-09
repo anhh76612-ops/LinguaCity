@@ -53,6 +53,10 @@ object ComposeCityRenderer : CityRenderer {
             focus?.let { onIntent(CityMapIntent.BuildingEntered(it)) }
             shownFocus = focus
         }
+        // S2: không có nhân vật đi bộ: lệnh "Đi tới" coi như tới nơi ngay.
+        LaunchedEffect(state.walk?.id) {
+            state.walk?.let { onIntent(CityMapIntent.PlayerArrived(it.code)) }
+        }
 
         Column(
             modifier = modifier.statusBarsPadding().padding(16.dp),

@@ -41,7 +41,7 @@ class PlayerRepositoryImpl @Inject constructor(
     }.map { e ->
         e?.let { UserProfile(it.id, it.knowledgePoints, it.hourglassCount, it.blueprintShards,
             it.tutorialCompleted,
-            it.tutorialStep, it.equippedTitle) }
+            it.tutorialStep, it.equippedTitle, it.bricks, it.wood) }
     }
 
     override fun observeAchievements(): Flow<List<AchievementView>> =
@@ -86,6 +86,8 @@ class PlayerRepositoryImpl @Inject constructor(
                 knowledgePoints = me.knowledgePoints,
                 hourglassCount = me.hourglassCount,
                 blueprintShards = me.blueprintShards,
+                bricks = me.bricks,
+                wood = me.wood,
                 tutorialCompleted = me.tutorialCompleted,
                 tutorialStep = me.tutorialStep,
                 equippedTitle = me.equippedTitle,

@@ -78,11 +78,41 @@ fun DestinationLoading(kind: LoadingKind, modifier: Modifier = Modifier) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Box(Modifier.size(120.dp), contentAlignment = Alignment.Center) { LoadingArt(kind) }
-        Text(kind.title, style = MaterialTheme.typography.titleMedium)
-        Text("Mẹo của Mai: $tip", style = MaterialTheme.typography.bodyMedium,
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(kind.title, style = MaterialTheme.typography.titleMedium,
+            color = com.project.linguacity.ui.theme.LinguaTheme.colors.ink)
+        PerceivedBricks()
+        androidx.compose.foundation.layout.Row(verticalAlignment = Alignment.CenterVertically) {
+            com.project.linguacity.presentation.tutorial.MaiPortrait(
+                com.project.linguacity.presentation.tutorial.MaiMood.ENCOURAGE, Modifier.size(44.dp)
+            )
+            Text("Mẹo của Mai: $tip", style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Start,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(start = 10.dp))
+        }
     }
+}
+
+/**
+ * Mục 10 (concept §9.3, "giấu thời gian chờ"): hàng gạch xếp nhanh tới ~60% rồi chậm dần, không bao
+ * giờ đầy — tạo cảm giác app xử lý nhanh. Màn đích hiện ra là hàng gạch biến mất.
+ */
+@Composable
+private fun PerceivedBricks() {
+    val reduce = LocalReduceMotion.current
+    val progress = remember { androidx.compose.animation.core.Animatable(0f) }
+    LaunchedEffect(reduce) {
+        if (reduce) {
+            progress.snapTo(0.6f)
+            return@LaunchedEffect
+        }
+        progress.animateTo(0.6f, tween(600, easing = FastOutSlowInEasing))
+        progress.animateTo(0.9f, tween(8_000, easing = androidx.compose.animation.core.LinearOutSlowInEasing))
+    }
+    val bricks = 10
+    com.project.linguacity.ui.components.BrickProgressBar(
+        filled = (progress.value * bricks).toInt(), total = bricks, brickWidth = 20.dp
+    )
 }
 
 @Composable
@@ -124,8 +154,10 @@ private fun LoadingArt(kind: LoadingKind) {
                 }
             }
         }
-        LoadingKind.MEDAL -> Text("🏅", style = MaterialTheme.typography.displayLarge,
-            modifier = Modifier.graphicsLayer { rotationY = 360f * phase })
+        LoadingKind.MEDAL -> androidx.compose.foundation.Image(
+            com.project.linguacity.ui.icons.LinguaIcons.Star, null,
+            Modifier.size(96.dp).graphicsLayer { rotationY = 360f * phase }
+        )
         LoadingKind.PROFILE -> Canvas(Modifier.size(100.dp)) {
             drawCircle(soft.copy(alpha = 0.4f + 0.6f * phase))
             drawCircle(

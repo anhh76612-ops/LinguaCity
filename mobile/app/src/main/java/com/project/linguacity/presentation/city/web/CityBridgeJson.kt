@@ -115,6 +115,7 @@ internal object CityBridgeJson {
                 ?.let { CityMapIntent.CityEventTapped(it) }
             "BuildingEntered" -> code(dto.buildingCode)?.let { CityMapIntent.BuildingEntered(it) }
             "BuildingExited" -> code(dto.buildingCode)?.let { CityMapIntent.BuildingExited(it) }
+            "PlayerArrived" -> code(dto.buildingCode)?.let { CityMapIntent.PlayerArrived(it) }
             else -> null
         }
     }

@@ -7,5 +7,8 @@ data class UserProfile(
     val blueprintShards: Int,
     val tutorialCompleted: Boolean,
     val tutorialStep: String = "INTRO",
-    val equippedTitle: String? = null
+    val equippedTitle: String? = null,
+    /** ADR-017 */
+    val bricks: Int = 0,
+    val wood: Int = 0
 )

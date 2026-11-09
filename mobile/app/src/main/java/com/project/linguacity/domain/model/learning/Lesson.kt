@@ -113,3 +113,13 @@ class LearningException(val kind: Kind, message: String? = null) : Exception(mes
         OTHER
     }
 }
+
+/**
+ * S5: gợi ý của Bơ. kind = POINT (chỉ vào [option], có thể nhầm), LETTER (hé [letter] + [meaning]).
+ */
+data class BoHint(
+    val kind: String,
+    val option: String? = null,
+    val letter: String? = null,
+    val meaning: String? = null
+)

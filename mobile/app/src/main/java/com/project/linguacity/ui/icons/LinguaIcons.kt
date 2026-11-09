@@ -257,6 +257,29 @@ object LinguaIcons {
         }
     }
 
+    /** 🌳 Công viên. */
+    val Tree by lazy {
+        icon("Tree") {
+            rect(10.8f, 14f, 2.4f, 7f, 1f, Brand.WoodDark)
+            circle(12f, 10.5f, 7f, Brand.JellyEdge)
+            circle(12f, 9.5f, 7f, Brand.Jelly)
+            circle(9.5f, 7.5f, 1.6f, Color(0x66FFFFFF))
+            rect(6f, 20f, 12f, 2f, 1f, Brand.WoodPale)
+        }
+    }
+
+    /** 🚌 Bến xe / đường. */
+    val Bus by lazy {
+        icon("Bus") {
+            rect(3f, 5f, 18f, 13.5f, 3.5f, Brand.GoldEdge)
+            rect(3f, 4f, 18f, 13f, 3.5f, Brand.Gold)
+            rect(5.5f, 6.5f, 13f, 5f, 1.5f, Brand.SkyPale)
+            circle(7.5f, 18.5f, 2f, Brand.Ink)
+            circle(16.5f, 18.5f, 2f, Brand.Ink)
+            rect(10.5f, 13.5f, 3f, 1.6f, 0.8f, Brand.Cream)
+        }
+    }
+
     // ---------- Điều hướng và hệ thống ----------
 
     val HomeTown by lazy {
@@ -377,7 +400,7 @@ object LinguaIcons {
             "Vàng" to Coin, "Gạch" to Brick, "Gỗ" to Wood, "Năng lượng" to Bolt, "Sao XP" to Star,
             "Đồng hồ cát" to Hourglass, "Bản vẽ" to Blueprint, "Mảnh bản vẽ" to BlueprintShard,
             "Chuỗi ngày" to Flame, "Sổ tay từ" to BookOpen, "Mục tiêu" to Target, "Hoàn thành" to CheckRound,
-            "Sửa chữa" to Hammer, "Nâng cấp" to Crane, "Đường" to Road, "Khoá" to Locked, "Sương mù" to Fog,
+            "Sửa chữa" to Hammer, "Nâng cấp" to Crane, "Đường" to Road, "Công viên" to Tree, "Bến xe" to Bus, "Khoá" to Locked, "Sương mù" to Fog,
             "Thuế" to Tax, "Về thị trấn" to HomeTown, "Quay lại" to BackWood, "Bưu điện" to Mail,
             "Xưởng" to Toolbox, "Xây dựng" to Build, "Cài đặt" to Settings, "Sổ sách" to Ledger,
             "Báo" to Newspaper, "Sự kiện" to Event, "Nhiệm vụ" to Quest, "Nứt" to Crack

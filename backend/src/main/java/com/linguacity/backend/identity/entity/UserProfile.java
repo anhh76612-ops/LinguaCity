@@ -33,6 +33,14 @@ public class UserProfile {
     @Column(name = "blueprint_shards", nullable = false)
     private Integer blueprintShards = 0;
 
+    /** ADR-017: Gạch — kiếm từ học từ mới. */
+    @Column(name = "bricks", nullable = false)
+    private Integer bricks = 0;
+
+    /** ADR-017: Gỗ — kiếm từ ôn tập (luyện tập). */
+    @Column(name = "wood", nullable = false)
+    private Integer wood = 0;
+
     @Column(name = "tutorial_completed", nullable = false)
     private boolean tutorialCompleted = false;
 

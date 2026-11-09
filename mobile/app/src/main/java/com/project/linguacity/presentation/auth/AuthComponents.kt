@@ -1,5 +1,6 @@
 package com.project.linguacity.presentation.auth
 
+import com.project.linguacity.ui.components.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -43,7 +44,7 @@ fun AuthScaffold(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         if (onBack != null) {
-            TextButton(onClick = onBack) { Text("‹ Quay lại") }
+            CozyTextButton(onClick = onBack) { Text("‹ Quay lại") }
         }
         Text(title, style = MaterialTheme.typography.headlineSmall)
         if (subtitle != null) {
@@ -102,7 +103,7 @@ fun CodeField(value: String, onChange: (String) -> Unit) {
 
 @Composable
 fun PrimaryButton(text: String, loading: Boolean, onClick: () -> Unit) {
-    Button(onClick = onClick, enabled = !loading, modifier = Modifier.fillMaxWidth()) {
+    CozyButton(onClick = onClick, enabled = !loading, modifier = Modifier.fillMaxWidth()) {
         if (loading) {
             CircularProgressIndicator(Modifier.padding(2.dp), strokeWidth = 2.dp)
         } else {
@@ -120,10 +121,10 @@ fun SocialButtons(
 ) {
     val google = rememberGoogleSignIn({ onToken("GOOGLE", it) }, onError)
     val facebook = rememberFacebookSignIn({ onToken("FACEBOOK", it) }, onError)
-    OutlinedButton(onClick = google, enabled = enabled, modifier = Modifier.fillMaxWidth()) {
+    CozyOutlinedButton(onClick = google, enabled = enabled, modifier = Modifier.fillMaxWidth()) {
         Text("Tiếp tục với Google")
     }
-    OutlinedButton(onClick = facebook, enabled = enabled, modifier = Modifier.fillMaxWidth()) {
+    CozyOutlinedButton(onClick = facebook, enabled = enabled, modifier = Modifier.fillMaxWidth()) {
         Text("Tiếp tục với Facebook")
     }
 }
@@ -140,7 +141,7 @@ fun DiscardGuestDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
                     "được gộp vào. Bạn vẫn muốn tiếp tục?"
             )
         },
-        confirmButton = { TextButton(onClick = onConfirm) { Text("Tiếp tục") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Huỷ") } }
+        confirmButton = { CozyTextButton(onClick = onConfirm) { Text("Tiếp tục") } },
+        dismissButton = { CozyTextButton(onClick = onDismiss) { Text("Huỷ") } }
     )
 }

@@ -33,6 +33,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.project.linguacity.ui.motion.LocalReduceMotion
 import com.project.linguacity.ui.theme.LinguaColors
 import com.project.linguacity.ui.theme.LinguaTextStyles
@@ -41,7 +42,8 @@ import com.project.linguacity.ui.theme.LinguaTheme
 /** Kiểu nút thạch. Mỗi màn chỉ nên có một nút [Primary]. */
 enum class JellyVariant { Primary, Success, Info, Gold, Wood, Secondary, Danger }
 
-enum class JellySize { Small, Medium, Large }
+/** Mini: nút gọn trong danh sách (bảng nhiệm vụ), vùng chạm tối thiểu vẫn 40dp. */
+enum class JellySize { Mini, Small, Medium, Large }
 
 internal data class ClayPalette(val face: Color, val edge: Color, val content: Color)
 
@@ -111,13 +113,16 @@ fun JellyButton(
     }
     val press = rememberPressProgress(interaction, if (enabled) haptic else null)
     val (elevation, padding, style) = when (size) {
+        JellySize.Mini -> Triple(
+            3.dp, PaddingValues(12.dp, 5.dp), LinguaTextStyles.button.copy(fontSize = 14.sp, lineHeight = 16.sp)
+        )
         JellySize.Small -> Triple(4.dp, PaddingValues(14.dp, 8.dp), LinguaTextStyles.button)
         JellySize.Medium -> Triple(6.dp, PaddingValues(22.dp, 12.dp), LinguaTextStyles.button)
         JellySize.Large -> Triple(8.dp, PaddingValues(32.dp, 16.dp), LinguaTextStyles.buttonLarge)
     }
     Box(
         modifier
-            .defaultMinSize(minHeight = 48.dp)
+            .defaultMinSize(minHeight = if (size == JellySize.Mini) 34.dp else 48.dp)
             .clay(
                 color = palette.face, edge = palette.edge, glow = c.whiteGlow,
                 shadow = c.clayShadow, elevation = elevation, corner = 16.dp,
@@ -138,7 +143,9 @@ fun JellyButton(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            if (leadingIcon != null) LinguaIcon(leadingIcon, null, Modifier.size(22.dp))
+            if (leadingIcon != null) {
+                LinguaIcon(leadingIcon, null, Modifier.size(if (size == JellySize.Mini) 16.dp else 22.dp))
+            }
             Text(text, style = style, color = palette.content, textAlign = TextAlign.Center)
         }
     }

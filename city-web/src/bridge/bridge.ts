@@ -3,6 +3,7 @@
    Chiều vào  (ứng dụng → bản đồ):  window.LinguaCity.setState(json)
                                    window.LinguaCity.enterBuilding(code) / exitBuilding()   (M7:
                                    hoạt cảnh vào/ra công trình)
+                                   window.LinguaCity.walkTo(code)   (S2: đi bộ tới cổng công trình)
      - Android: webView.evaluateJavascript("LinguaCity.setState('...')", null)
      - Web:     gọi trực tiếp hàm này
 
@@ -48,6 +49,8 @@ export function isEmbedded(): boolean {
 export interface CityCommands {
     enterBuilding?(code: unknown): boolean;
     exitBuilding?(): boolean;
+    /** S2: nhân vật đi bộ tới cổng công trình (nút "Đi tới" của bảng nhiệm vụ). */
+    walkTo?(code: unknown): boolean;
 }
 
 /** Gắn API công khai lên window. apply: hàm vẽ lại thành phố khi có trạng thái mới. */

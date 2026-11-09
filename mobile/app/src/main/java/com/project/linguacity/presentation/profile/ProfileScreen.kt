@@ -1,5 +1,6 @@
 package com.project.linguacity.presentation.profile
 
+import com.project.linguacity.ui.components.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -71,7 +72,7 @@ fun ProfileScreen(
     val state by viewModel.state.collectAsState()
     Column(Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        TextButton(onClick = onBack) { Text("‹ Thành phố") }
+        CozyTextButton(onClick = onBack) { Text("‹ Thành phố") }
         val profile = state.profile
         if (profile == null) {
             // Skeleton có hình dáng giống màn hồ sơ
@@ -121,7 +122,7 @@ fun ProfileScreen(
             "Chuỗi ngày học",
             state.stats?.let { "🔥 ${it.streakDays} ngày liên tiếp" } ?: "Cần mạng để cập nhật"
         )
-        Button(
+        CozyButton(
             onClick = onOpenAchievements,
             modifier = Modifier.fillMaxWidth().staggeredAppear(4)
         ) { Text("🏅 Bộ sưu tập danh hiệu") }
@@ -130,7 +131,7 @@ fun ProfileScreen(
 
 @Composable
 private fun StatCard(index: Int, title: String, value: String) {
-    Card(Modifier.fillMaxWidth().staggeredAppear(index)) {
+    CozyCard(Modifier.fillMaxWidth().staggeredAppear(index)) {
         Column(Modifier.padding(16.dp)) {
             Text(title, style = MaterialTheme.typography.labelLarge)
             Text(value, style = MaterialTheme.typography.titleMedium)

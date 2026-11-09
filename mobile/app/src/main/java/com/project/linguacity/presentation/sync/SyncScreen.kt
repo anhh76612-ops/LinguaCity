@@ -1,5 +1,6 @@
 package com.project.linguacity.presentation.sync
 
+import com.project.linguacity.ui.components.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -46,7 +47,7 @@ fun SyncScreen(
             ) {
                 Text("Chưa tải được nội dung học", style = MaterialTheme.typography.titleMedium)
                 Text(error, textAlign = TextAlign.Center)
-                Button(onClick = { viewModel.onIntent(SyncIntent.Retry) }) { Text("Thử lại") }
+                CozyButton(onClick = { viewModel.onIntent(SyncIntent.Retry) }) { Text("Thử lại") }
             }
         } else {
             Column(

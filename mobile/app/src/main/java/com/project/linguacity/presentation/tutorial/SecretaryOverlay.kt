@@ -1,5 +1,6 @@
 package com.project.linguacity.presentation.tutorial
 
+import com.project.linguacity.ui.components.*
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -118,7 +119,7 @@ private fun RowScope.DialogBox(
         }
     }
     val done = shown >= line.text.length
-    Card(
+    CozyCard(
         Modifier.weight(1f).clickable { if (!done) shown = line.text.length },
         shape = RoundedCornerShape(
             topStart = 18.dp,
@@ -147,11 +148,11 @@ private fun RowScope.DialogBox(
                 )
                 Spacer(Modifier.weight(1f))
                 when {
-                    !done -> TextButton(onClick = { shown = line.text.length }) {
+                    !done -> CozyTextButton(onClick = { shown = line.text.length }) {
                         Text("Bỏ qua chữ")
                     }
-                    !state.isLastLine -> Button(onClick = onNext) { Text("Tiếp") }
-                    script.actionLabel != null -> Button(onClick = onAct, enabled = !state.busy) {
+                    !state.isLastLine -> CozyButton(onClick = onNext) { Text("Tiếp") }
+                    script.actionLabel != null -> CozyButton(onClick = onAct, enabled = !state.busy) {
                         Text(if (state.busy) "Đợi chút…" else script.actionLabel)
                     }
                     else -> CircularProgressIndicator(Modifier.size(24.dp), strokeWidth = 3.dp)
