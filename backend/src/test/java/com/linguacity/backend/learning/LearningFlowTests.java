@@ -101,20 +101,20 @@ class LearningFlowTests {
     // Phiên học
     // =====================================================================================
 
-    // TC-VS3-01, TC-VS3-02
+    // TC-VS3-01, TC-VS3-02 — ADR-015 §1: 20 từ, 30 câu (20 đọc trước, 10 viết sau)
     @Test
-    void sessionHasTwentyItemsReadingFirstWithoutAnswersAndResumes() throws Exception {
+    void sessionHasThirtyItemsReadingFirstWithoutAnswersAndResumes() throws Exception {
         String user = newUser();
         ResultActions first = post(
                 "/api/v1/learning/sessions", user, "{\"buildingCode\":\"HOUSING\"}")
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.totalCount").value(20))
-                .andExpect(jsonPath("$.items.length()").value(20))
+                .andExpect(jsonPath("$.totalCount").value(30))
+                .andExpect(jsonPath("$.items.length()").value(30))
                 .andExpect(jsonPath("$.vocabLevel").value(1))
                 .andExpect(jsonPath("$.items[0].question.skill").value("READING"))
-                .andExpect(jsonPath("$.items[9].question.skill").value("READING"))
-                .andExpect(jsonPath("$.items[10].question.skill").value("WRITING"))
-                .andExpect(jsonPath("$.items[19].question.skill").value("WRITING"))
+                .andExpect(jsonPath("$.items[19].question.skill").value("READING"))
+                .andExpect(jsonPath("$.items[20].question.skill").value("WRITING"))
+                .andExpect(jsonPath("$.items[29].question.skill").value("WRITING"))
                 .andExpect(jsonPath("$.items[0].question.metadata.options").isArray());
         String body = first.andReturn().getResponse().getContentAsString();
         assertFalse(body.contains("\"answer\""));
@@ -123,7 +123,7 @@ class LearningFlowTests {
         JsonNode s = json.readTree(body);
         Set<Long> words = new HashSet<>();
         s.get("items").forEach(i -> words.add(i.get("vocabularyId").asLong()));
-        assertEquals(10, words.size());
+        assertEquals(20, words.size());
 
         post("/api/v1/learning/sessions", user, "{\"buildingCode\":\"housing\"}")
                 .andExpect(status().isOk())
@@ -231,25 +231,25 @@ class LearningFlowTests {
         JsonNode s = start(user);
         String id = s.get("sessionId").asString();
 
-        answerItems(id, user, s, 17, 19);
+        answerItems(id, user, s, 25, 29);
         complete(id, user).andExpect(status().isConflict())
                 .andExpect(jsonPath("$.code").value("INCOMPLETE"));
-        answer(id, user, 20, "sai");
+        answer(id, user, 30, "sai");
 
         complete(id, user)
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.correct").value(17))
-                .andExpect(jsonPath("$.kpBase").value(85))
+                .andExpect(jsonPath("$.correct").value(25))
+                .andExpect(jsonPath("$.kpBase").value(125))
                 .andExpect(jsonPath("$.kpBonus").value(20))
-                .andExpect(jsonPath("$.kpAwarded").value(105))
+                .andExpect(jsonPath("$.kpAwarded").value(145))
                 .andExpect(jsonPath("$.dailySessionIndex").value(1))
-                .andExpect(jsonPath("$.profile.knowledgePoints").value(105))
+                .andExpect(jsonPath("$.profile.knowledgePoints").value(145))
                 .andExpect(jsonPath("$.collection.total").value(30));
         complete(id, user)
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.kpAwarded").value(105))
-                .andExpect(jsonPath("$.profile.knowledgePoints").value(105));
-        assertEquals(105, users.findById(UUID.fromString(user)).orElseThrow().getKnowledgePoints());
+                .andExpect(jsonPath("$.kpAwarded").value(145))
+                .andExpect(jsonPath("$.profile.knowledgePoints").value(145));
+        assertEquals(145, users.findById(UUID.fromString(user)).orElseThrow().getKnowledgePoints());
         answer(
                 id,
                 user,
@@ -265,13 +265,13 @@ class LearningFlowTests {
         for (int n = 1; n <= 6; n++) {
             JsonNode s = start(user);
             String id = s.get("sessionId").asString();
-            answerItems(id, user, s, 20, 20);
+            answerItems(id, user, s, 30, 30);
             ResultActions done = complete(id, user)
                     .andExpect(jsonPath("$.dailySessionIndex").value(n));
-            done.andExpect(jsonPath("$.kpAwarded").value(n <= 5 ? 120 : 24));
+            done.andExpect(jsonPath("$.kpAwarded").value(n <= 5 ? 170 : 34));
         }
         assertEquals(
-                5 * 120 + 24,
+                5 * 170 + 34,
                 users.findById(UUID.fromString(user)).orElseThrow().getKnowledgePoints());
     }
 
@@ -315,7 +315,7 @@ class LearningFlowTests {
         String user = newUser();
         JsonNode s = start(user);
         String id = s.get("sessionId").asString();
-        answerItems(id, user, s, 20, 20);
+        answerItems(id, user, s, 30, 30);
         LearningSession stale = sessions.findById(UUID.fromString(id)).orElseThrow();
 
         complete(id, user).andExpect(status().isOk());
@@ -417,7 +417,7 @@ class LearningFlowTests {
 
         JsonNode s = start(user);
         String id = s.get("sessionId").asString();
-        answerItems(id, user, s, 0, 20);
+        answerItems(id, user, s, 0, 30);
         complete(id, user).andExpect(jsonPath("$.tutorialStep").value("BUILD_HOUSE"));
 
         post("/api/v1/buildings/HOUSING/build", user, "")
@@ -455,10 +455,11 @@ class LearningFlowTests {
                 .andExpect(jsonPath("$.buildings[?(@.code == 'PARK')].currentLevel")
                         .value(contains(0)))
                 .andExpect(jsonPath("$.tutorialStep").value("ENTER_HOUSE"));
+        // Từ M14 (BR-UPG-01) xây tiếp ở Lv1 là nâng cấp lên Lv2; dữ liệu mẫu chưa có cấu hình Lv2
         post(
                 "/api/v1/buildings/HOUSING/build",
                 user,
-                "").andExpect(jsonPath("$.code").value("ALREADY_BUILT"));
+                "").andExpect(jsonPath("$.code").value("NO_CONTENT"));
 
         // Công trình đã Lv1 → bài học lấy từ Level 2 (chưa có) nên quay về ôn từ đã sưu tầm của
         // Level 1

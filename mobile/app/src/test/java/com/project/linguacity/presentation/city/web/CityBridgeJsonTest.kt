@@ -28,7 +28,7 @@ class CityBridgeJsonTest {
         )
         assertEquals(
             """{"v":1,"buildings":[{"code":"SCHOOL","level":2,"upgrading":true,"progress":0.5},""" +
-                """{"code":"PARK","level":0,"upgrading":false,"progress":0.0}],"events":[{"id":"evt-1","kind":"GRAMMAR"}],""" +
+                """{"code":"PARK","level":0,"upgrading":false,"progress":0.0}],"events":[{"id":"evt-1","kind":"HELP","buildingCode":null}],""" +
                 """"player":{"appearance":{"skin":"#f1c7a5","hairStyle":"short","hairColor":"#4a3426",""" +
                 """"shirt":"#4db6ac","pants":"#3949ab","accessory":"none"}},"houseStyle":{"wall":"#f3e7d3","floor":"oak"}}""",
             json
