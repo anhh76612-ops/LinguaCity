@@ -101,7 +101,7 @@ class LearningFlowTests {
     // Phiên học
     // =====================================================================================
 
-    // TC-VS3-01, TC-VS3-02 — ADR-015 §1: 20 từ, 30 câu (20 đọc trước, 10 viết sau)
+    // TC-VS3-01, TC-VS3-02, TC-LEARN-01 (đợt 2: 20 từ / 30 câu, BR-LEARN-01)
     @Test
     void sessionHasThirtyItemsReadingFirstWithoutAnswersAndResumes() throws Exception {
         String user = newUser();
@@ -124,6 +124,16 @@ class LearningFlowTests {
         Set<Long> words = new HashSet<>();
         s.get("items").forEach(i -> words.add(i.get("vocabularyId").asLong()));
         assertEquals(20, words.size());
+        // câu viết 21–30 thuộc 10 từ khác nhau nằm trong 20 từ của phần đọc
+        Set<Long> readingWords = new HashSet<>();
+        Set<Long> writingWords = new HashSet<>();
+        for (int i = 0; i < 30; i++) {
+            long vocab = s.get("items").get(i).get("vocabularyId").asLong();
+            (i < 20 ? readingWords : writingWords).add(vocab);
+        }
+        assertEquals(20, readingWords.size());
+        assertEquals(10, writingWords.size());
+        assertTrue(readingWords.containsAll(writingWords));
 
         post("/api/v1/learning/sessions", user, "{\"buildingCode\":\"housing\"}")
                 .andExpect(status().isOk())
@@ -231,6 +241,7 @@ class LearningFlowTests {
         JsonNode s = start(user);
         String id = s.get("sessionId").asString();
 
+        // đợt 2: phiên 30 câu; 25/30 = 83% ≥ 80% nên có thưởng
         answerItems(id, user, s, 25, 29);
         complete(id, user).andExpect(status().isConflict())
                 .andExpect(jsonPath("$.code").value("INCOMPLETE"));
@@ -268,6 +279,7 @@ class LearningFlowTests {
             answerItems(id, user, s, 30, 30);
             ResultActions done = complete(id, user)
                     .andExpect(jsonPath("$.dailySessionIndex").value(n));
+            // 30 đúng × 5 + 20 = 170; bài thứ 6: round(170 × 0.2) = 34
             done.andExpect(jsonPath("$.kpAwarded").value(n <= 5 ? 170 : 34));
         }
         assertEquals(
@@ -455,16 +467,31 @@ class LearningFlowTests {
                 .andExpect(jsonPath("$.buildings[?(@.code == 'PARK')].currentLevel")
                         .value(contains(0)))
                 .andExpect(jsonPath("$.tutorialStep").value("ENTER_HOUSE"));
-        // Từ M14 (BR-UPG-01) xây tiếp ở Lv1 là nâng cấp lên Lv2; dữ liệu mẫu chưa có cấu hình Lv2
+        // đợt 2: build dùng chung mọi level; seed này không có cấu hình Lv2 nên NO_CONTENT
         post(
                 "/api/v1/buildings/HOUSING/build",
                 user,
-                "").andExpect(jsonPath("$.code").value("NO_CONTENT"));
+                "").andExpect(status().isConflict())
+                        .andExpect(jsonPath("$.code").value("NO_CONTENT"));
 
-        // Công trình đã Lv1 → bài học lấy từ Level 2 (chưa có) nên quay về ôn từ đã sưu tầm của
-        // Level 1
-        post("/api/v1/learning/sessions", user, "{\"buildingCode\":\"HOUSING\"}")
-                .andExpect(status().isCreated()).andExpect(jsonPath("$.vocabLevel").value(2));
+        // TC-LEARN-02 (BR-LEARN-09): xây Lv1 khi mới có 20/30 từ → level học là 2 (seed chưa có
+        // từ Lv2), nhưng 10 từ Lv1 chưa sưu tầm vẫn phải có trong bài: không còn ngõ cụt
+        JsonNode after = json.readTree(post(
+                "/api/v1/learning/sessions", user, "{\"buildingCode\":\"HOUSING\"}")
+                .andExpect(status().isCreated()).andExpect(jsonPath("$.vocabLevel").value(2))
+                .andReturn().getResponse().getContentAsString());
+        Set<Long> uncollected = new HashSet<>();
+        vocabularies.findAll().stream().filter(v -> v.getLevel() == 1).forEach(v -> {
+            boolean collected = progress.findByUserIdAndVocabularyId(uid, v.getId())
+                    .map(row -> row.getCollectedAt() != null).orElse(false);
+            if (!collected) {
+                uncollected.add(v.getId());
+            }
+        });
+        assertEquals(10, uncollected.size());
+        Set<Long> offered = new HashSet<>();
+        after.get("items").forEach(i -> offered.add(i.get("vocabularyId").asLong()));
+        assertTrue(offered.containsAll(uncollected), "mọi từ Lv1 chưa sưu tầm phải có trong bài");
     }
 
     // =====================================================================================

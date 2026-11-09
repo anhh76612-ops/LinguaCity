@@ -1,5 +1,6 @@
 package com.linguacity.backend.learning.controller;
 
+import com.linguacity.backend.auth.security.CurrentUser;
 import com.linguacity.backend.learning.dto.LearningDtos.*;
 import com.linguacity.backend.learning.service.LearningService;
 import com.linguacity.backend.learning.service.PracticeService;
@@ -24,7 +25,7 @@ public class LearningController {
 
     @PostMapping("/learning/sessions")
     public ResponseEntity<SessionDto> start(
-            @RequestHeader("X-Guest-UUID") UUID guest,
+            @CurrentUser UUID guest,
             @RequestBody StartSessionRequest body) {
         LearningService.Started started = learning.start(
                 guest, body.buildingCode() == null ? "" : body.buildingCode());
@@ -33,13 +34,13 @@ public class LearningController {
     }
 
     @GetMapping("/learning/sessions/{id}")
-    public SessionDto get(@RequestHeader("X-Guest-UUID") UUID guest, @PathVariable UUID id) {
+    public SessionDto get(@CurrentUser UUID guest, @PathVariable UUID id) {
         return learning.get(guest, id);
     }
 
     @PostMapping("/learning/sessions/{id}/items/{itemNo}/answer")
     public AnswerResultDto answer(
-            @RequestHeader("X-Guest-UUID") UUID guest,
+            @CurrentUser UUID guest,
             @PathVariable UUID id,
             @PathVariable int itemNo,
             @RequestBody AnswerRequest body) {
@@ -48,12 +49,12 @@ public class LearningController {
 
     @PostMapping("/learning/sessions/{id}/complete")
     public CompleteResultDto complete(
-            @RequestHeader("X-Guest-UUID") UUID guest, @PathVariable UUID id) {
+            @CurrentUser UUID guest, @PathVariable UUID id) {
         return learning.complete(guest, id);
     }
 
     @PostMapping("/tutorial/placement")
-    public ResponseEntity<SessionDto> placement(@RequestHeader("X-Guest-UUID") UUID guest) {
+    public ResponseEntity<SessionDto> placement(@CurrentUser UUID guest) {
         LearningService.Started started = learning.startPlacement(guest);
         return ResponseEntity.status(started.created() ? HttpStatus.CREATED : HttpStatus.OK)
                 .body(started.session());
@@ -61,13 +62,13 @@ public class LearningController {
 
     /** Luyện tập mọi chủ đề (ADR-015 §6). */
     @GetMapping("/learning/practice/status")
-    public PracticeStatusDto practiceStatus(@RequestHeader("X-Guest-UUID") UUID guest) {
+    public PracticeStatusDto practiceStatus(@CurrentUser UUID guest) {
         return practice.status(guest);
     }
 
     @PostMapping("/learning/practice")
     public ResponseEntity<SessionDto> startPractice(
-            @RequestHeader("X-Guest-UUID") UUID guest,
+            @CurrentUser UUID guest,
             @RequestBody(required = false) PracticeRequest body) {
         LearningService.Started started = practice.start(guest, body);
         return ResponseEntity.status(started.created() ? HttpStatus.CREATED : HttpStatus.OK)

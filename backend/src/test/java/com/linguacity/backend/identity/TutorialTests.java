@@ -1,5 +1,8 @@
 package com.linguacity.backend.identity;
 
+import com.linguacity.backend.auth.config.AuthProperties;
+import com.linguacity.backend.auth.security.CurrentUserArgumentResolver;
+import com.linguacity.backend.auth.security.LegacyGuestResolver;
 import com.linguacity.backend.common.exception.ApiExceptionHandler;
 import com.linguacity.backend.achievement.service.AchievementService;
 import com.linguacity.backend.identity.controller.UserProfileController;
@@ -37,6 +40,8 @@ class TutorialTests {
             .standaloneSetup(new UserProfileController(
                     new UserOnboardingService(repository), service))
             .setControllerAdvice(new ApiExceptionHandler())
+            .setCustomArgumentResolvers(new CurrentUserArgumentResolver(
+                    new LegacyGuestResolver(repository, new AuthProperties())))
             .build();
 
     // TC-VS1-09
@@ -96,21 +101,21 @@ class TutorialTests {
                 .andExpect(jsonPath("$.message").value("User profile not found"));
     }
 
-    // TC-VS1-12: lỗi 400 cũng trả cùng định dạng ErrorResponse
+    // TC-VS1-12 (đổi ở VS6, ADR-016): thiếu danh tính → 401 cùng định dạng ErrorResponse
     @Test
-    void missingGuestHeaderReturns400WithErrorBody() throws Exception {
+    void missingGuestHeaderReturns401WithErrorBody() throws Exception {
         api.perform(post(COMPLETE_TUTORIAL))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Missing header X-Guest-UUID"));
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("UNAUTHENTICATED"));
         verifyNoInteractions(repository);
     }
 
-    // TC-VS1-12
+    // TC-VS1-12 (đổi ở VS6): UUID hỏng không được coi là danh tính
     @Test
-    void malformedGuestUuidReturns400WithErrorBody() throws Exception {
+    void malformedGuestUuidReturns401WithErrorBody() throws Exception {
         api.perform(post(COMPLETE_TUTORIAL).header("X-Guest-UUID", "not-a-uuid"))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Invalid X-Guest-UUID"));
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.code").value("UNAUTHENTICATED"));
         verifyNoInteractions(repository);
     }
 

@@ -1,12 +1,12 @@
 package com.linguacity.backend.quest.controller;
 
+import com.linguacity.backend.auth.security.CurrentUser;
 import com.linguacity.backend.quest.dto.QuestDtos.ClaimResultDto;
 import com.linguacity.backend.quest.dto.QuestDtos.QuestsDto;
 import com.linguacity.backend.quest.service.QuestService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -24,12 +24,12 @@ public class QuestController {
     }
 
     @GetMapping
-    public QuestsDto overview(@RequestHeader("X-Guest-UUID") UUID guest) {
+    public QuestsDto overview(@CurrentUser UUID guest) {
         return quests.overview(guest);
     }
 
     @PostMapping("/{code}/claim")
-    public ClaimResultDto claim(@RequestHeader("X-Guest-UUID") UUID guest,
+    public ClaimResultDto claim(@CurrentUser UUID guest,
             @PathVariable String code) {
         return quests.claim(guest, code);
     }

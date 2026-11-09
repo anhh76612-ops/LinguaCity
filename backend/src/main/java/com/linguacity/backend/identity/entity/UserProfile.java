@@ -12,6 +12,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -71,4 +72,11 @@ public class UserProfile {
     /** Ngày (giờ Việt Nam) cuối cùng được tính vào chuỗi. */
     @Column(name = "streak_last_date")
     private LocalDate streakLastDate;
+
+    /**
+     * Thời điểm hồ sơ chuyển sang xác thực bằng token (VS6, ADR-016). Khác null thì header
+     * {@code X-Guest-UUID} của app bản cũ không còn dùng được cho hồ sơ này.
+     */
+    @Column(name = "claimed_at")
+    private LocalDateTime claimedAt;
 }

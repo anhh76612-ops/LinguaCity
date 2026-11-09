@@ -1,5 +1,7 @@
 package com.project.linguacity.di
 
+import com.project.linguacity.data.repository.AuthRepositoryImpl
+import com.project.linguacity.domain.repository.AuthRepository
 import com.project.linguacity.domain.repository.ProgressionRepository
 import com.project.linguacity.data.repository.ProgressionRepositoryImpl
 import com.project.linguacity.data.repository.CardPrefsRepositoryImpl
@@ -25,6 +27,13 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class RepositoryModule {
+
+    // VS6 (ADR-016): đăng nhập, đăng ký, gắn tài khoản
+    @Binds
+    @Singleton
+    abstract fun bindAuthRepository(
+        implementation: AuthRepositoryImpl
+    ): AuthRepository
 
     @Binds
     @Singleton

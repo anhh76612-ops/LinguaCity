@@ -1,5 +1,6 @@
 package com.linguacity.backend.cosmetic.controller;
 
+import com.linguacity.backend.auth.security.CurrentUser;
 import com.linguacity.backend.cosmetic.dto.CosmeticDtos.AvatarConfig;
 import com.linguacity.backend.cosmetic.dto.CosmeticDtos.CosmeticsDto;
 import com.linguacity.backend.cosmetic.dto.CosmeticDtos.HouseStyleConfig;
@@ -20,25 +21,25 @@ public class CosmeticController {
     }
 
     @GetMapping("/users/me/cosmetics")
-    public CosmeticsDto mine(@RequestHeader("X-Guest-UUID") UUID guest) {
+    public CosmeticsDto mine(@CurrentUser UUID guest) {
         return cosmetics.get(guest);
     }
 
     @PostMapping("/cosmetics/{code}/unlock")
     public CosmeticsDto unlock(
-            @RequestHeader("X-Guest-UUID") UUID guest, @PathVariable String code) {
+            @CurrentUser UUID guest, @PathVariable String code) {
         return cosmetics.unlock(guest, code);
     }
 
     @PutMapping("/users/me/avatar")
     public CosmeticsDto avatar(
-            @RequestHeader("X-Guest-UUID") UUID guest, @RequestBody AvatarConfig body) {
+            @CurrentUser UUID guest, @RequestBody AvatarConfig body) {
         return cosmetics.setAvatar(guest, body);
     }
 
     @PutMapping("/users/me/house-style")
     public CosmeticsDto houseStyle(
-            @RequestHeader("X-Guest-UUID") UUID guest, @RequestBody HouseStyleConfig body) {
+            @CurrentUser UUID guest, @RequestBody HouseStyleConfig body) {
         return cosmetics.setHouseStyle(guest, body);
     }
 }

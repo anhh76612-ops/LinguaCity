@@ -1,5 +1,6 @@
 package com.linguacity.backend.identity.controller;
 
+import com.linguacity.backend.auth.security.CurrentUser;
 import com.linguacity.backend.identity.dto.OnboardUserResponse;
 import com.linguacity.backend.identity.dto.CompleteTutorialResponse;
 import com.linguacity.backend.identity.entity.UserProfile;
@@ -23,12 +24,16 @@ public class UserProfileController {
         this.tutorialService = tutorialService;
     }
 
+    /**
+     * Lấy (hoặc tạo, với app bản cũ) hồ sơ của người gọi. Từ VS6 app gửi Bearer token và hồ sơ đã
+     * có sẵn; header {@code X-Guest-UUID} chỉ còn cho app bản cũ khi cờ legacy bật (ADR-016).
+     */
     @PostMapping("/onboard")
     public ResponseEntity<OnboardUserResponse> onboardUser(
-            @RequestHeader("X-Guest-UUID") UUID guestUuid
+            @CurrentUser UUID userId
     ) {
         UserProfile userProfile =
-                userOnboardingService.onboardUser(guestUuid);
+                userOnboardingService.onboardUser(userId);
 
         OnboardUserResponse response = new OnboardUserResponse(
                 userProfile.getId(),
@@ -44,7 +49,7 @@ public class UserProfileController {
 
     @PostMapping("/me/tutorial/complete")
     public ResponseEntity<CompleteTutorialResponse> completeTutorial(
-            @RequestHeader("X-Guest-UUID") UUID guestUuid
+            @CurrentUser UUID guestUuid
     ) {
         UserProfile userProfile = tutorialService.completeTutorial(guestUuid);
 

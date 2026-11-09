@@ -23,12 +23,14 @@ class CityBridgeJsonTest {
                     BuildingView(BuildingCode.SCHOOL, level = 2, upgrading = true, progress = 0.5f),
                     BuildingView(BuildingCode.PARK, level = 0, upgrading = false, progress = 0f)
                 ),
-                events = listOf(CityEvent("evt-1"))
+                // M16: sự kiện cư dân mặc định kind = HELP, kèm buildingCode tuỳ chọn
+                events = listOf(CityEvent("evt-1", buildingCode = BuildingCode.PARK))
             )
         )
         assertEquals(
             """{"v":1,"buildings":[{"code":"SCHOOL","level":2,"upgrading":true,"progress":0.5},""" +
-                """{"code":"PARK","level":0,"upgrading":false,"progress":0.0}],"events":[{"id":"evt-1","kind":"HELP","buildingCode":null}],""" +
+                """{"code":"PARK","level":0,"upgrading":false,"progress":0.0}],""" +
+                """"events":[{"id":"evt-1","kind":"HELP","buildingCode":"PARK"}],""" +
                 """"player":{"appearance":{"skin":"#f1c7a5","hairStyle":"short","hairColor":"#4a3426",""" +
                 """"shirt":"#4db6ac","pants":"#3949ab","accessory":"none"}},"houseStyle":{"wall":"#f3e7d3","floor":"oak"}}""",
             json

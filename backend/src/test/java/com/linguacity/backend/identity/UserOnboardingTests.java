@@ -17,6 +17,11 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import com.linguacity.backend.auth.config.AuthProperties;
+import com.linguacity.backend.auth.security.CurrentUserArgumentResolver;
+import com.linguacity.backend.auth.security.LegacyGuestResolver;
+import com.linguacity.backend.common.exception.ApiExceptionHandler;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -30,7 +35,11 @@ class UserOnboardingTests {
                     new TutorialService(
                             repository,
                             mock(AchievementService.class),
-                            Clock.systemUTC()))).build();
+                            Clock.systemUTC())))
+            .setControllerAdvice(new ApiExceptionHandler())
+            .setCustomArgumentResolvers(new CurrentUserArgumentResolver(
+                    new LegacyGuestResolver(repository, new AuthProperties())))
+            .build();
 
     @Test
     void createsNewGuestWithZeroResources() {
@@ -84,14 +93,15 @@ class UserOnboardingTests {
 
     @Test
     void missingGuestHeaderIsRejected() throws Exception {
-        api.perform(post("/api/v1/users/onboard")).andExpect(status().isBadRequest());
+        // Đổi ở VS6 (ADR-016): không có danh tính → 401
+        api.perform(post("/api/v1/users/onboard")).andExpect(status().isUnauthorized());
         verifyNoInteractions(repository);
     }
 
     @Test
     void malformedGuestUuidIsRejected() throws Exception {
         api.perform(post("/api/v1/users/onboard").header("X-Guest-UUID", "not-a-uuid"))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isUnauthorized());
         verifyNoInteractions(repository);
     }
 }

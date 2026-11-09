@@ -9,6 +9,18 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.project.linguacity.data.remote.auth.SessionEvent
+import com.project.linguacity.domain.repository.AuthResult
+import com.project.linguacity.presentation.auth.AccountScreen
+import com.project.linguacity.presentation.auth.ForgotPasswordScreen
+import com.project.linguacity.presentation.auth.LoginScreen
+import com.project.linguacity.presentation.auth.RegisterScreen
+import com.project.linguacity.presentation.auth.SaveProgressScreen
+import com.project.linguacity.presentation.auth.SessionViewModel
+import com.project.linguacity.presentation.auth.VerifyEmailScreen
+import com.project.linguacity.presentation.auth.WelcomeScreen
 import com.project.linguacity.presentation.profile.ProfileScreen
 import com.project.linguacity.presentation.designsystem.DesignGalleryScreen
 import com.project.linguacity.presentation.settings.SettingsScreen
@@ -99,11 +111,84 @@ data class CustomizeRoute(val houseTab: Boolean = false)
 @Serializable
 data class FlashcardRoute(val buildingCode: String, val level: Int, val startIndex: Int)
 
+// ---------- VS6: đăng nhập / đăng ký (ADR-016) ----------
+
+/** SCR-20 Màn chào: đăng nhập, đăng ký, Google, Facebook, chơi ngay (khách). */
+@Serializable
+object WelcomeRoute
+
+/** SCR-22 */
+@Serializable
+object LoginRoute
+
+/** SCR-21 */
+@Serializable
+object RegisterRoute
+
+/** SCR-24. `reload`: xác minh xong phải tải lại hồ sơ (tài khoản mới, chưa có thành phố). */
+@Serializable
+data class VerifyEmailRoute(val reload: Boolean)
+
+/** SCR-25 */
+@Serializable
+object ForgotPasswordRoute
+
+/** SCR-23 Lưu tiến trình: khách xong tutorial bắt buộc gắn tài khoản. */
+@Serializable
+object SaveProgressRoute
+
+/** SCR-26 */
+@Serializable
+object AccountRoute
+
+/** Các màn xác thực: không mở chồng màn "Lưu tiến trình" lên chúng. */
+private val AUTH_ROUTES = listOf(
+    "WelcomeRoute",
+    "LoginRoute",
+    "RegisterRoute",
+    "VerifyEmailRoute",
+    "ForgotPasswordRoute",
+    "SaveProgressRoute",
+    "OnboardingRoute"
+)
+
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun AppNavHost(
-    navController: NavHostController = rememberNavController()
+    navController: NavHostController = rememberNavController(),
+    session: SessionViewModel = hiltViewModel()
 ) {
+    // Vào lại từ đầu (tải hồ sơ + nội dung) và xoá cả back stack.
+    val restart = {
+        navController.navigate(OnboardingRoute) {
+            popUpTo(navController.graph.id) { inclusive = true }
+        }
+    }
+    // Xong đăng nhập/đăng ký: đổi người hoặc chưa có thành phố → tải lại; chỉ gắn tài khoản cho
+    // khách đang chơi → quay lại thành phố.
+    val finishAuth = { result: AuthResult ->
+        if (result.switchedUser || !navController.popBackStack(HomeRoute, inclusive = false)) {
+            restart()
+        }
+    }
+    val toWelcome = {
+        navController.navigate(WelcomeRoute) {
+            popUpTo(navController.graph.id) { inclusive = true }
+        }
+    }
+    LaunchedEffect(Unit) {
+        session.events.collect { event ->
+            val route = navController.currentDestination?.route.orEmpty()
+            when (event) {
+                SessionEvent.Expired -> toWelcome()
+                SessionEvent.AccountRequired ->
+                    if (AUTH_ROUTES.none { route.contains(it) }) {
+                        navController.navigate(SaveProgressRoute) { launchSingleTop = true }
+                    }
+            }
+        }
+    }
+
     // FR-UI-04: chuyển cảnh giữa các màn (mờ + trượt nhẹ); tắt khi người chơi chọn giảm hiệu ứng.
     val duration = if (LocalReduceMotion.current) 0 else 260
     SharedTransitionLayout {
@@ -127,7 +212,73 @@ fun AppNavHost(
                             navController.navigate(SyncRoute(tutorialCompleted)) {
                                 popUpTo(OnboardingRoute) { inclusive = true }
                             }
+                        },
+                        onNeedsAuth = toWelcome
+                    )
+                }
+
+                composable<WelcomeRoute> {
+                    WelcomeScreen(
+                        onSignedIn = { restart() },
+                        onLogin = { navController.navigate(LoginRoute) },
+                        onRegister = { navController.navigate(RegisterRoute) }
+                    )
+                }
+
+                composable<SaveProgressRoute> {
+                    SaveProgressScreen(
+                        onSignedIn = finishAuth,
+                        onLogin = { navController.navigate(LoginRoute) },
+                        onRegister = { navController.navigate(RegisterRoute) }
+                    )
+                }
+
+                composable<LoginRoute> {
+                    LoginScreen(
+                        onBack = { navController.popBackStack() },
+                        onSignedIn = finishAuth,
+                        onForgot = { navController.navigate(ForgotPasswordRoute) }
+                    )
+                }
+
+                composable<RegisterRoute> {
+                    RegisterScreen(
+                        onBack = { navController.popBackStack() },
+                        onRegistered = { result ->
+                            navController.navigate(VerifyEmailRoute(result.switchedUser)) {
+                                popUpTo<RegisterRoute> { inclusive = true }
+                            }
                         }
+                    )
+                }
+
+                composable<VerifyEmailRoute> { entry ->
+                    val reload = entry.toRoute<VerifyEmailRoute>().reload
+                    VerifyEmailScreen(
+                        onDone = {
+                            if (reload) {
+                                restart()
+                            } else if (
+                                !navController.popBackStack(SaveProgressRoute, inclusive = true)
+                            ) {
+                                navController.popBackStack()
+                            }
+                        }
+                    )
+                }
+
+                composable<ForgotPasswordRoute> {
+                    ForgotPasswordScreen(
+                        onBack = { navController.popBackStack() },
+                        onDone = { navController.popBackStack() }
+                    )
+                }
+
+                composable<AccountRoute> {
+                    AccountScreen(
+                        onBack = { navController.popBackStack() },
+                        onVerifyEmail = { navController.navigate(VerifyEmailRoute(false)) },
+                        onSignedOut = toWelcome
                     )
                 }
 
@@ -217,7 +368,10 @@ fun AppNavHost(
                 composable<SettingsRoute> {
                     SettingsScreen(
                         onBack = { navController.popBackStack() },
-                        onReplayTour = { navController.popBackStack(HomeRoute, inclusive = false) },
+                        onReplayTour = {
+                            navController.popBackStack(HomeRoute, inclusive = false)
+                        },
+                        onOpenAccount = { navController.navigate(AccountRoute) },
                         onOpenDesignGallery = { navController.navigate(DesignGalleryRoute) }
                     )
                 }
