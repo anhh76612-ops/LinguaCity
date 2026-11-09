@@ -29,8 +29,18 @@ enum class OrientationSetting(val label: String) {
         }
 }
 
+/** Chế độ đọc thẻ trong Kho thẻ. */
+enum class CardReadMode { GRID, BENTO }
+
+internal fun parseOrientation(raw: String?): OrientationSetting =
+    raw?.let { runCatching { OrientationSetting.valueOf(it) }.getOrNull() }
+        ?: OrientationSetting.LANDSCAPE
+
+internal fun parseReadMode(raw: String?): CardReadMode =
+    raw?.let { runCatching { CardReadMode.valueOf(it) }.getOrNull() } ?: CardReadMode.GRID
+
 data class AppSettings(
-    val orientation: OrientationSetting = OrientationSetting.AUTO,
+    val orientation: OrientationSetting = OrientationSetting.LANDSCAPE,
     val reduceMotion: Boolean = false,
     /**
      * Người chơi bấm "Xem lại hướng dẫn": City hiện lại tour (chỉ phía app, không đổi bước server).
@@ -50,6 +60,14 @@ class SettingsStore @Inject constructor(@ApplicationContext private val context:
     private val reduceMotionKey = booleanPreferencesKey("reduce_motion")
     private val replayTourKey = booleanPreferencesKey("replay_tour")
     private val examTipSeenKey = booleanPreferencesKey("exam_tip_seen")
+    private val cardReadModeKey = stringPreferencesKey("card_read_mode")
+
+    val cardReadMode: Flow<CardReadMode> =
+        context.settingsStore.data.map { parseReadMode(it[cardReadModeKey]) }
+
+    suspend fun setCardReadMode(value: CardReadMode) = context.settingsStore.edit {
+        it[cardReadModeKey] = value.name
+    }
 
     /** Mai đã giới thiệu Trung tâm thi chưa (SCR-10, chỉ một lần). */
     val examTipSeen: Flow<Boolean> = context.settingsStore.data.map { it[examTipSeenKey] ?: false }
@@ -58,10 +76,7 @@ class SettingsStore @Inject constructor(@ApplicationContext private val context:
 
     val settings: Flow<AppSettings> = context.settingsStore.data.map { p ->
         AppSettings(
-            orientation = p[orientationKey]?.let {
-                runCatching { OrientationSetting.valueOf(it) }.getOrNull()
-            }
-                ?: OrientationSetting.AUTO,
+            orientation = parseOrientation(p[orientationKey]),
             reduceMotion = p[reduceMotionKey] ?: false,
             replayTour = p[replayTourKey] ?: false
         )

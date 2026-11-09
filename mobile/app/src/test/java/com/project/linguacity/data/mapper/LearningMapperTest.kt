@@ -3,6 +3,7 @@ package com.project.linguacity.data.mapper
 import com.project.linguacity.data.remote.IsoTime
 import com.project.linguacity.data.remote.city.CityDto
 import com.project.linguacity.data.remote.learning.CompleteResultDto
+import com.project.linguacity.data.remote.learning.ProgressItemDto
 import com.project.linguacity.data.remote.learning.SessionDto
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
@@ -76,5 +77,24 @@ class LearningMapperTest {
         assertEquals(1_794_106_800_500L, IsoTime.parseMillis("2026-11-08T03:00:00.5Z"))
         assertNull(IsoTime.parseMillis("hôm qua"))
         assertNull(IsoTime.parseMillis(null))
+    }
+
+    @Test
+    fun `progress item maps all timestamps`() {
+        val e = json.decodeFromString(ProgressItemDto.serializer(), """
+            {"vocabularyId":3,"masteryScore":4,"maxMastery":10,"collected":true,
+             "firstSeenAt":"2026-11-01T00:00:00Z","lastReviewedAt":"2026-11-08T00:00:00Z",
+             "lastCorrectAt":"2026-11-02T00:00:00Z"}""").toEntity()
+        assertEquals(IsoTime.parseMillis("2026-11-01T00:00:00Z"), e.firstSeenAtMillis)
+        assertEquals(IsoTime.parseMillis("2026-11-08T00:00:00Z"), e.lastReviewedAtMillis)
+        assertEquals(IsoTime.parseMillis("2026-11-02T00:00:00Z"), e.lastCorrectAtMillis)
+    }
+
+    @Test
+    fun `progress item without lastCorrectAt maps null`() {
+        val e = json.decodeFromString(ProgressItemDto.serializer(), """
+            {"vocabularyId":3,"masteryScore":4,"maxMastery":10,"collected":true,
+             "firstSeenAt":"2026-11-01T00:00:00Z","lastReviewedAt":"2026-11-08T00:00:00Z"}""").toEntity()
+        assertNull(e.lastCorrectAtMillis)
     }
 }

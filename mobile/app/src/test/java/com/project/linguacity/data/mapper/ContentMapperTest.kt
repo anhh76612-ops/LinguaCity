@@ -84,4 +84,38 @@ class ContentMapperTest {
         assertFalse(stored.contains("answer"))
         assertFalse(stored.contains("explanation"))
     }
+
+    @Test
+    fun `pack maps collocations explanation and icon key`() {
+        val pack = json.decodeFromString(
+            PackDto.serializer(),
+            """{"code":"HOUSING:1","version":1,
+               "vocabularies":[{"id":1,"word":"rent","meaning":"tiền thuê nhà","wordType":"NOUN","ipa":"/rent/",
+                                "examples":["My rent is due."],"imageUrl":null,"themeCode":"HOUSE","level":1,"difficultyRank":"D",
+                                "collocations":["pay the rent"],"explanation":"Khoản trả hằng tháng.","iconKey":"key"}]}"""
+        )
+        val entity = pack.toRows().vocabularies.single()
+        assertEquals(listOf("pay the rent"), entity.collocations)
+        assertEquals("Khoản trả hằng tháng.", entity.explanation)
+        assertEquals("key", entity.iconKey)
+
+        val domain = entity.toDomain()
+        assertEquals(listOf("pay the rent"), domain.collocations)
+        assertEquals("Khoản trả hằng tháng.", domain.explanation)
+        assertEquals("key", domain.iconKey)
+    }
+
+    @Test
+    fun `old pack json without new fields still parses`() {
+        val pack = json.decodeFromString(
+            PackDto.serializer(),
+            """{"code":"HOUSING:1","version":1,
+               "vocabularies":[{"id":1,"word":"rent","meaning":"tiền thuê nhà","wordType":"NOUN","ipa":"/rent/",
+                                "examples":["My rent is due."],"imageUrl":null,"themeCode":"HOUSE","level":1,"difficultyRank":"D"}]}"""
+        )
+        val entity = pack.toRows().vocabularies.single()
+        assertEquals(emptyList<String>(), entity.collocations)
+        assertEquals(null, entity.explanation)
+        assertEquals(null, entity.iconKey)
+    }
 }

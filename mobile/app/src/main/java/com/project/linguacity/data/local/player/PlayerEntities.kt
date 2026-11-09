@@ -15,7 +15,9 @@ data class UserVocabProgressEntity(
     val masteryScore: Int,
     val maxMastery: Int,
     val collected: Boolean,
-    val lastReviewedAtMillis: Long?
+    val lastReviewedAtMillis: Long?,
+    val firstSeenAtMillis: Long? = null,
+    val lastCorrectAtMillis: Long? = null
 )
 
 /** Trạng thái công trình theo GET /city (hợp đồng A). Giờ lưu theo giờ server. */

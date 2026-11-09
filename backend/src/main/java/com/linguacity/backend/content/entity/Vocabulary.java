@@ -34,6 +34,16 @@ public class Vocabulary {
     @Column(name = "examples")
     private String examples;
 
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "collocations")
+    private String collocations;
+
+    @Column(name = "explanation")
+    private String explanation;
+
+    @Column(name = "icon_key", length = 40)
+    private String iconKey;
+
     @Column(name = "image_url")
     private String imageUrl;
 

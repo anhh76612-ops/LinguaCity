@@ -4,12 +4,14 @@ import com.project.linguacity.data.repository.AuthRepositoryImpl
 import com.project.linguacity.domain.repository.AuthRepository
 import com.project.linguacity.domain.repository.ProgressionRepository
 import com.project.linguacity.data.repository.ProgressionRepositoryImpl
+import com.project.linguacity.data.repository.CardPrefsRepositoryImpl
 import com.project.linguacity.data.repository.ContentRepositoryImpl
 import com.project.linguacity.data.repository.CosmeticRepositoryImpl
 import com.project.linguacity.data.repository.CityRepositoryImpl
 import com.project.linguacity.data.repository.LearningRepositoryImpl
 import com.project.linguacity.data.repository.PlayerRepositoryImpl
 import com.project.linguacity.data.repository.UserRepositoryImpl
+import com.project.linguacity.domain.repository.CardPrefsRepository
 import com.project.linguacity.domain.repository.CityRepository
 import com.project.linguacity.domain.repository.ContentRepository
 import com.project.linguacity.domain.repository.CosmeticRepository
@@ -69,4 +71,10 @@ abstract class RepositoryModule {
     abstract fun bindProgressionRepository(
         implementation: ProgressionRepositoryImpl
     ): ProgressionRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindCardPrefsRepository(
+        implementation: CardPrefsRepositoryImpl
+    ): CardPrefsRepository
 }

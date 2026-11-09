@@ -100,7 +100,8 @@ public final class LearningDtos {
             int maxMastery,
             boolean collected,
             Instant firstSeenAt,
-            Instant lastReviewedAt) {}
+            Instant lastReviewedAt,
+            Instant lastCorrectAt) {}
 
     public record ProgressDto(Instant serverTime, List<ProgressItemDto> items) {}
 }

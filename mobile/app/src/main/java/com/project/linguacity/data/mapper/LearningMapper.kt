@@ -3,6 +3,8 @@ package com.project.linguacity.data.mapper
 import com.project.linguacity.data.remote.IsoTime
 import com.project.linguacity.data.remote.city.BuildingStateDto
 import com.project.linguacity.data.local.player.UserBuildingEntity
+import com.project.linguacity.data.local.player.UserVocabProgressEntity
+import com.project.linguacity.data.remote.learning.ProgressItemDto
 import com.project.linguacity.data.remote.learning.AnswerResultDto
 import com.project.linguacity.data.remote.learning.CompleteResultDto
 import com.project.linguacity.data.remote.learning.QuestionViewDto
@@ -70,6 +72,16 @@ fun CompleteResultDto.toDomain() = LessonResult(
     tutorialStep = tutorialStep,
     shardsAwarded = shardsAwarded,
     eventResolved = eventResolved
+)
+
+fun ProgressItemDto.toEntity() = UserVocabProgressEntity(
+    vocabularyId = vocabularyId,
+    masteryScore = masteryScore,
+    maxMastery = maxMastery,
+    collected = collected,
+    lastReviewedAtMillis = IsoTime.parseMillis(lastReviewedAt),
+    firstSeenAtMillis = IsoTime.parseMillis(firstSeenAt),
+    lastCorrectAtMillis = IsoTime.parseMillis(lastCorrectAt)
 )
 
 fun BuildingStateDto.toEntity() = UserBuildingEntity(
