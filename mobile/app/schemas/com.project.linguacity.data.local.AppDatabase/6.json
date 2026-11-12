@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 6,
-    "identityHash": "62dc9407e2bfc167d4ebdffc7a187e7c",
+    "identityHash": "7dd958710033c0710a9e6dcec40abb0c",
     "entities": [
       {
         "tableName": "user_profiles",
@@ -292,7 +292,7 @@
       },
       {
         "tableName": "vocabularies",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `word` TEXT NOT NULL, `meaning` TEXT NOT NULL, `wordType` TEXT NOT NULL, `ipa` TEXT, `examples` TEXT NOT NULL, `imageUrl` TEXT, `themeCode` TEXT NOT NULL, `level` INTEGER NOT NULL, `difficultyRank` TEXT NOT NULL, `packCode` TEXT NOT NULL, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `word` TEXT NOT NULL, `meaning` TEXT NOT NULL, `wordType` TEXT NOT NULL, `ipa` TEXT, `examples` TEXT NOT NULL, `imageUrl` TEXT, `themeCode` TEXT NOT NULL, `level` INTEGER NOT NULL, `difficultyRank` TEXT NOT NULL, `packCode` TEXT NOT NULL, `collocations` TEXT NOT NULL DEFAULT '[]', `explanation` TEXT, `iconKey` TEXT, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -359,6 +359,25 @@
             "columnName": "packCode",
             "affinity": "TEXT",
             "notNull": true
+          },
+          {
+            "fieldPath": "collocations",
+            "columnName": "collocations",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "'[]'"
+          },
+          {
+            "fieldPath": "explanation",
+            "columnName": "explanation",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "iconKey",
+            "columnName": "iconKey",
+            "affinity": "TEXT",
+            "notNull": false
           }
         ],
         "primaryKey": {
@@ -713,7 +732,7 @@
       },
       {
         "tableName": "user_vocab_progress",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`vocabularyId` INTEGER NOT NULL, `masteryScore` INTEGER NOT NULL, `maxMastery` INTEGER NOT NULL, `collected` INTEGER NOT NULL, `lastReviewedAtMillis` INTEGER, PRIMARY KEY(`vocabularyId`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`vocabularyId` INTEGER NOT NULL, `masteryScore` INTEGER NOT NULL, `maxMastery` INTEGER NOT NULL, `collected` INTEGER NOT NULL, `lastReviewedAtMillis` INTEGER, `firstSeenAtMillis` INTEGER, `lastCorrectAtMillis` INTEGER, PRIMARY KEY(`vocabularyId`))",
         "fields": [
           {
             "fieldPath": "vocabularyId",
@@ -742,6 +761,18 @@
           {
             "fieldPath": "lastReviewedAtMillis",
             "columnName": "lastReviewedAtMillis",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "firstSeenAtMillis",
+            "columnName": "firstSeenAtMillis",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "lastCorrectAtMillis",
+            "columnName": "lastCorrectAtMillis",
             "affinity": "INTEGER",
             "notNull": false
           }
@@ -974,12 +1005,62 @@
         },
         "indices": [],
         "foreignKeys": []
+      },
+      {
+        "tableName": "user_card_prefs",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`vocabularyId` INTEGER NOT NULL, `favorite` INTEGER NOT NULL, `userScale` REAL NOT NULL, `note` TEXT NOT NULL, `lastSelfCheckAtMillis` INTEGER, `updatedAtMillis` INTEGER NOT NULL, PRIMARY KEY(`vocabularyId`))",
+        "fields": [
+          {
+            "fieldPath": "vocabularyId",
+            "columnName": "vocabularyId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "favorite",
+            "columnName": "favorite",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "userScale",
+            "columnName": "userScale",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "note",
+            "columnName": "note",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastSelfCheckAtMillis",
+            "columnName": "lastSelfCheckAtMillis",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "updatedAtMillis",
+            "columnName": "updatedAtMillis",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "vocabularyId"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
       }
     ],
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '62dc9407e2bfc167d4ebdffc7a187e7c')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '7dd958710033c0710a9e6dcec40abb0c')"
     ]
   }
 }
