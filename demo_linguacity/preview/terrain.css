@@ -1,0 +1,61 @@
+.terrain-page .review { margin-top: 13px; height: min(79svh, 850px); }
+.terrain-page:has(.planning-controls:not([hidden])) .review { height: min(72svh, 760px); }
+#terrain { cursor: grab; touch-action: none; }
+#terrain:active { cursor: grabbing; }
+#terrain[data-plan-mode="draw"], #terrain[data-plan-mode="erase"],
+#terrain[data-plan-mode="flatten"], #terrain[data-plan-mode="slope"] { cursor: crosshair; }
+#terrain[data-plan-mode="upgrade"] { cursor: pointer; }
+.terrain-views, .terrain-zoom { display: flex; gap: 6px; }
+.terrain-views { flex-wrap: wrap; }
+.terrain-zoom { position: absolute; right: 11px; bottom: 11px; }
+.terrain-zoom button { min-width: 42px; padding: 4px; font-size: 1.32rem; }
+.terrain-link {
+  display: inline-flex; align-items: center; padding: 0 11px; min-height: 40px;
+  border: 1px solid #a2a482; border-radius: 9px; color: #34492d;
+  background: #e2e6d2; font: 700 .99rem 'Baloo 2', system-ui, sans-serif; text-decoration: none;
+}
+.planning-controls { margin-top: 12px; padding: 9px 12px; border: 1px solid #d2c3a7; border-radius: 11px; background: #faf4e5; }
+.planning-toolbar, .planning-modes, .planning-layers, .planning-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 9px; }
+.planning-toolbar button { min-height: 36px; }
+.planning-toolbar label, .planning-layers { font-size: .79rem; }
+.traffic-legend { display: inline-flex; flex-wrap: wrap; gap: .65rem; font-size: .79rem; }
+.traffic-legend[hidden] { display: none; }
+.traffic-legend span::before { content: ''; display: inline-block; width: .65em; height: .65em; margin-inline-end: .28em; border-radius: 50%; background: var(--lane-color); }
+.walk-lane { --lane-color: #237c64; }
+.motorcycle-lane { --lane-color: #af4826; }
+.car-lane { --lane-color: #344f9e; }
+.planning-controls select { padding: 6px; font: inherit; background: #f8ecd6; color: inherit; border: 1px solid #bda887; border-radius: 6px; }
+.planning-layers { margin-top: 7px; }
+.planning-layers label, .planning-legend { display: inline-flex; align-items: center; }
+.planning-legend i { width: 8px; height: 8px; border-radius: 2px; }
+.planning-legend .core { background: #92c67a; }
+.planning-legend .expansion { background: #e2c672; }
+.planning-legend .terrace { background: #dfcf9c; }
+.planning-legend .slope { background: #ae775a; }
+.planning-legend .buffer { background: #c5a880; }
+#planning-status { margin: 7px 0 0; min-height: 1.35em; font-size: .8rem; }
+.planning-profile { max-width: 530px; padding: 8px 0 12px; }
+.planning-profile p { font-size: .8rem; }
+#terrace-chart { width: min(100%, 460px); height: auto; background: #f9f2df; }
+#edit-options:not([hidden]) {
+  position: sticky; bottom: 0; z-index: 10; display: flex; flex-wrap: wrap;
+  justify-content: space-between; align-items: center; gap: 8px; margin-top: 8px;
+  padding: 8px; background: #faf4e5; border: 1px solid #d2c3a7; border-radius: 11px;
+}
+#edit-option-list, .edit-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+#edit-options button { min-height: 44px; }
+#edit-option-list button { display: grid; text-align: left; line-height: 1.2; }
+#edit-option-list small { font-weight: 500; }
+#confirm-edit { color: #fff5de; background: #4d6042; border-color: #405137; }
+#edit-cursor {
+  position: absolute; width: 21px; height: 21px; transform: translate(-50%, -50%);
+  border: 2px solid #fff8e5; border-radius: 50%; box-shadow: 0 0 0 1px #4b4a35;
+  pointer-events: none;
+}
+@media (max-width: 600px) {
+  .planning-controls button, .planning-controls select { min-height: 44px; }
+  #planning-status { min-height: 3.9em; line-height: 1.3; }
+  .terrain-page header { align-items: flex-start; flex-wrap: wrap; }
+  .terrain-page .review { height: min(72svh, 650px); }
+  .terrain-page:has(.planning-controls:not([hidden])) .review { height: min(58svh, 550px); }
+}

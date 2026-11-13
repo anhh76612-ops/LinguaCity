@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LinguaCity · Duyệt địa hình</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="terrain.css">
+  <script src="terrain.bundle.js" defer></script>
+</head>
+<body>
+  <main class="terrain-page">
+    <header>
+      <div class="identity">
+        <div><p>LinguaCity</p><h1>Duyệt địa hình</h1></div>
+      </div>
+      <div class="terrain-views" aria-label="Góc xem địa hình">
+        <a class="terrain-link" id="planning-link" href="../index.html">Thị trấn</a>
+        <a class="terrain-link" id="terrain-link" href="terrain.html?dia-hinh=1">Địa hình gốc</a>
+        <button type="button" data-camera="town" aria-pressed="false" hidden>Hai bờ và đồi</button>
+        <button type="button" data-camera="plan" aria-pressed="false" hidden>Lõi thị trấn</button>
+        <button type="button" data-camera="bridge" aria-pressed="false" hidden>Cầu ven suối</button>
+        <button type="button" data-camera="overview" aria-pressed="true">Toàn cảnh</button>
+        <button type="button" data-camera="bank" aria-pressed="false">Ven suối</button>
+        <button type="button" data-camera="rapid" aria-pressed="false">Ghềnh đá</button>
+        <button type="button" data-camera="waterfall" aria-pressed="false">Thác đầu suối</button>
+        <button type="button" data-camera="hill" aria-pressed="false">Đồi ven suối</button>
+        <button type="button" data-camera="slope" aria-pressed="false">Sườn núi</button>
+        <button type="button" data-camera="coast" aria-pressed="false">Vịnh biển</button>
+      </div>
+    </header>
+    <section id="planning-controls" class="planning-controls" aria-label="Quy hoạch và vẽ đường" hidden>
+      <div class="planning-toolbar">
+        <div class="planning-modes" aria-label="Thao tác bản đồ">
+          <button type="button" data-plan-mode="inspect" aria-pressed="true">Xem và kéo</button>
+          <button type="button" data-plan-mode="draw" aria-pressed="false">Vẽ dải</button>
+          <button type="button" data-plan-mode="erase" aria-pressed="false">Xóa dải</button>
+          <button type="button" data-plan-mode="upgrade" aria-pressed="false">Đổi mặt đường</button>
+        </div>
+        <label>Bến xe
+          <select id="bus-level"><option value="1" selected>Lv1</option><option value="2">Lv2</option><option value="3">Lv3</option></select>
+        </label>
+        <label>Mặt đường
+          <select id="road-surface"><option value="dirt">Đất</option><option value="stone">Đá lát</option><option value="asphalt">Nhựa</option></select>
+        </label>
+        <button type="button" id="apply-surface" disabled>Áp dụng</button>
+        <button type="button" id="load-sample">Nạp lại mẫu</button>
+      </div>
+      <div class="planning-layers">
+        <label><input type="checkbox" id="show-zones" checked> Vùng xây</label>
+        <label><input type="checkbox" id="show-grid"> Lưới ô</label>
+        <label><input type="checkbox" id="show-lanes"> Luồng đi bộ và xe</label>
+        <span class="planning-legend"><i class="core"></i> Lõi <i class="expansion"></i> Mở rộng <i class="terrace"></i> Chuyển cao độ <i class="slope"></i> Dốc lớn <i class="buffer"></i> Đệm</span>
+      </div>
+      <p id="planning-status" role="status" aria-live="polite"></p>
+    </section>
+    <section class="review" aria-label="Địa hình 3D">
+      <canvas id="terrain" aria-label="Thung lũng, đồi và suối của LinguaCity"></canvas>
+      <div class="terrain-zoom" aria-label="Thu phóng">
+        <button type="button" id="zoom-in" aria-label="Phóng to">+</button>
+        <button type="button" id="zoom-out" aria-label="Thu nhỏ">−</button>
+      </div>
+    </section>
+    <footer><p id="status" role="status">Đang tải địa hình…</p></footer>
+    <details id="planning-profile" class="planning-profile" hidden>
+      <summary>Cao độ các tuyến lên thềm và đồi</summary>
+      <p id="terrace-profile"></p>
+      <canvas id="terrace-chart" width="460" height="74" aria-label="Biểu đồ cao độ theo chiều dài lối lên thềm"></canvas>
+      <p id="hill-profile"></p>
+    </details>
+  </main>
+</body>
+</html>

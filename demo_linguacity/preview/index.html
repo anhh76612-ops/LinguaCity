@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LinguaCity · Duyệt bản đồ và công trình</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="preview.bundle.js" defer></script>
+</head>
+<body>
+  <main>
+    <header>
+      <div class="identity">
+        <img src="../assets/mayor-portrait.png" width="52" height="52" alt="">
+        <div><p>LinguaCity</p><h1>Duyệt bản đồ và công trình</h1></div>
+      </div>
+      <button type="button" id="night" aria-pressed="false">Xem ban đêm</button>
+    </header>
+    <nav aria-label="Cảnh xem trước">
+      <button type="button" class="map-tab" data-view="starter" aria-pressed="true">Thị trấn nghèo</button>
+      <button type="button" class="map-tab" data-view="developed" aria-pressed="false">Đô thị Lv3</button>
+      <button type="button" data-view="house" aria-pressed="false">House</button>
+      <button type="button" data-view="school" aria-pressed="false">School</button>
+      <button type="button" data-view="park" aria-pressed="false">Park</button>
+      <button type="button" data-view="bus" aria-pressed="false">Bus Station</button>
+    </nav>
+    <section class="review" aria-label="Mô hình 3D">
+      <canvas id="scene" aria-label="Bản đồ hoặc công trình 3D đang xem"></canvas>
+      <div class="labels" id="labels" hidden></div>
+      <p class="town-label" id="town-label" hidden></p>
+    </section>
+    <footer>
+      <p id="status" role="status">Đang tải bản xem trước…</p>
+      <div class="actions">
+        <button type="button" id="build" hidden>Xây House Lv1</button>
+        <button type="button" id="compare" hidden>So sánh bốn cấp</button>
+      </div>
+    </footer>
+  </main>
+</body>
+</html>

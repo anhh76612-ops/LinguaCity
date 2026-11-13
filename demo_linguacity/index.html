@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LinguaCity · Bản đồ thị trấn</title>
+  <link rel="stylesheet" href="preview/styles.css">
+  <link rel="stylesheet" href="preview/terrain.css">
+  <script src="index.bundle.js" defer></script>
+</head>
+<body>
+  <main class="terrain-page">
+    <header>
+      <div class="identity">
+        <div><p>LinguaCity</p><h1>Thị trấn</h1></div>
+      </div>
+      <div class="terrain-views" aria-label="Góc xem địa hình">
+        <a class="terrain-link" href="preview/terrain.html">Chỉ xem địa hình</a>
+        <a class="terrain-link" href="arrange.html">Demo sắp xếp nhà</a>
+        <button type="button" data-camera="town" aria-pressed="true">Hai bờ và đồi</button>
+        <button type="button" data-camera="plan" aria-pressed="false">Lõi thị trấn</button>
+        <button type="button" data-camera="bridge" aria-pressed="false">Cầu ven suối</button>
+        <button type="button" data-camera="overview" aria-pressed="false">Toàn cảnh</button>
+        <button type="button" data-camera="bank" aria-pressed="false">Ven suối</button>
+        <button type="button" data-camera="riverEdit" aria-pressed="false">Vẽ qua suối</button>
+        <button type="button" data-camera="rapid" aria-pressed="false">Ghềnh đá</button>
+        <button type="button" data-camera="waterfall" aria-pressed="false">Thác đầu suối</button>
+        <button type="button" data-camera="hill" aria-pressed="false">Đồi ven suối</button>
+        <button type="button" data-camera="slope" aria-pressed="false">Sườn núi</button>
+        <button type="button" data-camera="coast" aria-pressed="false">Vịnh biển</button>
+      </div>
+    </header>
+    <section id="planning-controls" class="planning-controls" aria-label="Quy hoạch và vẽ đường" hidden>
+      <div class="planning-toolbar">
+        <div class="planning-modes" aria-label="Thao tác bản đồ">
+          <button type="button" data-plan-mode="inspect" aria-pressed="true">Xem và kéo</button>
+          <button type="button" data-plan-mode="draw" aria-pressed="false">Vẽ dải</button>
+          <button type="button" data-plan-mode="erase" aria-pressed="false">Xóa dải</button>
+          <button type="button" data-plan-mode="upgrade" aria-pressed="false">Đổi mặt đường</button>
+          <button type="button" data-plan-mode="flatten" aria-pressed="false">San phẳng</button>
+          <button type="button" data-plan-mode="slope" aria-pressed="false">Làm dốc</button>
+        </div>
+        <label>Bến xe
+          <select id="bus-level"><option value="1" selected>Lv1</option><option value="2">Lv2</option><option value="3">Lv3</option></select>
+        </label>
+        <label>Mặt đường
+          <select id="road-surface"><option value="dirt">Đất</option><option value="stone">Đá lát</option><option value="asphalt">Nhựa</option></select>
+        </label>
+        <button type="button" id="apply-surface" disabled>Áp dụng</button>
+        <button type="button" id="load-sample">Nạp lại mẫu</button>
+      </div>
+      <div class="planning-layers">
+        <label><input type="checkbox" id="show-zones" checked> Vùng xây</label>
+        <label><input type="checkbox" id="show-grid"> Lưới ô</label>
+        <label><input type="checkbox" id="show-lanes"> Hiện làn giao thông</label>
+        <span id="traffic-legend" class="traffic-legend" hidden>
+          <span class="walk-lane">Đi bộ</span>
+          <span class="motorcycle-lane">Xe máy</span>
+          <span class="car-lane">Ô tô / làn chung</span>
+        </span>
+        <label>Bề rộng
+          <select id="road-width"><option value="1">1×</option><option value="2">2×</option><option value="3">3×</option><option value="4">4×</option></select>
+        </label>
+        <label><input type="checkbox" id="auto-level" checked> Tự đề xuất san nền</label>
+        <label id="road-gesture-control" hidden>Cách vẽ
+          <select id="road-gesture"><option value="drag">Kéo tay</option><option value="points">Chấm A–B</option></select>
+        </label>
+        <label hidden>Kiểu nét
+          <select id="stroke-mode"><option value="snap">Bắt trục</option><option value="free">Vẽ tự do</option></select>
+        </label>
+        <label id="flatten-size-control" hidden>Vùng san
+          <select id="flatten-size"><option value="1">1×1</option><option value="3" selected>3×3</option><option value="4">4×4</option></select>
+        </label>
+        <button type="button" id="suggest-detour" hidden>Gợi ý đường vòng</button>
+        <button type="button" id="undo-edit" disabled>Hoàn tác</button>
+        <button type="button" id="redo-edit" disabled>Làm lại</button>
+        <span class="planning-legend"><i class="core"></i> Lõi <i class="expansion"></i> Mở rộng <i class="terrace"></i> Chuyển cao độ <i class="slope"></i> Dốc lớn <i class="buffer"></i> Đệm</span>
+      </div>
+      <p id="planning-status" role="status" aria-live="polite"></p>
+    </section>
+    <section class="review" aria-label="Địa hình 3D">
+      <canvas id="terrain" aria-label="Thung lũng, đồi và suối của LinguaCity"></canvas>
+      <span id="edit-cursor" aria-hidden="true" hidden></span>
+      <div class="terrain-zoom" aria-label="Thu phóng">
+        <button type="button" id="zoom-in" aria-label="Phóng to">+</button>
+        <button type="button" id="zoom-out" aria-label="Thu nhỏ">−</button>
+      </div>
+    </section>
+    <section id="edit-options" aria-label="Phương án chỉnh sửa" hidden>
+      <div id="edit-option-list" role="group" aria-label="Chọn bản xem trước"></div>
+      <div class="edit-actions">
+        <button type="button" id="cancel-edit">Hủy</button>
+        <button type="button" id="confirm-edit">Xác nhận</button>
+      </div>
+    </section>
+    <footer><p id="status" role="status">Đang tải địa hình…</p></footer>
+    <details id="planning-profile" class="planning-profile" hidden>
+      <summary>Cao độ các tuyến lên thềm và đồi</summary>
+      <p id="terrace-profile"></p>
+      <canvas id="terrace-chart" width="460" height="74" aria-label="Biểu đồ cao độ theo chiều dài lối lên thềm"></canvas>
+      <p id="hill-profile"></p>
+    </details>
+  </main>
+</body>
+</html>

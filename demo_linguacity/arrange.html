@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Bản thử xây dựng thị trấn ven suối của LinguaCity.">
+  <title>LinguaCity · Demo bản đồ</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="model.js" defer></script>
+  <script src="world.bundle.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <main class="game" aria-label="Demo bản đồ LinguaCity">
+    <div class="viewport">
+      <canvas id="map" aria-label="Bản đồ thị trấn ven suối"></canvas>
+      <div class="scene-fade" id="scene-fade" aria-hidden="true"></div>
+      <header class="brand">
+        <div class="mayor-portrait">
+          <img src="assets/mayor-portrait.png" alt="" width="160" height="160">
+        </div>
+        <div class="brand-name">
+          <h1>LinguaCity</h1>
+          <span>Thị trưởng</span>
+        </div>
+      </header>
+      <a class="planning-link" href="index.html">Bản đồ thị trấn</a>
+      <div class="house-label" id="house-label" hidden><span id="label-name"></span> <span id="label-level"></span></div>
+    </div>
+    <section class="controls" aria-label="Công cụ bản đồ">
+      <p id="status" role="status">Đang tải bản đồ…</p>
+      <div class="dock" id="dock" inert>
+        <div id="context-tools" class="context-tools" hidden>
+          <div class="group" role="group" id="house-tools" aria-label="Cấp và hướng nhà" hidden>
+            <button type="button" data-level="1" aria-pressed="true">Lv1</button>
+            <button type="button" data-level="3" aria-pressed="false">Lv3</button>
+            <button type="button" id="rotate">Xoay 90°</button>
+          </div>
+          <div class="group" role="group" id="place-tools" aria-label="Xác nhận vị trí" hidden>
+            <button type="button" id="cancel">Hủy</button>
+            <button type="button" id="place" class="primary" disabled>Đặt</button>
+          </div>
+          <div class="group" role="group" id="road-tools" aria-label="Mặt đường" hidden>
+            <button type="button" data-material="dirt" aria-pressed="true"><span class="swatch dirt" aria-hidden="true"></span>Đất</button>
+            <button type="button" data-material="stone" aria-pressed="false"><span class="swatch stone" aria-hidden="true"></span>Đá lát</button>
+            <button type="button" data-material="asphalt" aria-pressed="false"><span class="swatch asphalt" aria-hidden="true"></span>Nhựa</button>
+            <button type="button" data-material="erase" aria-pressed="false">Xóa</button>
+          </div>
+          <button type="button" id="enter" class="primary" hidden>Vào nhà</button>
+        </div>
+        <div class="action-row">
+          <div class="group" role="group" id="mode-tools" aria-label="Chế độ">
+            <button type="button" class="tool" data-mode="inspect" aria-pressed="true">
+              <span class="tool-icon select-icon" aria-hidden="true"></span><span class="tool-label">Chọn</span>
+            </button>
+            <button type="button" class="tool" data-mode="place" aria-pressed="false">
+              <span class="tool-icon arrange-icon" aria-hidden="true"></span><span class="tool-label">Sắp xếp</span>
+            </button>
+            <button type="button" class="tool" data-mode="road" aria-pressed="false">
+              <span class="tool-icon road-icon" aria-hidden="true"></span><span class="tool-label">Vẽ đường</span>
+            </button>
+          </div>
+          <button type="button" id="build" class="tool primary" hidden>
+            <span class="tool-icon build-icon" aria-hidden="true"></span><span class="tool-label">Xây nhà Lv1</span>
+          </button>
+          <button type="button" id="leave" class="primary" hidden>Ra ngoài</button>
+        </div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

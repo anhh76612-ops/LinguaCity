@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "lil-gui": "0.19.2",
+    "pathfinding": "0.4.18",
     "three": "0.160.0"
   },
   "devDependencies": {
